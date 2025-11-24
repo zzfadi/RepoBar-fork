@@ -23,3 +23,10 @@ if [ -f "${PLIST_TEMPLATE}" ] && [ -d "${APP_BUNDLE}" ]; then
   log "==> Installing custom Info.plist"
   cp "${PLIST_TEMPLATE}" "${APP_BUNDLE}/Contents/Info.plist"
 fi
+
+# Codesign for distribution/debug
+IDENTITY="${CODESIGN_IDENTITY:-${CODE_SIGN_IDENTITY:-Apple Development: Peter Steinberger}}"
+if [ -n "${IDENTITY}" ] && [ -d "${APP_BUNDLE}" ]; then
+  log "==> Codesigning with ${IDENTITY}"
+  "${ROOT_DIR}/Scripts/codesign_app.sh" "${APP_BUNDLE}" "${IDENTITY}" || true
+fi

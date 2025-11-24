@@ -1,0 +1,16 @@
+{
+  "name": "repobar",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "format": "swiftformat .",
+    "lint": "swiftlint lint --fix",
+    "check": "pnpm format && pnpm lint",
+    "test": "swift test",
+    "build": "swift build",
+    "start": "./Scripts/compile_and_run.sh",
+    "restart": "pnpm stop && pnpm start",
+    "stop": "pkill -f \".build/debug/RepoBar\" || true",
+    "codegen": "./Scripts/apollo_codegen.sh"
+  }
+}

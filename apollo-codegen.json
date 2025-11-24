@@ -1,0 +1,49 @@
+{
+  "schemaDownloadConfiguration": {
+    "downloadMethod": {
+      "introspection": {
+        "endpointURL": "https://api.github.com/graphql",
+        "httpMethod": "POST",
+        "includeDeprecatedInputValues": true,
+        "headers": {
+          "User-Agent": "RepoBar-Codegen"
+        }
+      }
+    },
+    "outputPath": "GraphQL/schema.graphqls"
+  },
+  "operationOutput": {
+    "schemaPath": "GraphQL/schema.graphqls",
+    "output": "GraphQL/Operations.graphql"
+  },
+  "apolloCodegenConfiguration": {
+    "schemaNamespace": "RepoBarGraphQL",
+    "input": {
+      "schemaPath": "GraphQL/schema.graphqls",
+      "operationSearchPaths": ["GraphQL/**/*.graphql"]
+    },
+    "output": {
+      "testMocks": {
+        "none": {}
+      },
+      "schemaTypes": {
+        "path": "Sources/RepoBar/API/Generated/SchemaTypes.swift",
+        "moduleType": {
+          "embeddedInTarget": {
+            "targetName": "RepoBar"
+          }
+        }
+      },
+      "operations": {
+        "inSchemaModule": {
+          "moduleType": {
+            "embeddedInTarget": {
+              "targetName": "RepoBar"
+            }
+          },
+          "operationIDsURL": "GraphQL/operation_ids.json"
+        }
+      }
+    }
+  }
+}

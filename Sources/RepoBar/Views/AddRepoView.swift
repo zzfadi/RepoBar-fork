@@ -58,9 +58,9 @@ struct AddRepoView: View {
         do {
             let trimmed = self.query.trimmingCharacters(in: .whitespacesAndNewlines)
             let repos: [Repository] = if trimmed.isEmpty {
-                try await appState.github.recentRepositories(limit: 10)
+                try await self.appState.github.recentRepositories(limit: 10)
             } else {
-                try await appState.github.searchRepositories(matching: trimmed)
+                try await self.appState.github.searchRepositories(matching: trimmed)
             }
             await MainActor.run { self.results = repos }
         } catch {

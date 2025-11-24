@@ -9,6 +9,7 @@ actor GraphQLClient {
         decoder.dateDecodingStrategy = .iso8601
         return decoder
     }()
+
     private let diag = DiagnosticsLogger.shared
 
     func setEndpoint(apiHost: URL) {
@@ -55,13 +56,13 @@ actor GraphQLClient {
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let http = response as? HTTPURLResponse else { throw URLError(.badServerResponse) }
         guard http.statusCode == 200 else {
-            await diag.message("GraphQL status \(http.statusCode) for \(owner)/\(name)")
+            await self.diag.message("GraphQL status \(http.statusCode) for \(owner)/\(name)")
             throw URLError(.badServerResponse)
         }
 
         let decoded = try decoder.decode(GraphQLResponse<RepoSnapshotData>.self, from: data)
         guard let repo = decoded.data.repository else {
-            await diag.message("GraphQL missing repository for \(owner)/\(name)")
+            await self.diag.message("GraphQL missing repository for \(owner)/\(name)")
             throw URLError(.cannotParseResponse)
         }
 

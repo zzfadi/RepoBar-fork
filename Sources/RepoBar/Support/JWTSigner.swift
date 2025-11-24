@@ -55,9 +55,9 @@ enum JWTSigner {
     }
 }
 
-private extension Data {
-    func base64URLEncodedString() -> String {
-        return self.base64EncodedString()
+extension Data {
+    fileprivate func base64URLEncodedString() -> String {
+        self.base64EncodedString()
             .replacingOccurrences(of: "+", with: "-")
             .replacingOccurrences(of: "/", with: "_")
             .replacingOccurrences(of: "=", with: "")

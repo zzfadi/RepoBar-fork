@@ -102,7 +102,6 @@ final class AppState: ObservableObject {
             Task { await self?.refresh() }
         }
         Task { await DiagnosticsLogger.shared.setEnabled(self.session.settings.diagnosticsEnabled) }
-        Task { await self.configureInstallationProvider() }
     }
 
     /// Starts the OAuth flow using the default GitHub App credentials, invoked from the logged-out prompt.
@@ -117,7 +116,6 @@ final class AppState: ObservableObject {
             try await self.auth.login(
                 clientID: self.defaultClientID,
                 clientSecret: self.defaultClientSecret,
-                pemPath: "",
                 host: self.defaultGitHubHost,
                 loopbackPort: self.defaultLoopbackPort)
             if let user = try? await self.github.currentUser() {
@@ -142,6 +140,12 @@ final class AppState: ObservableObject {
                 }
                 return
             }
+            // If we have tokens but no user in session, fetch identity once per launch.
+            if case .loggedOut = self.session.account {
+                if let user = try? await self.github.currentUser() {
+                    await MainActor.run { self.session.account = .loggedIn(user) }
+                }
+            }
             let repoNames = self.session.settings.pinnedRepositories
             let repos: [Repository] = if !repoNames.isEmpty {
                 try await self.fetchPinned(repoNames: repoNames)
@@ -161,8 +165,13 @@ final class AppState: ObservableObject {
                 self.session.rateLimitReset = nil
                 self.session.lastError = nil
             }
-            self.session.rateLimitReset = await self.github.rateLimitReset()
-            self.session.lastError = await self.github.rateLimitMessage()
+            let now = Date()
+            let reset = await self.github.rateLimitReset(now: now)
+            let message = await self.github.rateLimitMessage(now: now)
+            await MainActor.run {
+                self.session.rateLimitReset = reset
+                self.session.lastError = message
+            }
         } catch {
             await MainActor.run { self.session.lastError = error.userFacingMessage }
         }
@@ -191,18 +200,6 @@ final class AppState: ObservableObject {
 
     func persistSettings() {
         self.settingsStore.save(self.session.settings)
-    }
-
-    private func configureInstallationProvider() async {
-        await self.github.setInstallationsProvider { @Sendable [weak self] in
-            guard let self else { throw URLError(.userAuthenticationRequired) }
-            return try await self.auth.installations()
-        }
-
-        await self.github.setInstallationTokenProvider { @Sendable [weak self] installID in
-            guard let self else { throw URLError(.userAuthenticationRequired) }
-            return try await self.auth.installationToken(for: installID)
-        }
     }
 
     private func currentUserNameOrEmpty() -> String {

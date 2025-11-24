@@ -1,5 +1,4 @@
 import SwiftUI
-import UniformTypeIdentifiers
 
 struct SettingsView: View {
     @EnvironmentObject var session: Session
@@ -99,7 +98,6 @@ struct AccountSettingsView: View {
     @EnvironmentObject var session: Session
     @State private var clientID = "Iv23liGm2arUyotWSjwJ"
     @State private var clientSecret = ""
-    @State private var pemPath = ""
     @State private var enterpriseHost = ""
     @State private var port: Int = 53682
     @State private var validationError: String?
@@ -109,8 +107,6 @@ struct AccountSettingsView: View {
             Section("GitHub.com") {
                 TextField("Client ID", text: self.$clientID)
                 SecureField("Client Secret", text: self.$clientSecret)
-                TextField("Private key path", text: self.$pemPath)
-                Button("Browse…") { self.browsePem() }
                 Button("Sign in") { self.login() }
                 if case let .loggedIn(user) = session.account {
                     Text("Signed in as \(user.username) on \(user.host.host ?? "github.com")")
@@ -145,17 +141,9 @@ struct AccountSettingsView: View {
         .padding()
         .onAppear {
             self.port = self.session.settings.loopbackPort
-        }
-    }
-
-    private func browsePem() {
-        let panel = NSOpenPanel()
-        if let pemType = UTType(filenameExtension: "pem") {
-            panel.allowedContentTypes = [pemType]
-        }
-        panel.allowsMultipleSelection = false
-        if panel.runModal() == .OK, let url = panel.url {
-            self.pemPath = url.path
+            if let enterprise = self.session.settings.enterpriseHost {
+                self.enterpriseHost = enterprise.absoluteString
+            }
         }
     }
 
@@ -185,7 +173,6 @@ struct AccountSettingsView: View {
                 try await self.appState.auth.login(
                     clientID: self.clientID,
                     clientSecret: self.clientSecret,
-                    pemPath: self.pemPath,
                     host: self.session.settings.enterpriseHost ?? self.session.settings.githubHost,
                     loopbackPort: self.port)
                 if let user = try? await appState.github.currentUser() {
@@ -209,6 +196,7 @@ struct AccountSettingsView: View {
         components.fragment = nil
         return components.url
     }
+
 }
 
 struct AdvancedSettingsView: View {

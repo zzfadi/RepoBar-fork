@@ -8,20 +8,9 @@ final class OAuthCoordinator {
     private let tokenStore = TokenStore()
     private let logger = Logger(subsystem: "com.steipete.repobar", category: "oauth")
     private var lastHost: URL = .init(string: "https://github.com")!
-    private var appJWT: String?
-    private var cachedInstallationToken: (token: String, expiresAt: Date?)?
 
-    func login(clientID: String, clientSecret: String, pemPath: String, host: URL, loopbackPort: Int) async throws {
+    func login(clientID: String, clientSecret: String, host: URL, loopbackPort: Int) async throws {
         let normalizedHost = try normalize(host: host)
-        if !pemPath.isEmpty {
-            let exists = FileManager.default.fileExists(atPath: pemPath)
-            guard exists else { throw GitHubAPIError.invalidPEM }
-            let pem = try String(contentsOfFile: pemPath, encoding: .utf8)
-            self.appJWT = try? JWTSigner.sign(appID: "2344358", pemString: pem)
-            await DiagnosticsLogger.shared.message("Using PEM at \(pemPath); JWT generated: \(self.appJWT != nil)")
-        } else {
-            await DiagnosticsLogger.shared.message("No PEM provided; continuing with client secret only.")
-        }
         self.lastHost = normalizedHost
         let authBase = normalizedHost.absoluteString.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
         let authEndpoint = URL(string: "\(authBase)/login/oauth/authorize")!
@@ -116,52 +105,7 @@ final class OAuthCoordinator {
     }
 
     // MARK: - Installation token
-
-    func installationToken(for installationID: String) async throws -> String {
-        guard let jwt = self.appJWT else { throw GitHubAPIError.invalidPEM }
-        if let cached = self.cachedInstallationToken,
-           let expiry = cached.expiresAt,
-           expiry > Date().addingTimeInterval(60) {
-            return cached.token
-        }
-        let url = self.lastHost.appending(path: "/app/installations/\(installationID)/access_tokens")
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.addValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
-        request.addValue("application/json", forHTTPHeaderField: "Accept")
-        let (data, response) = try await URLSession.shared.data(for: request)
-        guard let http = response as? HTTPURLResponse, http.statusCode == 201 else {
-            throw URLError(.badServerResponse)
-        }
-        let decoded = try JSONDecoder().decode(InstallationTokenResponse.self, from: data)
-        self.cachedInstallationToken = (decoded.token, decoded.expiresAt)
-        return decoded.token
-    }
-
-    func installations() async throws -> [Installation] {
-        guard let jwt = self.appJWT else { throw GitHubAPIError.invalidPEM }
-        let url = self.lastHost.appending(path: "/app/installations")
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.addValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
-        request.addValue("application/json", forHTTPHeaderField: "Accept")
-        let (data, response) = try await URLSession.shared.data(for: request)
-        guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
-            throw URLError(.badServerResponse)
-        }
-        let decoded = try JSONDecoder().decode([Installation].self, from: data)
-        return decoded
-    }
-
-private struct InstallationTokenResponse: Decodable {
-    let token: String
-    let expiresAt: Date
-
-    enum CodingKeys: String, CodingKey {
-        case token
-        case expiresAt = "expires_at"
-    }
-}
+    // Installation flow removed: this app now uses user OAuth only.
 
     private func normalize(host: URL) throws -> URL {
         guard var components = URLComponents(url: host, resolvingAgainstBaseURL: false) else {
@@ -177,6 +121,8 @@ private struct InstallationTokenResponse: Decodable {
         guard let cleaned = components.url else { throw GitHubAPIError.invalidHost }
         return cleaned
     }
+
+    // PEM resolution removed; GitHub App installation tokens are not used.
 }
 
 // MARK: - Helpers

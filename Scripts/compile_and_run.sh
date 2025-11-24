@@ -3,14 +3,22 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_NAME="RepoBar"
 APP_PROCESS_PATTERN="${APP_NAME}.app/Contents/MacOS/${APP_NAME}"
-# Load signing defaults from Config/Local.xcconfig if present
-if [ -f "${ROOT_DIR}/Config/Local.xcconfig" ]; then
-  # shellcheck source=/dev/null
-  source "${ROOT_DIR}/Config/Local.xcconfig"
-fi
-
 log() { printf '%s\n' "$*"; }
 fail() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
+
+# Load signing defaults from Config/Local.xcconfig if present (xcconfig syntax)
+if [ -f "${ROOT_DIR}/Config/Local.xcconfig" ]; then
+  # extract key/value pairs like KEY = value
+  while IFS='=' read -r rawKey rawValue; do
+    key="$(printf '%s' "$rawKey" | sed 's,//.*$,,' | xargs)"
+    value="$(printf '%s' "$rawValue" | sed 's,//.*$,,' | xargs)"
+    case "$key" in
+      CODE_SIGN_IDENTITY|CODESIGN_IDENTITY) CODE_SIGN_IDENTITY="${value}" ;;
+      DEVELOPMENT_TEAM) DEVELOPMENT_TEAM="${value}" ;;
+      PROVISIONING_PROFILE_SPECIFIER) PROVISIONING_PROFILE_SPECIFIER="${value}" ;;
+    esac
+  done < <(grep -v '^[[:space:]]*//' "${ROOT_DIR}/Config/Local.xcconfig")
+fi
 
 kill_existing() {
   for _ in {1..10}; do

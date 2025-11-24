@@ -18,8 +18,6 @@ actor GitHubClient {
     private var tokenProvider: (@Sendable () async throws -> OAuthTokens?)?
     private let graphQL = GraphQLClient()
     private let diag = DiagnosticsLogger.shared
-    private var installationTokenProvider: (@Sendable (_ installationID: String) async throws -> String)?
-    private var installationsProvider: (@Sendable () async throws -> [Installation])?
 
     // MARK: - Config
 
@@ -50,32 +48,23 @@ actor GitHubClient {
         }
     }
 
-    func setInstallationTokenProvider(_ provider: @Sendable @escaping (_ installationID: String) async throws -> String) {
-        self.installationTokenProvider = provider
+    func rateLimitReset(now: Date = Date()) -> Date? {
+        guard let reset = self.lastRateLimitReset, reset > now else {
+            self.lastRateLimitReset = nil
+            self.lastRateLimitError = nil
+            return nil
+        }
+        return reset
     }
 
-    func setInstallationsProvider(_ provider: @Sendable @escaping () async throws -> [Installation]) {
-        self.installationsProvider = provider
+    func rateLimitMessage(now: Date = Date()) -> String? {
+        guard self.rateLimitReset(now: now) != nil else { return nil }
+        return self.lastRateLimitError
     }
-
-    func rateLimitReset() -> Date? { self.lastRateLimitReset }
-    func rateLimitMessage() -> String? { self.lastRateLimitError }
 
     // MARK: - High level fetchers
 
     func defaultRepositories(limit: Int, for username: String) async throws -> [Repository] {
-        // Prefer installation repositories across all installations if available.
-        if let installations = try await installationsProvider?(), !installations.isEmpty {
-            var aggregated: [RepoItem] = []
-            for install in installations {
-                if aggregated.count >= limit { break }
-                let repos = try await self.installationRepositories(installationID: install.id)
-                aggregated.append(contentsOf: repos)
-            }
-            let trimmed = Array(aggregated.prefix(limit))
-            return try await self.expandRepoItems(trimmed)
-        }
-
         let repos = try await userReposSorted(limit: max(limit, 10))
         return try await self.expandRepoItems(Array(repos.prefix(limit)))
     }
@@ -123,9 +112,10 @@ actor GitHubClient {
             owner: owner,
             name: name,
             type: .pullRequest) }
-        async let releaseResult: Result<Release, Error> = self.capture { try await self.latestRelease(
-            owner: owner,
-            name: name) }
+        async let releaseResult: Result<Release?, Error> = self.capture {
+            do { return try await self.latestRelease(owner: owner, name: name) }
+            catch let error as URLError where error.code == .fileDoesNotExist { return nil }
+        }
         async let ciResult: Result<CIStatus, Error> = self.capture { try await self.ciStatus(owner: owner, name: name) }
         async let activityResult: Result<ActivityEvent, Error> = self.capture { try await self.latestActivity(
             owner: owner,
@@ -143,7 +133,7 @@ actor GitHubClient {
 
         let issues = await self.value(from: issuesResult, into: &accumulator) ?? details.openIssuesCount
         let pulls = await self.value(from: prsResult, into: &accumulator) ?? 0
-        let releaseREST = await self.value(from: releaseResult, into: &accumulator)
+        let releaseREST: Release? = (await self.value(from: releaseResult, into: &accumulator)) ?? nil
         let ci = await self.value(from: ciResult, into: &accumulator) ?? .unknown
         let activity = await self.value(from: activityResult, into: &accumulator)
         let traffic = await self.value(from: trafficResult, into: &accumulator)
@@ -265,15 +255,6 @@ actor GitHubClient {
         ]
         let (data, _) = try await authorizedGet(url: components.url!, token: token)
         return try self.jsonDecoder.decode([RepoItem].self, from: data)
-    }
-
-    private func installationRepositories(installationID: Int) async throws -> [RepoItem] {
-        guard let tokenProvider = installationTokenProvider else { return [] }
-        let token = try await tokenProvider(String(installationID))
-        let url = self.apiHost.appending(path: "/user/installations/\(installationID)/repositories")
-        let (data, _) = try await authorizedGet(url: url, token: token)
-        let decoded = try self.jsonDecoder.decode(InstallationReposResponse.self, from: data)
-        return decoded.repositories
     }
 
     private func repoDetails(owner: String, name: String) async throws -> RepoItem {
@@ -467,20 +448,20 @@ actor GitHubClient {
     }
 
     private func detectRateLimit(from response: HTTPURLResponse) {
-        if let resetDate = rateLimitDate(from: response) {
-            self.lastRateLimitReset = resetDate
+        guard
+            let remainingText = response.value(forHTTPHeaderField: "X-RateLimit-Remaining"),
+            let remaining = Int(remainingText)
+        else { return }
+
+        if remaining <= 0 {
+            self.lastRateLimitReset = rateLimitDate(from: response)
+        } else if let reset = self.lastRateLimitReset, reset <= Date() {
+            self.lastRateLimitReset = nil
+            self.lastRateLimitError = nil
         }
     }
 
     private func validAccessToken() async throws -> String {
-        // Prefer installation token when available.
-        if let installProvider = installationTokenProvider {
-            if let cached = try tokenStore.load()?.accessToken { return cached }
-            let installs = try await installationsProvider?() ?? []
-            guard let installID = installs.first?.id else { throw URLError(.userAuthenticationRequired) }
-            let installToken = try await installProvider(String(installID))
-            return installToken
-        }
         if let token = try tokenStore.load()?.accessToken { return token }
         if let provider = tokenProvider, let tokens = try await provider() { return tokens.accessToken }
         throw URLError(.userAuthenticationRequired)

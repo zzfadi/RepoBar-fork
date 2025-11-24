@@ -22,9 +22,20 @@ actor GitHubClient {
     // MARK: - Config
 
     func setAPIHost(_ host: URL) {
-        self.apiHost = host
-        Task { await self.graphQL.setEndpoint(apiHost: host) }
-        Task { await self.diag.message("API host set to \(host.absoluteString)") }
+        do {
+            let trusted = try self.trusted(host)
+            self.apiHost = trusted
+            Task { await self.graphQL.setEndpoint(apiHost: trusted) }
+            Task { await self.diag.message("API host set to \(trusted.absoluteString)") }
+        } catch {
+            Task { await self.diag.message("Rejected API host \(host) (must be https with hostname)") }
+        }
+    }
+
+    private func trusted(_ host: URL) throws -> URL {
+        guard host.scheme?.lowercased() == "https" else { throw GitHubAPIError.invalidHost }
+        guard host.host != nil else { throw GitHubAPIError.invalidHost }
+        return host
     }
 
     func setTokenProvider(_ provider: @Sendable @escaping () async throws -> OAuthTokens?) {

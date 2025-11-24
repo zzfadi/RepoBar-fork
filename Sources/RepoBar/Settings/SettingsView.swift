@@ -8,6 +8,8 @@ struct SettingsView: View {
         TabView {
             GeneralSettingsView()
                 .tabItem { Label("General", systemImage: "gear") }
+            RepoSettingsView()
+                .tabItem { Label("Repositories", systemImage: "tray.full") }
             AccountSettingsView()
                 .tabItem { Label("Accounts", systemImage: "person.crop.circle") }
             AdvancedSettingsView()

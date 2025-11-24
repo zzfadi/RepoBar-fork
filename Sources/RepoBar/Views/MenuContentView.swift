@@ -46,7 +46,11 @@ struct MenuContentView: View {
                             isLoggedIn: true,
                             onLogin: self.openLogin)
                     } else {
-                        RepoGridView(repositories: self.viewModels(), unpin: self.unpin, move: self.movePin)
+                        RepoGridView(
+                            repositories: self.viewModels(),
+                            unpin: self.unpin,
+                            hide: self.hide,
+                            move: self.movePin)
                     }
                 }
             }
@@ -80,6 +84,10 @@ struct MenuContentView: View {
 
     private func unpin(_ repo: RepositoryViewModel) {
         Task { await self.appState.removePinned(repo.title) }
+    }
+
+    private func hide(_ repo: RepositoryViewModel) {
+        Task { await self.appState.hide(repo.title) }
     }
 
     private func movePin(from source: IndexSet, to destination: Int) {
@@ -201,6 +209,7 @@ private struct ErrorBanner: View {
 struct RepoGridView: View {
     let repositories: [RepositoryViewModel]
     let unpin: (RepositoryViewModel) -> Void
+    let hide: (RepositoryViewModel) -> Void
     let move: (IndexSet, Int) -> Void
     @EnvironmentObject var session: Session
 
@@ -210,9 +219,12 @@ struct RepoGridView: View {
         let ordered = self.sorted(self.repositories)
         LazyVGrid(columns: self.columns, spacing: 12) {
             ForEach(ordered) { repo in
+                let pinned = self.session.settings.pinnedRepositories.contains(repo.title)
                 RepoCardView(
                     repo: repo,
+                    isPinned: pinned,
                     unpin: { self.unpin(repo) },
+                    hide: { self.hide(repo) },
                     moveUp: { self.moveStep(repo: repo, in: ordered, direction: -1) },
                     moveDown: { self.moveStep(repo: repo, in: ordered, direction: 1) })
                     .onDrag {

@@ -176,10 +176,12 @@ final class AppState: ObservableObject {
                 try await self.fetchPinned(repoNames: repoNames)
             } else {
                 try await self.github.defaultRepositories(
-                    limit: self.session.settings.repoDisplayLimit,
+                    limit: self.session.settings.repoDisplayLimit * 2,
                     for: self.currentUserNameOrEmpty())
             }
-            let trimmed = Array(repos.prefix(self.session.settings.repoDisplayLimit))
+            let hidden = Set(self.session.settings.hiddenRepositories)
+            let visible = repos.filter { !hidden.contains($0.fullName) }
+            let trimmed = Array(visible.prefix(self.session.settings.repoDisplayLimit))
             await MainActor.run {
                 self.session.repositories = trimmed.map { repo in
                     if let idx = session.settings.pinnedRepositories.firstIndex(of: repo.fullName) {
@@ -211,6 +213,21 @@ final class AppState: ObservableObject {
 
     func removePinned(_ fullName: String) async {
         self.session.settings.pinnedRepositories.removeAll { $0 == fullName }
+        self.settingsStore.save(self.session.settings)
+        await self.refresh()
+    }
+
+    func hide(_ fullName: String) async {
+        guard !self.session.settings.hiddenRepositories.contains(fullName) else { return }
+        self.session.settings.hiddenRepositories.append(fullName)
+        // If hidden, also unpin to avoid stale pin list.
+        self.session.settings.pinnedRepositories.removeAll { $0 == fullName }
+        self.settingsStore.save(self.session.settings)
+        await self.refresh()
+    }
+
+    func unhide(_ fullName: String) async {
+        self.session.settings.hiddenRepositories.removeAll { $0 == fullName }
         self.settingsStore.save(self.session.settings)
         await self.refresh()
     }
@@ -283,6 +300,7 @@ struct UserSettings: Equatable, Codable {
     var enterpriseHost: URL?
     var loopbackPort: Int = 53682
     var pinnedRepositories: [String] = [] // owner/name
+    var hiddenRepositories: [String] = [] // owner/name
 }
 
 enum RefreshInterval: CaseIterable, Equatable, Codable {

@@ -2,7 +2,9 @@ import SwiftUI
 
 struct RepoCardView: View {
     let repo: RepositoryViewModel
+    let isPinned: Bool
     let unpin: () -> Void
+    let hide: () -> Void
     let moveUp: (() -> Void)?
     let moveDown: (() -> Void)?
     @EnvironmentObject var session: Session
@@ -66,7 +68,8 @@ struct RepoCardView: View {
             }
             Spacer()
             Menu {
-                Button("Unpin", action: self.unpin)
+                if self.isPinned { Button("Unpin", action: self.unpin) }
+                Button("Hide", action: self.hide)
                 Button("Open in GitHub") { self.open(url: self.repoURL()) }
                 if let moveUp { Button("Move up", action: moveUp) }
                 if let moveDown { Button("Move down", action: moveDown) }

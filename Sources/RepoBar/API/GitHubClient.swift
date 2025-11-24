@@ -1,4 +1,5 @@
 import Foundation
+import OSLog
 
 /// Lightweight GitHub client using REST plus a minimal GraphQL enrichment step.
 actor GitHubClient {
@@ -16,13 +17,14 @@ actor GitHubClient {
     private var lastRateLimitError: String?
     private var tokenProvider: (@Sendable () async throws -> OAuthTokens?)?
     private let graphQL = GraphQLClient()
+    private let diag = DiagnosticsLogger.shared
 
     // MARK: - Config
 
     func setAPIHost(_ host: URL) {
         self.apiHost = host
         Task { await self.graphQL.setEndpoint(apiHost: host) }
-        Task { await DiagnosticsLogger.shared.message("API host set to \(host.absoluteString)") }
+        Task { await self.diag.message("API host set to \(host.absoluteString)") }
     }
 
     func setTokenProvider(_ provider: @Sendable @escaping () async throws -> OAuthTokens?) {
@@ -340,12 +342,15 @@ actor GitHubClient {
         token: String,
         allowedStatuses: Set<Int> = [200, 304]) async throws -> (Data, HTTPURLResponse)
     {
+        await self.diag.message("GET \(url.absoluteString)")
         if await self.etagCache.isRateLimited(), let until = await etagCache.rateLimitUntil() {
+            await self.diag.message("Blocked by local rateLimit until \(until)")
             throw GitHubAPIError.rateLimited(
                 until: until,
                 message: "GitHub rate limit hit; resets \(RelativeFormatter.string(from: until, relativeTo: Date())).")
         }
         if let cooldown = await backoff.cooldown(for: url) {
+            await self.diag.message("Cooldown active for \(url.absoluteString) until \(cooldown)")
             throw GitHubAPIError.serviceUnavailable(
                 retryAfter: cooldown,
                 message: "Cooling down until \(RelativeFormatter.string(from: cooldown, relativeTo: Date())).")
@@ -363,6 +368,7 @@ actor GitHubClient {
 
         let status = response.statusCode
         if status == 304, let cached = await etagCache.cached(for: url) {
+            await self.diag.message("304 Not Modified for \(url.lastPathComponent); using cached")
             return (cached.data, response)
         }
 
@@ -371,6 +377,7 @@ actor GitHubClient {
             await self.backoff.setCooldown(url: response.url ?? url, until: retryAfter)
             let retryText = RelativeFormatter.string(from: retryAfter, relativeTo: Date())
             let message = "GitHub is preparing stats; retry \(retryText)."
+            await self.diag.message("202 for \(url.lastPathComponent); cooldown until \(retryAfter)")
             throw GitHubAPIError.serviceUnavailable(
                 retryAfter: retryAfter,
                 message: message)
@@ -383,10 +390,12 @@ actor GitHubClient {
             await self.backoff.setCooldown(url: response.url ?? url, until: resetDate)
             self.lastRateLimitError = "GitHub rate limit hit; resets " +
                 "\(RelativeFormatter.string(from: resetDate, relativeTo: Date()))."
+            await self.diag.message("Rate limited on \(url.lastPathComponent); resets \(resetDate)")
             throw GitHubAPIError.rateLimited(until: resetDate, message: self.lastRateLimitError ?? "Rate limited.")
         }
 
         guard allowedStatuses.contains(status) else {
+            await self.diag.message("Unexpected status \(status) for \(url.lastPathComponent)")
             throw GitHubAPIError.badStatus(
                 code: status,
                 message: HTTPURLResponse.localizedString(forStatusCode: status))
@@ -394,6 +403,7 @@ actor GitHubClient {
 
         if let etag = response.value(forHTTPHeaderField: "ETag") {
             await self.etagCache.save(url: url, etag: etag, data: data)
+            await self.diag.message("Cached ETag for \(url.lastPathComponent)")
         }
         self.detectRateLimit(from: response)
         return (data, response)

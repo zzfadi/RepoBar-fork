@@ -101,6 +101,7 @@ final class AppState: ObservableObject {
         self.refreshScheduler.configure(interval: self.session.settings.refreshInterval.seconds) { [weak self] in
             Task { await self?.refresh() }
         }
+        Task { await DiagnosticsLogger.shared.setEnabled(self.session.settings.diagnosticsEnabled) }
     }
 
     /// Starts the OAuth flow using the default GitHub App credentials, invoked from the logged-out prompt.

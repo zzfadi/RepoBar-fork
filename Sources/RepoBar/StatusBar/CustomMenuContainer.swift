@@ -5,28 +5,15 @@ struct CustomMenuContainer<Content: View>: View {
 
     var body: some View {
         ZStack {
-            VisualEffectView(material: .hudWindow, blendingMode: .behindWindow)
-                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .stroke(Color.primary.opacity(0.06), lineWidth: 1))
             self.content()
-                .padding(12)
+                .padding(16)
         }
         .frame(minWidth: 420, maxWidth: 520, minHeight: 300)
-    }
-}
-
-struct VisualEffectView: NSViewRepresentable {
-    let material: NSVisualEffectView.Material
-    let blendingMode: NSVisualEffectView.BlendingMode
-
-    func makeNSView(context: Context) -> NSVisualEffectView {
-        let view = NSVisualEffectView()
-        view.state = .active
-        view.material = self.material
-        view.blendingMode = self.blendingMode
-        return view
-    }
-
-    func updateNSView(_ nsView: NSVisualEffectView, context: Context) {
-        nsView.state = .active
+        .shadow(color: .black.opacity(0.08), radius: 14, y: 8)
     }
 }

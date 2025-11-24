@@ -314,7 +314,8 @@ actor GitHubClient {
         }
 
         var request = URLRequest(url: url)
-        request.addValue("token \(token)", forHTTPHeaderField: "Authorization")
+        // GitHub requires "Bearer" here for OAuth access tokens; "token" is for classic tokens.
+        request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         if let cached = await etagCache.cached(for: url) {
             request.addValue(cached.etag, forHTTPHeaderField: "If-None-Match")
         }

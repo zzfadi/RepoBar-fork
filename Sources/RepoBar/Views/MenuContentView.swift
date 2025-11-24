@@ -60,15 +60,6 @@ struct MenuContentView: View {
             .environmentObject(self.session)
         }
         .frame(minWidth: 420, maxWidth: 560)
-        .background(
-            LinearGradient(
-                colors: [
-                    Color(nsColor: .underPageBackgroundColor),
-                    Color(nsColor: .windowBackgroundColor)
-                ],
-                startPoint: .top,
-                endPoint: .bottom)
-        )
     }
 
     private func currentUsername() -> String? {
@@ -98,7 +89,7 @@ struct MenuContentView: View {
     }
 
     private func openLogin() {
-        NSApp.sendAction(Selector(("showPreferencesWindow:")), to: nil, from: nil)
+        Task { await self.appState.quickLogin() }
     }
 }
 
@@ -106,20 +97,29 @@ private struct LoggedOutView: View {
     let onLogin: () -> Void
 
     var body: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "person.crop.circle.badge.exclam")
-                .font(.system(size: 44, weight: .semibold))
-                .foregroundStyle(.secondary)
-                .padding(.top, 8)
+        VStack(spacing: 14) {
+            ZStack {
+                Circle()
+                    .fill(Color.gray.opacity(0.12))
+                    .frame(width: 74, height: 74)
+                Image(systemName: "person.crop.circle.badge.exclam")
+                    .font(.system(size: 34, weight: .semibold))
+                    .foregroundStyle(.secondary)
+            }
             Text("Sign in to see your repositories")
                 .font(.headline)
             Text("Connect your GitHub account to load pins and activity.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
-            Button("Sign in to GitHub") { self.onLogin() }
-                .buttonStyle(.borderedProminent)
+            Button {
+                self.onLogin()
+            } label: {
+                Text("Sign in to GitHub")
+                    .padding(.horizontal, 14)
+            }
+            .buttonStyle(.borderedProminent)
         }
-        .frame(maxWidth: .infinity, minHeight: 280)
+        .frame(maxWidth: .infinity, minHeight: 240)
     }
 }
 

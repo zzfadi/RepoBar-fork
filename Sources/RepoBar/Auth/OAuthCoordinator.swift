@@ -42,15 +42,15 @@ final class OAuthCoordinator {
         var tokenRequest = URLRequest(url: tokenEndpoint)
         tokenRequest.httpMethod = "POST"
         tokenRequest.addValue("application/json", forHTTPHeaderField: "Accept")
-        let body = [
+        tokenRequest.addValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+        tokenRequest.httpBody = Self.formUrlEncoded([
             "client_id": clientID,
             "client_secret": clientSecret,
             "code": result.code,
             "redirect_uri": redirectURL.absoluteString,
             "grant_type": "authorization_code",
             "code_verifier": pkce.verifier,
-        ]
-        tokenRequest.httpBody = try JSONSerialization.data(withJSONObject: body)
+        ])
 
         let (data, response) = try await URLSession.shared.data(for: tokenRequest)
         guard (response as? HTTPURLResponse)?.statusCode == 200 else {
@@ -85,11 +85,11 @@ final class OAuthCoordinator {
         var request = URLRequest(url: refreshURL)
         request.httpMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Accept")
-        let body: [String: Any] = [
+        request.addValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+        request.httpBody = Self.formUrlEncoded([
             "grant_type": "refresh_token",
             "refresh_token": tokens.refreshToken,
-        ]
-        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        ])
         let (data, response) = try await URLSession.shared.data(for: request)
         guard (response as? HTTPURLResponse)?.statusCode == 200 else { throw URLError(.badServerResponse) }
         let decoded = try JSONDecoder().decode(TokenResponse.self, from: data)
@@ -115,6 +115,19 @@ final class OAuthCoordinator {
         components.fragment = nil
         guard let cleaned = components.url else { throw GitHubAPIError.invalidHost }
         return cleaned
+    }
+}
+
+// MARK: - Helpers
+
+extension OAuthCoordinator {
+    fileprivate static func formUrlEncoded(_ params: [String: String]) -> Data? {
+        let encoded = params.map { key, value in
+            let k = key.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? key
+            let v = value.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? value
+            return "\(k)=\(v)"
+        }.joined(separator: "&")
+        return encoded.data(using: .utf8)
     }
 }
 

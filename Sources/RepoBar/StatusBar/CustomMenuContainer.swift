@@ -5,15 +5,16 @@ struct CustomMenuContainer<Content: View>: View {
 
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .fill(.ultraThinMaterial)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .stroke(Color.primary.opacity(0.06), lineWidth: 1))
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .stroke(Color.primary.opacity(0.08), lineWidth: 0.8))
             self.content()
-                .padding(16)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 10)
         }
-        .frame(minWidth: 380, maxWidth: 460, minHeight: 300)
-        .shadow(color: .black.opacity(0.08), radius: 14, y: 8)
+        .frame(minWidth: 360, maxWidth: 440, minHeight: 260)
+        .shadow(color: .black.opacity(0.12), radius: 18, y: 12)
     }
 }

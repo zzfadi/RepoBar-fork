@@ -14,14 +14,14 @@ final class CustomMenuWindow: NSWindow {
         let view = AnyView(contentView)
         let hosting = NSHostingView(rootView: view)
         super.init(
-            contentRect: NSRect(x: 0, y: 0, width: 420, height: 520),
+            contentRect: NSRect(x: 0, y: 0, width: 420, height: 420),
             styleMask: [.borderless],
             backing: .buffered,
             defer: false)
         isOpaque = false
         backgroundColor = .clear
         hasShadow = true
-        level = .statusBar
+        level = .popUpMenu
         self.hostingView = hosting
         self.contentView = hosting
     }

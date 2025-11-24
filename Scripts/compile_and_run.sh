@@ -30,13 +30,25 @@ swift build -q
 log "==> swift test"
 swift test -q
 
+# Ensure Info.plist is copied into the app bundle for LSUIElement/URL scheme.
+PLIST_TEMPLATE="${ROOT_DIR}/Resources/Info.plist"
+APP_BUNDLE="${ROOT_DIR}/.build/debug/${APP_NAME}.app"
+if [ -d "${APP_BUNDLE}" ] && [ -f "${PLIST_TEMPLATE}" ]; then
+  log "==> Installing custom Info.plist"
+  cp "${PLIST_TEMPLATE}" "${APP_BUNDLE}/Contents/Info.plist"
+fi
+
 log "==> Codesigning debug build"
-DEFAULT_IDENTITY="${CODE_SIGN_IDENTITY:-Apple Development: Peter Steinberger}"
+DEFAULT_IDENTITY="${CODE_SIGN_IDENTITY:-${CODESIGN_IDENTITY:-}}"
 IDENTITY="${CODESIGN_IDENTITY:-$DEFAULT_IDENTITY}"
-if [ -d "${ROOT_DIR}/.build/debug/${APP_NAME}.app" ]; then
-  "${ROOT_DIR}/Scripts/codesign_app.sh" "${ROOT_DIR}/.build/debug/${APP_NAME}.app" "$IDENTITY" || true
+if [ -z "$IDENTITY" ]; then
+  log "No CODE_SIGN_IDENTITY set; skipping codesign. Set CODE_SIGN_IDENTITY or Config/Local.xcconfig to enable."
 else
-  codesign --force --sign "$IDENTITY" "${ROOT_DIR}/.build/debug/${APP_NAME}" 2>/dev/null || true
+  if [ -d "${ROOT_DIR}/.build/debug/${APP_NAME}.app" ]; then
+    "${ROOT_DIR}/Scripts/codesign_app.sh" "${ROOT_DIR}/.build/debug/${APP_NAME}.app" "$IDENTITY" || true
+  else
+    codesign --force --sign "$IDENTITY" "${ROOT_DIR}/.build/debug/${APP_NAME}" 2>/dev/null || true
+  fi
 fi
 
 log "==> Launching debug build"

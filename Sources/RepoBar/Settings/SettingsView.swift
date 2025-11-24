@@ -194,46 +194,52 @@ struct AdvancedSettingsView: View {
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var session: Session
     @State private var diagnostics = DiagnosticsSummary.empty
+    @State private var showDebug = false
 
     var body: some View {
         Form {
-            Button("Clear cache") {
-                Task {
-                    await self.appState.clearCaches()
-                    await self.loadDiagnostics()
-                }
-            }
-            Button("Force refresh") {
-                self.appState.refreshScheduler.forceRefresh()
-            }
-            Toggle("Show diagnostics", isOn: self.$session.settings.diagnosticsEnabled)
-                .onChange(of: self.session.settings.diagnosticsEnabled) { _, newValue in
-                    self.appState.persistSettings()
-                    Task {
-                        await DiagnosticsLogger.shared.setEnabled(newValue)
-                        await self.loadDiagnostics()
+            Toggle("Show Debug", isOn: self.$showDebug.animation())
+            if self.showDebug {
+                Section("Debug") {
+                    Button("Clear cache") {
+                        Task {
+                            await self.appState.clearCaches()
+                            await self.loadDiagnostics()
+                        }
                     }
-                }
-            Section("Diagnostics") {
-                LabeledContent("API host") {
-                    Text(self.diagnostics.apiHost.absoluteString)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                }
-                if let reset = diagnostics.rateLimitReset {
-                    LabeledContent("Rate limit resets") {
-                        Text(RelativeFormatter.string(from: reset, relativeTo: Date()))
+                    Button("Force refresh") {
+                        self.appState.refreshScheduler.forceRefresh()
                     }
+                    Toggle("Show diagnostics overlay", isOn: self.$session.settings.diagnosticsEnabled)
+                        .onChange(of: self.session.settings.diagnosticsEnabled) { _, newValue in
+                            self.appState.persistSettings()
+                            Task {
+                                await DiagnosticsLogger.shared.setEnabled(newValue)
+                                await self.loadDiagnostics()
+                            }
+                        }
+                    Section("Diagnostics") {
+                        LabeledContent("API host") {
+                            Text(self.diagnostics.apiHost.absoluteString)
+                                .lineLimit(1)
+                                .truncationMode(.middle)
+                        }
+                        if let reset = diagnostics.rateLimitReset {
+                            LabeledContent("Rate limit resets") {
+                                Text(RelativeFormatter.string(from: reset, relativeTo: Date()))
+                            }
+                        }
+                        if let error = diagnostics.lastRateLimitError {
+                            LabeledContent("Last API notice") { Text(error).foregroundStyle(.red) }
+                        }
+                        LabeledContent("Backoff entries") { Text("\(self.diagnostics.backoffEntries)") }
+                        LabeledContent("ETag entries") { Text("\(self.diagnostics.etagEntries)") }
+                        Button("Refresh diagnostics") { Task { await self.loadDiagnostics() } }
+                    }
+                    .opacity(self.session.settings.diagnosticsEnabled ? 1 : 0.4)
+                    .disabled(!self.session.settings.diagnosticsEnabled)
                 }
-                if let error = diagnostics.lastRateLimitError {
-                    LabeledContent("Last API notice") { Text(error).foregroundStyle(.red) }
-                }
-                LabeledContent("Backoff entries") { Text("\(self.diagnostics.backoffEntries)") }
-                LabeledContent("ETag entries") { Text("\(self.diagnostics.etagEntries)") }
-                Button("Refresh diagnostics") { Task { await self.loadDiagnostics() } }
             }
-            .opacity(self.session.settings.diagnosticsEnabled ? 1 : 0.4)
-            .disabled(!self.session.settings.diagnosticsEnabled)
         }
         .padding()
         .task { await self.loadDiagnostics() }

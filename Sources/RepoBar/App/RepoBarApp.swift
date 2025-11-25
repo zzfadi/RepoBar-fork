@@ -277,9 +277,7 @@ final class AppState: ObservableObject {
     func loadContributionHeatmapIfNeeded(for username: String) async {
         guard self.session.settings.showContributionHeader, self.session.settings.showHeatmap, self.session.hasLoadedRepositories else { return }
         if self.session.contributionUser == username, !self.session.contributionHeatmap.isEmpty { return }
-        if let cached = ContributionCacheStore.load(),
-           cached.username == username,
-           cached.isValid {
+        if let cached = ContributionCacheStore.load(), cached.username == username, cached.isValid {
             await MainActor.run {
                 self.session.contributionUser = username
                 self.session.contributionHeatmap = cached.cells

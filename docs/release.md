@@ -1,3 +1,10 @@
+---
+summary: "RepoBar release checklist: build/package, optional notarization, and asset verification."
+read_when:
+  - Preparing or validating a RepoBar release
+  - Running package_app/notarize scripts or checking release assets
+---
+
 # Release checklist (RepoBar)
 
 1) Build, sign, and run tests  

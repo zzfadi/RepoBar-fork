@@ -6,6 +6,7 @@
     "format": "./Scripts/swiftformat.sh",
     "lint": "./Scripts/swiftlint.sh",
     "check": "pnpm format && pnpm lint && pnpm test",
+    "docs:list": "node Scripts/docs-list.mjs",
     "test": "swift test",
     "build": "swift build",
     "start": "./Scripts/compile_and_run.sh",

@@ -1,3 +1,11 @@
+---
+summary: "RepoBar product/tech spec: goals, UX, auth flow, data sources, and platform details."
+read_when:
+  - Planning or scoping RepoBar features
+  - Modifying GitHub auth/PKCE flow or data-fetching behavior
+  - Updating UI/refresh intervals or repository selection logic
+---
+
 # RepoBar Specification & Implementation Plan
 
 _Last updated: 2025-11-24_

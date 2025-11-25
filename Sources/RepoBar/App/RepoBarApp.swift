@@ -363,6 +363,7 @@ struct UserSettings: Equatable, Codable {
     var refreshInterval: RefreshInterval = .fiveMinutes
     var launchAtLogin = false
     var showHeatmap = true
+    var heatmapSpan: HeatmapSpan = .threeMonths
     var cardDensity: CardDensity = .comfortable
     var accentTone: AccentTone = .githubGreen
     var debugPaneEnabled: Bool = false

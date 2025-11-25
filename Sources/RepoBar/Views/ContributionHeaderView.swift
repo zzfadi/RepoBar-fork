@@ -11,7 +11,8 @@ struct ContributionHeaderView: View {
                 if self.session.contributionHeatmap.isEmpty {
                     self.placeholderOverlay
                 } else {
-                    HeatmapView(cells: self.session.contributionHeatmap, accentTone: self.session.settings.accentTone)
+                    let filtered = HeatmapFilter.filter(self.session.contributionHeatmap, span: self.session.settings.heatmapSpan)
+                    HeatmapView(cells: filtered, accentTone: self.session.settings.accentTone)
                         .frame(maxWidth: .infinity, minHeight: 80, maxHeight: 120, alignment: .leading)
                         .accessibilityLabel("Contribution graph for \(username)")
                 }

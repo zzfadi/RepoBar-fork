@@ -124,7 +124,8 @@ struct RepoCardView: View {
     @ViewBuilder
     private var heatmap: some View {
         if !self.repo.heatmap.isEmpty {
-            HeatmapView(cells: self.repo.heatmap, accentTone: self.session.settings.accentTone)
+            let filtered = HeatmapFilter.filter(self.repo.heatmap, span: self.session.settings.heatmapSpan)
+            HeatmapView(cells: filtered, accentTone: self.session.settings.accentTone)
         }
     }
 

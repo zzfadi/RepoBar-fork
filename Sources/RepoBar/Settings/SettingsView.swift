@@ -209,15 +209,25 @@ struct GeneralSettingsView: View {
     @EnvironmentObject var appState: AppState
 
     var body: some View {
-        Form {
+        VStack(alignment: .leading, spacing: 16) {
             Toggle("Show contribution header", isOn: self.$session.settings.showContributionHeader)
                 .onChange(of: self.session.settings.showContributionHeader) { _, _ in self.appState.persistSettings() }
+
             Toggle("Show heatmap", isOn: self.$session.settings.showHeatmap)
                 .onChange(of: self.session.settings.showHeatmap) { _, _ in self.appState.persistSettings() }
+
+            Picker("Heatmap window", selection: self.$session.settings.heatmapSpan) {
+                ForEach(HeatmapSpan.allCases, id: \.self) { span in
+                    Text(span.label).tag(span)
+                }
+            }
+            .onChange(of: self.session.settings.heatmapSpan) { _, _ in self.appState.persistSettings() }
+
             Picker("Repositories shown", selection: self.$session.settings.repoDisplayLimit) {
                 ForEach([3, 5, 8, 12], id: \.self) { Text("\($0)").tag($0) }
             }
             .onChange(of: self.session.settings.repoDisplayLimit) { _, _ in self.appState.persistSettings() }
+
             Picker("Refresh interval", selection: self.$session.settings.refreshInterval) {
                 ForEach(RefreshInterval.allCases, id: \.self) { interval in
                     Text(self.intervalLabel(interval)).tag(interval)
@@ -232,6 +242,7 @@ struct GeneralSettingsView: View {
                     }
                 }
             }
+
             #if DEBUG
                 Toggle("Enable debug tools", isOn: self.$session.settings.debugPaneEnabled)
                     .onChange(of: self.session.settings.debugPaneEnabled) { _, _ in
@@ -239,13 +250,17 @@ struct GeneralSettingsView: View {
                     }
                     .help("Show the Debug tab for diagnostics and developer-only controls.")
             #endif
+
             Toggle("Launch at login", isOn: self.$session.settings.launchAtLogin)
                 .onChange(of: self.session.settings.launchAtLogin) { _, value in
                     LaunchAtLoginHelper.set(enabled: value)
                     self.appState.persistSettings()
                 }
         }
-        .padding()
+        .frame(maxWidth: 420, alignment: .leading)
+        .padding(.horizontal, 48)
+        .padding(.vertical, 36)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 
     private func intervalLabel(_ interval: RefreshInterval) -> String {

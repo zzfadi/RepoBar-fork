@@ -138,6 +138,7 @@ private struct RepoInputRow<Accessory: View>: View {
     @State private var suggestions: [Repository] = []
     @State private var isLoading = false
     @State private var showSuggestions = false
+    @State private var selectedIndex: Int?
     @FocusState private var isFocused: Bool
     @State private var searchTask: Task<Void, Never>?
 
@@ -159,6 +160,7 @@ private struct RepoInputRow<Accessory: View>: View {
                                 self.showSuggestions = true
                                 self.scheduleSearch(immediate: true)
                             }
+                            .onMoveCommand(perform: self.handleMove)
 
                         if self.isLoading {
                             ProgressView()
@@ -191,8 +193,11 @@ private struct RepoInputRow<Accessory: View>: View {
                             }
                             .padding(.vertical, 6)
                             .padding(.horizontal, 8)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                         }
                         .buttonStyle(.plain)
+                        .background(self.isSelected(repo) ? Color.accentColor.opacity(0.12) : .clear)
+                        .contentShape(Rectangle())
 
                         if repo.id != self.suggestions.last?.id {
                             Divider()
@@ -235,7 +240,7 @@ private struct RepoInputRow<Accessory: View>: View {
         let query = self.text
         self.searchTask = Task {
             // Debounce to avoid hammering GitHub as the user types.
-            if !immediate { try? await Task.sleep(nanoseconds: 250_000_000) }
+            if !immediate { try? await Task.sleep(nanoseconds: 450_000_000) }
             await self.loadSuggestions(query: query)
         }
     }
@@ -273,6 +278,10 @@ private struct RepoInputRow<Accessory: View>: View {
             guard !Task.isCancelled else { return }
             await MainActor.run {
                 self.suggestions = merged
+                if !merged.isEmpty {
+                    let current = self.selectedIndex ?? 0
+                    self.selectedIndex = max(0, min(current, merged.count - 1))
+                }
                 // Keep suggestions visible while typing even if focus flickers.
                 self.showSuggestions = !self.suggestions.isEmpty && (self.isFocused || !self.trimmedText.isEmpty)
             }
@@ -281,6 +290,7 @@ private struct RepoInputRow<Accessory: View>: View {
             await MainActor.run {
                 self.suggestions = []
                 self.showSuggestions = false
+                self.selectedIndex = nil
             }
         }
     }
@@ -288,6 +298,7 @@ private struct RepoInputRow<Accessory: View>: View {
     private func hideSuggestionsSoon() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
             self.showSuggestions = false
+            self.selectedIndex = nil
         }
     }
 
@@ -306,5 +317,24 @@ private struct RepoInputRow<Accessory: View>: View {
         local.forEach(appendUnique)
         remote.forEach(appendUnique)
         return out
+    }
+
+    private func handleMove(_ direction: MoveCommandDirection) {
+        guard !self.suggestions.isEmpty else { return }
+        switch direction {
+        case .down:
+            let next = (self.selectedIndex ?? -1) + 1
+            self.selectedIndex = min(next, self.suggestions.count - 1)
+        case .up:
+            let prev = (self.selectedIndex ?? 0) - 1
+            self.selectedIndex = max(prev, 0)
+        default:
+            break
+        }
+    }
+
+    private func isSelected(_ repo: Repository) -> Bool {
+        guard let idx = self.selectedIndex else { return false }
+        return self.suggestions.indices.contains(idx) && self.suggestions[idx].id == repo.id
     }
 }

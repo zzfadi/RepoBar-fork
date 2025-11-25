@@ -117,3 +117,62 @@ struct CommitActivityWeek: Decodable {
 struct PullRequestListItem: Decodable {
     let id: Int
 }
+
+struct RepoEvent: Decodable {
+    let type: String
+    let actor: EventActor
+    let payload: EventPayload
+    let createdAt: Date
+
+    enum CodingKeys: String, CodingKey {
+        case type, actor, payload
+        case createdAt = "created_at"
+    }
+}
+
+struct EventActor: Decodable {
+    let login: String
+}
+
+struct EventPayload: Decodable {
+    let comment: EventComment?
+    let issue: EventIssue?
+    let pullRequest: EventPullRequest?
+
+    enum CodingKeys: String, CodingKey {
+        case comment, issue
+        case pullRequest = "pull_request"
+    }
+}
+
+struct EventComment: Decodable {
+    let body: String?
+    let htmlUrl: URL?
+
+    enum CodingKeys: String, CodingKey {
+        case body
+        case htmlUrl = "html_url"
+    }
+
+    var bodyPreview: String {
+        let trimmed = (body ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        let prefix = String(trimmed.prefix(80))
+        return prefix + (trimmed.count > 80 ? "…" : "")
+    }
+}
+
+struct EventIssue: Decodable {
+    let htmlUrl: URL?
+
+    enum CodingKeys: String, CodingKey {
+        case htmlUrl = "html_url"
+    }
+}
+
+struct EventPullRequest: Decodable {
+    let htmlUrl: URL?
+
+    enum CodingKeys: String, CodingKey {
+        case htmlUrl = "html_url"
+    }
+}

@@ -358,35 +358,23 @@ actor GitHubClient {
 
     private func latestActivity(owner: String, name: String) async throws -> ActivityEvent? {
         let token = try await validAccessToken()
-        async let issueComment = self.latestComment(
-            from: self.apiHost.appending(path: "/repos/\(owner)/\(name)/issues/comments"),
-            token: token
-        )
-        async let reviewComment = self.latestComment(
-            from: self.apiHost.appending(path: "/repos/\(owner)/\(name)/pulls/comments"),
-            token: token
-        )
-        let candidates = await [try? issueComment, try? reviewComment]
-            .compactMap(\.self)
-            .sorted(by: { $0.date > $1.date })
-        return candidates.first
-    }
-
-    private func latestComment(from url: URL, token: String) async throws -> ActivityEvent? {
-        var components = URLComponents(url: url, resolvingAgainstBaseURL: false)!
-        components.queryItems = [
-            URLQueryItem(name: "per_page", value: "1"),
-            URLQueryItem(name: "sort", value: "created"),
-            URLQueryItem(name: "direction", value: "desc")
-        ]
+        var components = URLComponents(
+            url: self.apiHost.appending(path: "/repos/\(owner)/\(name)/events"),
+            resolvingAgainstBaseURL: false
+        )!
+        components.queryItems = [URLQueryItem(name: "per_page", value: "1")]
         let (data, _) = try await authorizedGet(url: components.url!, token: token)
-        let decoded = try jsonDecoder.decode([CommentResponse].self, from: data)
-        guard let comment = decoded.first else { return nil }
+        let events = try jsonDecoder.decode([RepoEvent].self, from: data)
+        guard let event = events.first else { return nil }
+
+        let preview = event.payload.comment?.bodyPreview ?? event.type
+        let fallbackURL = URL(string: "https://github.com/\(owner)/\(name)")!
+        let url = event.payload.comment?.htmlUrl ?? event.payload.issue?.htmlUrl ?? event.payload.pullRequest?.htmlUrl ?? fallbackURL
         return ActivityEvent(
-            title: comment.bodyPreview,
-            actor: comment.user.login,
-            date: comment.createdAt,
-            url: comment.htmlUrl
+            title: preview,
+            actor: event.actor.login,
+            date: event.createdAt,
+            url: url
         )
     }
 

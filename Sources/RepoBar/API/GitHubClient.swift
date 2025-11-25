@@ -129,7 +129,11 @@ actor GitHubClient {
         let summary = await self.value(from: summaryResult, into: &accumulator)
         let issues = summary?.openIssues ?? details.openIssuesCount
         let pulls = summary?.openPulls ?? 0
-        let releaseREST: Release? = summary?.release
+        let releaseREST: Release? = if let summaryRelease = summary?.release {
+            summaryRelease
+        } else {
+            try? await self.latestReleaseAny(owner: owner, name: name)
+        }
         let ciDetails = await self.value(from: ciResult, into: &accumulator)
         let ci = ciDetails?.status ?? .unknown
         let ciRunCount = ciDetails?.runCount
@@ -412,6 +416,22 @@ actor GitHubClient {
                 return HeatmapCell(date: date, count: count)
             }
         }
+    }
+
+    /// Most recent release (including prereleases) ordered by creation date; skips drafts.
+    private func latestReleaseAny(owner: String, name: String) async throws -> Release {
+        let token = try await validAccessToken()
+        var components = URLComponents(
+            url: apiHost.appending(path: "/repos/\(owner)/\(name)/releases"),
+            resolvingAgainstBaseURL: false
+        )!
+        components.queryItems = [URLQueryItem(name: "per_page", value: "1")]
+        let (data, response) = try await authorizedGet(url: components.url!, token: token, allowedStatuses: [200, 304, 404])
+        guard response.statusCode != 404 else { throw URLError(.fileDoesNotExist) }
+        let releases = try jsonDecoder.decode([ReleaseResponse].self, from: data)
+        guard let rel = releases.first(where: { $0.draft != true }) else { throw URLError(.cannotParseResponse) }
+        let published = rel.publishedAt ?? rel.createdAt ?? Date()
+        return Release(name: rel.name ?? rel.tagName, tag: rel.tagName, publishedAt: published, url: rel.htmlUrl)
     }
 
     private func authorizedGet(

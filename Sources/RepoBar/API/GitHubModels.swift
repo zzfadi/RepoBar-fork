@@ -42,13 +42,19 @@ struct SearchIssuesResponse: Decodable {
 struct ReleaseResponse: Decodable {
     let name: String?
     let tagName: String
-    let publishedAt: Date
+    let publishedAt: Date?
+    let createdAt: Date?
+    let draft: Bool?
+    let prerelease: Bool?
     let htmlUrl: URL
 
     enum CodingKeys: String, CodingKey {
         case name
         case tagName = "tag_name"
         case publishedAt = "published_at"
+        case createdAt = "created_at"
+        case draft
+        case prerelease
         case htmlUrl = "html_url"
     }
 }

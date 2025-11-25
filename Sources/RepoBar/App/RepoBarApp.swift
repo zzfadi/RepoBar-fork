@@ -278,7 +278,8 @@ final class AppState: ObservableObject {
         if self.session.contributionUser == username, !self.session.contributionHeatmap.isEmpty { return }
         if let cached = ContributionCacheStore.load(),
            cached.username == username,
-           cached.isValid {
+           cached.isValid
+        {
             await MainActor.run {
                 self.session.contributionUser = username
                 self.session.contributionHeatmap = cached.cells

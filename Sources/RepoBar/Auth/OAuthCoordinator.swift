@@ -29,7 +29,7 @@ final class OAuthCoordinator {
             URLQueryItem(name: "state", value: state),
             URLQueryItem(name: "scope", value: "repo read:org"),
             URLQueryItem(name: "code_challenge", value: pkce.challenge),
-            URLQueryItem(name: "code_challenge_method", value: "S256"),
+            URLQueryItem(name: "code_challenge_method", value: "S256")
         ]
         guard let authorizeURL = components.url else { throw URLError(.badURL) }
         NSWorkspace.shared.open(authorizeURL)
@@ -48,7 +48,7 @@ final class OAuthCoordinator {
             "code": result.code,
             "redirect_uri": redirectURL.absoluteString,
             "grant_type": "authorization_code",
-            "code_verifier": pkce.verifier,
+            "code_verifier": pkce.verifier
         ])
 
         let (data, response) = try await URLSession.shared.data(for: tokenRequest)
@@ -62,7 +62,8 @@ final class OAuthCoordinator {
         let tokens = OAuthTokens(
             accessToken: decoded.accessToken,
             refreshToken: decoded.refreshToken ?? "",
-            expiresAt: Date().addingTimeInterval(TimeInterval(decoded.expiresIn ?? 3600)))
+            expiresAt: Date().addingTimeInterval(TimeInterval(decoded.expiresIn ?? 3600))
+        )
         try self.tokenStore.save(tokens: tokens)
         await DiagnosticsLogger.shared.message("Login succeeded; tokens stored.")
         server.stop()
@@ -90,7 +91,7 @@ final class OAuthCoordinator {
         request.addValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
         request.httpBody = Self.formUrlEncoded([
             "grant_type": "refresh_token",
-            "refresh_token": tokens.refreshToken,
+            "refresh_token": tokens.refreshToken
         ])
         let (data, response) = try await URLSession.shared.data(for: request)
         guard (response as? HTTPURLResponse)?.statusCode == 200 else { throw URLError(.badServerResponse) }
@@ -99,12 +100,14 @@ final class OAuthCoordinator {
         tokens = OAuthTokens(
             accessToken: decoded.accessToken,
             refreshToken: decoded.refreshToken ?? tokens.refreshToken,
-            expiresAt: expires)
+            expiresAt: expires
+        )
         try self.tokenStore.save(tokens: tokens)
         return tokens
     }
 
     // MARK: - Installation token
+
     // Installation flow removed: this app now uses user OAuth only.
 
     private func normalize(host: URL) throws -> URL {
@@ -127,8 +130,8 @@ final class OAuthCoordinator {
 
 // MARK: - Helpers
 
-extension OAuthCoordinator {
-    fileprivate static func formUrlEncoded(_ params: [String: String]) -> Data? {
+private extension OAuthCoordinator {
+    static func formUrlEncoded(_ params: [String: String]) -> Data? {
         let encoded = params.map { key, value in
             let k = key.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? key
             let v = value.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? value

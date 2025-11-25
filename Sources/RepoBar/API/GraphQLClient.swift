@@ -45,7 +45,8 @@ actor GraphQLClient {
               }
             }
             """,
-            variables: ["owner": owner, "name": name])
+            variables: ["owner": owner, "name": name]
+        )
 
         var request = URLRequest(url: endpoint)
         request.httpMethod = "POST"
@@ -74,7 +75,8 @@ actor GraphQLClient {
             release: release,
             openIssues: repo.issues.totalCount,
             openPulls: repo.pullRequests.totalCount,
-            activity: nil)
+            activity: nil
+        )
     }
 }
 

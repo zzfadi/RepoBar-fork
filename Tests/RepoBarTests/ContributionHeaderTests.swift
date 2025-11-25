@@ -1,6 +1,6 @@
+@testable import RepoBar
 import SwiftUI
 import Testing
-@testable import RepoBar
 
 @MainActor
 struct ContributionHeaderTests {

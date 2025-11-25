@@ -13,7 +13,7 @@ enum JWTSigner {
         let keyData = try self.derData(fromPEM: pemString)
         let attributes: [CFString: Any] = [
             kSecAttrKeyType: kSecAttrKeyTypeRSA,
-            kSecAttrKeyClass: kSecAttrKeyClassPrivate,
+            kSecAttrKeyClass: kSecAttrKeyClassPrivate
         ]
         guard let secKey = SecKeyCreateWithData(keyData as CFData, attributes as CFDictionary, nil)
         else { throw Error.keyCreationFailed }
@@ -27,7 +27,7 @@ enum JWTSigner {
         let payloadData = try JSONSerialization.data(withJSONObject: payload)
         let signingInput = [
             headerData.base64URLEncodedString(),
-            payloadData.base64URLEncodedString(),
+            payloadData.base64URLEncodedString()
         ].joined(separator: ".")
 
         guard let messageData = signingInput.data(using: .utf8) else { throw Error.signFailed }
@@ -36,7 +36,8 @@ enum JWTSigner {
             secKey,
             .rsaSignatureMessagePKCS1v15SHA256,
             messageData as CFData,
-            &error) as Data?
+            &error
+        ) as Data?
         else { throw error?.takeRetainedValue() ?? Error.signFailed }
 
         let jwt = signingInput + "." + signature.base64URLEncodedString()
@@ -55,8 +56,8 @@ enum JWTSigner {
     }
 }
 
-extension Data {
-    fileprivate func base64URLEncodedString() -> String {
+private extension Data {
+    func base64URLEncodedString() -> String {
         self.base64EncodedString()
             .replacingOccurrences(of: "+", with: "-")
             .replacingOccurrences(of: "/", with: "_")

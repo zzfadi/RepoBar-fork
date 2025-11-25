@@ -25,7 +25,9 @@ struct RepoSettingsView: View {
                     }
                     .onDelete { indexes in
                         let toRemove = indexes.map { self.session.settings.pinnedRepositories[$0] }
-                        Task { for repo in toRemove { await self.appState.removePinned(repo) } }
+                        Task { for repo in toRemove {
+                            await self.appState.removePinned(repo)
+                        } }
                     }
                 }
                 .frame(minHeight: 120)
@@ -48,7 +50,9 @@ struct RepoSettingsView: View {
                     }
                     .onDelete { indexes in
                         let toRemove = indexes.map { self.session.settings.hiddenRepositories[$0] }
-                        Task { for repo in toRemove { await self.appState.unhide(repo) } }
+                        Task { for repo in toRemove {
+                            await self.appState.unhide(repo)
+                        } }
                     }
                 }
                 .frame(minHeight: 120)

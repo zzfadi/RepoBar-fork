@@ -34,7 +34,7 @@ final class LoopbackServer {
         }
         let result = try await withCheckedThrowingContinuation { (cont: CheckedContinuation<
             (code: String, state: String),
-            Error,
+            Error
         >) in
             self.continuation = cont
         }

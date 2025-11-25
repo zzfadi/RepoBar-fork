@@ -3,17 +3,17 @@ import MenuBarExtraAccess
 import SwiftUI
 
 #if !SWIFT_PACKAGE
-extension NSStatusBarButton {
-    override open func mouseDown(with event: NSEvent) {
-        super.mouseDown(with: event)
-        highlight(true)
-        DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(100)) { [weak self] in
-            guard let self else { return }
-            highlight(AppDelegateState.shared?.statusBarController?.menuManager.customWindow?
-                .isWindowVisible ?? false)
+    extension NSStatusBarButton {
+        override open func mouseDown(with event: NSEvent) {
+            super.mouseDown(with: event)
+            highlight(true)
+            DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(100)) { [weak self] in
+                guard let self else { return }
+                highlight(AppDelegateState.shared?.statusBarController?.menuManager.customWindow?
+                    .isWindowVisible ?? false)
+            }
         }
     }
-}
 #endif
 
 @MainActor
@@ -101,7 +101,8 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
         let updateItem = NSMenuItem(
             title: "Check for Updates…",
             action: #selector(self.checkForUpdates),
-            keyEquivalent: "")
+            keyEquivalent: ""
+        )
         updateItem.target = self
         menu.addItem(updateItem)
 
@@ -154,7 +155,7 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
         if newState == .none { self.statusBarButton?.state = .off }
     }
 
-    func menuDidClose(_ menu: NSMenu) {
+    func menuDidClose(_: NSMenu) {
         self.updateMenuState(.none)
         self.statusBarButton?.state = .off
         self.currentStatusItem?.menu = nil

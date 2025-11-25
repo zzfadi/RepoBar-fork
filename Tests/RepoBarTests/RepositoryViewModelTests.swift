@@ -1,6 +1,6 @@
 import Foundation
-import Testing
 @testable import RepoBar
+import Testing
 
 struct RepositoryViewModelTests {
     @Test
@@ -9,12 +9,14 @@ struct RepositoryViewModelTests {
             name: "v1.0",
             tag: "v1.0",
             publishedAt: Date().addingTimeInterval(-3600),
-            url: URL(string: "https://example.com")!)
+            url: URL(string: "https://example.com")!
+        )
         let activity = ActivityEvent(
             title: "Fix bug",
             actor: "alice",
             date: Date().addingTimeInterval(-1800),
-            url: URL(string: "https://example.com/1")!)
+            url: URL(string: "https://example.com/1")!
+        )
         let repo = Repository(
             id: "1",
             name: "Repo",
@@ -28,7 +30,8 @@ struct RepositoryViewModelTests {
             latestRelease: release,
             latestActivity: activity,
             traffic: TrafficStats(uniqueVisitors: 5, uniqueCloners: 2),
-            heatmap: [])
+            heatmap: []
+        )
         let vm = RepositoryViewModel(repo: repo, now: Date())
         #expect(vm.latestRelease == release.name)
         #expect(vm.activityLine?.contains("alice") == true)

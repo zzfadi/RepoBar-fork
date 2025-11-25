@@ -22,7 +22,7 @@ struct TokenStore {
             kSecClass: kSecClassGenericPassword,
             kSecAttrService: service,
             kSecAttrAccount: "default",
-            kSecValueData: data,
+            kSecValueData: data
         ]
         SecItemDelete(query as CFDictionary)
         let status = SecItemAdd(query as CFDictionary, nil)
@@ -34,7 +34,7 @@ struct TokenStore {
             kSecClass: kSecClassGenericPassword,
             kSecAttrService: service,
             kSecAttrAccount: "default",
-            kSecReturnData: true,
+            kSecReturnData: true
         ]
         var item: CFTypeRef?
         let status = SecItemCopyMatching(query as CFDictionary, &item)
@@ -47,7 +47,7 @@ struct TokenStore {
         let query: [CFString: Any] = [
             kSecClass: kSecClassGenericPassword,
             kSecAttrService: service,
-            kSecAttrAccount: "default",
+            kSecAttrAccount: "default"
         ]
         SecItemDelete(query as CFDictionary)
     }

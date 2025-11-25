@@ -16,8 +16,8 @@ struct PKCE {
     }
 }
 
-extension Data {
-    fileprivate func base64URLEncodedString() -> String {
+private extension Data {
+    func base64URLEncodedString() -> String {
         base64EncodedString()
             .replacingOccurrences(of: "=", with: "")
             .replacingOccurrences(of: "+", with: "-")

@@ -1,6 +1,6 @@
 import Foundation
-import Testing
 @testable import RepoBar
+import Testing
 
 @MainActor
 struct RefreshAndBackoffTests {

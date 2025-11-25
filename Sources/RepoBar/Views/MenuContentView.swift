@@ -45,13 +45,15 @@ struct MenuContentView: View {
                     if self.viewModels().isEmpty {
                         EmptyStateView(
                             isLoggedIn: true,
-                            onLogin: self.openLogin)
+                            onLogin: self.openLogin
+                        )
                     } else {
                         RepoGridView(
                             repositories: self.viewModels(),
                             unpin: self.unpin,
                             hide: self.hide,
-                            move: self.movePin)
+                            move: self.movePin
+                        )
                     }
                     Divider()
                         .padding(.top, 6)
@@ -252,13 +254,14 @@ struct RepoGridView: View {
                     unpin: { self.unpin(repo) },
                     hide: { self.hide(repo) },
                     moveUp: { self.moveStep(repo: repo, in: ordered, direction: -1) },
-                    moveDown: { self.moveStep(repo: repo, in: ordered, direction: 1) })
-                    .onDrag {
-                        let provider = NSItemProvider(object: NSString(string: repo.id))
-                        provider.suggestedName = repo.id
-                        return provider
-                    }
-                    .onDrop(of: [.text], delegate: DragReorderDelegate(item: repo, items: ordered, move: self.move))
+                    moveDown: { self.moveStep(repo: repo, in: ordered, direction: 1) }
+                )
+                .onDrag {
+                    let provider = NSItemProvider(object: NSString(string: repo.id))
+                    provider.suggestedName = repo.id
+                    return provider
+                }
+                .onDrop(of: [.text], delegate: DragReorderDelegate(item: repo, items: ordered, move: self.move))
             }
         }
         .padding(.vertical, 4)
@@ -290,7 +293,7 @@ private struct DragReorderDelegate: DropDelegate {
     let items: [RepositoryViewModel]
     let move: (IndexSet, Int) -> Void
 
-    func validateDrop(info: DropInfo) -> Bool { true }
+    func validateDrop(info _: DropInfo) -> Bool { true }
 
     func dropEntered(info: DropInfo) {
         guard let dragging = itemBeingDragged(info: info),
@@ -300,7 +303,7 @@ private struct DragReorderDelegate: DropDelegate {
         self.move(IndexSet(integer: from), to > from ? to + 1 : to)
     }
 
-    func performDrop(info: DropInfo) -> Bool { true }
+    func performDrop(info _: DropInfo) -> Bool { true }
 
     private func itemBeingDragged(info: DropInfo) -> RepositoryViewModel? {
         for provider in info.itemProviders(for: [.text]) {

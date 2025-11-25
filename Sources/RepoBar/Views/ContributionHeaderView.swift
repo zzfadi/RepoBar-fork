@@ -34,6 +34,6 @@ struct ContributionHeaderView: View {
     }
 
     private var placeholderOverlay: some View {
-        placeholder.overlay { ProgressView() }
+        self.placeholder.overlay { ProgressView() }
     }
 }

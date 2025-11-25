@@ -17,7 +17,8 @@ final class CustomMenuWindow: NSWindow {
             contentRect: NSRect(x: 0, y: 0, width: 420, height: 420),
             styleMask: [.borderless],
             backing: .buffered,
-            defer: false)
+            defer: false
+        )
         isOpaque = false
         backgroundColor = .clear
         hasShadow = true
@@ -40,7 +41,8 @@ final class CustomMenuWindow: NSWindow {
         let windowSize = frameRect(forContentRect: NSRect(origin: .zero, size: NSSize(width: width, height: height))).size
         let origin = NSPoint(
             x: buttonFrame.midX - windowSize.width / 2,
-            y: buttonFrame.minY - windowSize.height - 8)
+            y: buttonFrame.minY - windowSize.height - 8
+        )
         setFrame(NSRect(origin: origin, size: windowSize), display: true)
         orderFrontRegardless()
         makeKey()

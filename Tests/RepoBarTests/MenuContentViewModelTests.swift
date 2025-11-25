@@ -1,6 +1,6 @@
 import Foundation
-import Testing
 @testable import RepoBar
+import Testing
 
 struct MenuContentViewModelTests {
     @Test
@@ -19,7 +19,8 @@ struct MenuContentViewModelTests {
                 latestRelease: nil,
                 latestActivity: nil,
                 traffic: nil,
-                heatmap: []),
+                heatmap: []
+            ),
             Repository(
                 id: "2",
                 name: "A",
@@ -33,7 +34,8 @@ struct MenuContentViewModelTests {
                 latestRelease: nil,
                 latestActivity: nil,
                 traffic: nil,
-                heatmap: []),
+                heatmap: []
+            ),
             Repository(
                 id: "3",
                 name: "C",
@@ -47,7 +49,8 @@ struct MenuContentViewModelTests {
                 latestRelease: nil,
                 latestActivity: nil,
                 traffic: nil,
-                heatmap: []),
+                heatmap: []
+            )
         ].map { RepositoryViewModel(repo: $0) }
 
         let ordered = TestableRepoGrid.sortedForTest(repos)
@@ -70,7 +73,8 @@ struct MenuContentViewModelTests {
                 latestRelease: nil,
                 latestActivity: nil,
                 traffic: nil,
-                heatmap: [])),
+                heatmap: []
+            )),
             RepositoryViewModel(repo: Repository(
                 id: "2",
                 name: "B",
@@ -84,7 +88,8 @@ struct MenuContentViewModelTests {
                 latestRelease: nil,
                 latestActivity: nil,
                 traffic: nil,
-                heatmap: [])),
+                heatmap: []
+            ))
         ]
 
         var moveCalls: [(IndexSet, Int)] = []
@@ -112,8 +117,8 @@ private enum TestableRepoGrid {
         repo: RepositoryViewModel,
         in ordered: [RepositoryViewModel],
         direction: Int,
-        move: (IndexSet, Int) -> Void)
-    {
+        move: (IndexSet, Int) -> Void
+    ) {
         guard let currentIndex = ordered.firstIndex(of: repo) else { return }
         let maxIndex = max(ordered.count - 1, 0)
         let target = max(0, min(maxIndex, currentIndex + direction))

@@ -64,7 +64,7 @@ actor GitHubClient {
 
     // MARK: - High level fetchers
 
-    func defaultRepositories(limit: Int, for username: String) async throws -> [Repository] {
+    func defaultRepositories(limit: Int, for _: String) async throws -> [Repository] {
         let repos = try await userReposSorted(limit: max(limit, 10))
         return try await self.expandRepoItems(Array(repos.prefix(limit)))
     }
@@ -75,7 +75,9 @@ actor GitHubClient {
                 group.addTask { try await self.fullRepository(owner: repo.owner.login, name: repo.name) }
             }
             var out: [Repository] = []
-            for try await repo in group { out.append(repo) }
+            for try await repo in group {
+                out.append(repo)
+            }
             return out
         }
     }
@@ -101,17 +103,20 @@ actor GitHubClient {
                 latestRelease: nil,
                 latestActivity: nil,
                 traffic: nil,
-                heatmap: [])
+                heatmap: []
+            )
         }
 
         async let issuesResult: Result<Int, Error> = self.capture { try await self.openCount(
             owner: owner,
             name: name,
-            type: .issue) }
+            type: .issue
+        ) }
         async let prsResult: Result<Int, Error> = self.capture { try await self.openCount(
             owner: owner,
             name: name,
-            type: .pullRequest) }
+            type: .pullRequest
+        ) }
         async let releaseResult: Result<Release?, Error> = self.capture {
             do { return try await self.latestRelease(owner: owner, name: name) }
             catch let error as URLError where error.code == .fileDoesNotExist { return nil }
@@ -119,21 +124,25 @@ actor GitHubClient {
         async let ciResult: Result<CIStatus, Error> = self.capture { try await self.ciStatus(owner: owner, name: name) }
         async let activityResult: Result<ActivityEvent?, Error> = self.capture { try await self.latestActivity(
             owner: owner,
-            name: name) }
+            name: name
+        ) }
         async let trafficResult: Result<TrafficStats, Error> = self.capture { try await self.trafficStats(
             owner: owner,
-            name: name) }
+            name: name
+        ) }
         async let heatmapResult: Result<[HeatmapCell], Error> = self.capture { try await self.commitHeatmap(
             owner: owner,
-            name: name) }
+            name: name
+        ) }
         async let graphResult: Result<GraphRepoSnapshot, Error> = self
             .capture { try await self.graphQL.fetchRepoSnapshot(
                 owner: owner,
-                name: name) }
+                name: name
+            ) }
 
         let issues = await self.value(from: issuesResult, into: &accumulator) ?? details.openIssuesCount
         let pulls = await self.value(from: prsResult, into: &accumulator) ?? 0
-        let releaseREST: Release? = (await self.value(from: releaseResult, into: &accumulator)) ?? nil
+        let releaseREST: Release? = await (self.value(from: releaseResult, into: &accumulator)) ?? nil
         let ci = await self.value(from: ciResult, into: &accumulator) ?? .unknown
         let activity: ActivityEvent? = await self.value(from: activityResult, into: &accumulator) ?? nil
         let traffic = await self.value(from: trafficResult, into: &accumulator)
@@ -160,7 +169,8 @@ actor GitHubClient {
             latestRelease: finalRelease,
             latestActivity: finalActivity,
             traffic: traffic,
-            heatmap: heatmap)
+            heatmap: heatmap
+        )
     }
 
     func currentUser() async throws -> UserIdentity {
@@ -180,7 +190,8 @@ actor GitHubClient {
         let token = try await validAccessToken()
         var components = URLComponents(
             url: apiHost.appending(path: "/search/repositories"),
-            resolvingAgainstBaseURL: false)!
+            resolvingAgainstBaseURL: false
+        )!
         components.queryItems = [URLQueryItem(name: "q", value: query), URLQueryItem(name: "per_page", value: "5")]
         let (data, _) = try await authorizedGet(url: components.url!, token: token)
         let decoded = try jsonDecoder.decode(SearchResponse.self, from: data)
@@ -198,7 +209,8 @@ actor GitHubClient {
                 latestRelease: nil,
                 latestActivity: nil,
                 traffic: nil,
-                heatmap: [])
+                heatmap: []
+            )
         }
     }
 
@@ -217,7 +229,8 @@ actor GitHubClient {
             rateLimitReset: self.lastRateLimitReset,
             lastRateLimitError: self.lastRateLimitError,
             etagEntries: etagCount,
-            backoffEntries: backoffCount)
+            backoffEntries: backoffCount
+        )
     }
 
     /// Recent repositories for the authenticated user, sorted by activity.
@@ -237,7 +250,8 @@ actor GitHubClient {
                 latestRelease: nil,
                 latestActivity: nil,
                 traffic: nil,
-                heatmap: [])
+                heatmap: []
+            )
         }
     }
 
@@ -251,7 +265,7 @@ actor GitHubClient {
         components.queryItems = [
             URLQueryItem(name: "per_page", value: "\(limit)"),
             URLQueryItem(name: "sort", value: "pushed"),
-            URLQueryItem(name: "direction", value: "desc"),
+            URLQueryItem(name: "direction", value: "desc")
         ]
         let (data, _) = try await authorizedGet(url: components.url!, token: token)
         return try self.jsonDecoder.decode([RepoItem].self, from: data)
@@ -270,7 +284,7 @@ actor GitHubClient {
         var components = URLComponents(url: apiHost.appending(path: "/search/issues"), resolvingAgainstBaseURL: false)!
         components.queryItems = [
             URLQueryItem(name: "q", value: "repo:\(owner)/\(name)+state:open+\(typeQuery)"),
-            URLQueryItem(name: "per_page", value: "1"),
+            URLQueryItem(name: "per_page", value: "1")
         ]
         let (data, response) = try await authorizedGet(url: components.url!, token: token)
         self.detectRateLimit(from: response)
@@ -291,7 +305,8 @@ actor GitHubClient {
         let token = try await validAccessToken()
         var components = URLComponents(
             url: apiHost.appending(path: "/repos/\(owner)/\(name)/actions/runs"),
-            resolvingAgainstBaseURL: false)!
+            resolvingAgainstBaseURL: false
+        )!
         components.queryItems = [URLQueryItem(name: "per_page", value: "1")]
         let (data, _) = try await authorizedGet(url: components.url!, token: token)
         let runs = try jsonDecoder.decode(ActionsRunsResponse.self, from: data)
@@ -308,10 +323,12 @@ actor GitHubClient {
         let token = try await validAccessToken()
         async let issueComment = self.latestComment(
             from: self.apiHost.appending(path: "/repos/\(owner)/\(name)/issues/comments"),
-            token: token)
+            token: token
+        )
         async let reviewComment = self.latestComment(
             from: self.apiHost.appending(path: "/repos/\(owner)/\(name)/pulls/comments"),
-            token: token)
+            token: token
+        )
         let candidates = await [try? issueComment, try? reviewComment]
             .compactMap(\.self)
             .sorted(by: { $0.date > $1.date })
@@ -323,7 +340,7 @@ actor GitHubClient {
         components.queryItems = [
             URLQueryItem(name: "per_page", value: "1"),
             URLQueryItem(name: "sort", value: "created"),
-            URLQueryItem(name: "direction", value: "desc"),
+            URLQueryItem(name: "direction", value: "desc")
         ]
         let (data, _) = try await authorizedGet(url: components.url!, token: token)
         let decoded = try jsonDecoder.decode([CommentResponse].self, from: data)
@@ -332,7 +349,8 @@ actor GitHubClient {
             title: comment.bodyPreview,
             actor: comment.user.login,
             date: comment.createdAt,
-            url: comment.htmlUrl)
+            url: comment.htmlUrl
+        )
     }
 
     private func trafficStats(owner: String, name: String) async throws -> TrafficStats {
@@ -350,10 +368,11 @@ actor GitHubClient {
         let token = try await validAccessToken()
         let (data, _) = try await authorizedGet(
             url: apiHost.appending(path: "/repos/\(owner)/\(name)/stats/commit_activity"),
-            token: token)
+            token: token
+        )
         let weeks = try jsonDecoder.decode([CommitActivityWeek].self, from: data)
         return weeks.flatMap { week in
-            zip(0..<7, week.days).map { offset, count in
+            zip(0 ..< 7, week.days).map { offset, count in
                 let date = Date(timeIntervalSince1970: TimeInterval(week.weekStart + offset * 86400))
                 return HeatmapCell(date: date, count: count)
             }
@@ -363,20 +382,22 @@ actor GitHubClient {
     private func authorizedGet(
         url: URL,
         token: String,
-        allowedStatuses: Set<Int> = [200, 304]) async throws -> (Data, HTTPURLResponse)
-    {
+        allowedStatuses: Set<Int> = [200, 304]
+    ) async throws -> (Data, HTTPURLResponse) {
         await self.diag.message("GET \(url.absoluteString)")
         if await self.etagCache.isRateLimited(), let until = await etagCache.rateLimitUntil() {
             await self.diag.message("Blocked by local rateLimit until \(until)")
             throw GitHubAPIError.rateLimited(
                 until: until,
-                message: "GitHub rate limit hit; resets \(RelativeFormatter.string(from: until, relativeTo: Date())).")
+                message: "GitHub rate limit hit; resets \(RelativeFormatter.string(from: until, relativeTo: Date()))."
+            )
         }
         if let cooldown = await backoff.cooldown(for: url) {
             await self.diag.message("Cooldown active for \(url.absoluteString) until \(cooldown)")
             throw GitHubAPIError.serviceUnavailable(
                 retryAfter: cooldown,
-                message: "Cooling down until \(RelativeFormatter.string(from: cooldown, relativeTo: Date())).")
+                message: "Cooling down until \(RelativeFormatter.string(from: cooldown, relativeTo: Date()))."
+            )
         }
 
         var request = URLRequest(url: url)
@@ -403,7 +424,8 @@ actor GitHubClient {
             await self.diag.message("202 for \(url.lastPathComponent); cooldown until \(retryAfter)")
             throw GitHubAPIError.serviceUnavailable(
                 retryAfter: retryAfter,
-                message: message)
+                message: message
+            )
         }
 
         if status == 403 || status == 429 {
@@ -421,7 +443,8 @@ actor GitHubClient {
             await self.diag.message("Unexpected status \(status) for \(url.lastPathComponent)")
             throw GitHubAPIError.badStatus(
                 code: status,
-                message: HTTPURLResponse.localizedString(forStatusCode: status))
+                message: HTTPURLResponse.localizedString(forStatusCode: status)
+            )
         }
 
         if let etag = response.value(forHTTPHeaderField: "ETag") {
@@ -452,7 +475,7 @@ actor GitHubClient {
         else { return }
 
         if remaining <= 0 {
-            self.lastRateLimitReset = rateLimitDate(from: response)
+            self.lastRateLimitReset = self.rateLimitDate(from: response)
         } else if let reset = self.lastRateLimitReset, reset <= Date() {
             self.lastRateLimitReset = nil
             self.lastRateLimitError = nil
@@ -503,5 +526,6 @@ struct DiagnosticsSummary {
         rateLimitReset: nil,
         lastRateLimitError: nil,
         etagEntries: 0,
-        backoffEntries: 0)
+        backoffEntries: 0
+    )
 }

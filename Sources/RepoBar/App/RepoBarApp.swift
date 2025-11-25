@@ -40,7 +40,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         self.appState = appState
     }
 
-    func applicationDidFinishLaunching(_ notification: Notification) {
+    func applicationDidFinishLaunching(_: Notification) {
         guard ensureSingleInstance() else {
             NSApp.terminate(nil)
             return
@@ -49,7 +49,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         self.statusBarController = StatusBarController(appState: self.appState)
     }
 
-    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+    func applicationShouldTerminateAfterLastWindowClosed(_: NSApplication) -> Bool {
         false
     }
 }
@@ -142,7 +142,8 @@ final class AppState: ObservableObject {
                 clientID: self.defaultClientID,
                 clientSecret: self.defaultClientSecret,
                 host: self.defaultGitHubHost,
-                loopbackPort: self.defaultLoopbackPort)
+                loopbackPort: self.defaultLoopbackPort
+            )
             if let user = try? await self.github.currentUser() {
                 self.session.account = .loggedIn(user)
                 self.session.lastError = nil
@@ -177,13 +178,15 @@ final class AppState: ObservableObject {
             } else {
                 try await self.github.defaultRepositories(
                     limit: self.session.settings.repoDisplayLimit * 2,
-                    for: self.currentUserNameOrEmpty())
+                    for: self.currentUserNameOrEmpty()
+                )
             }
             let trimmed = AppState.selectVisible(
                 all: repos,
                 pinned: self.session.settings.pinnedRepositories,
                 hidden: Set(self.session.settings.hiddenRepositories),
-                limit: self.session.settings.repoDisplayLimit)
+                limit: self.session.settings.repoDisplayLimit
+            )
             await MainActor.run {
                 self.session.repositories = trimmed.map { repo in
                     if let idx = session.settings.pinnedRepositories.firstIndex(of: repo.fullName) {
@@ -250,7 +253,8 @@ final class AppState: ObservableObject {
         all repos: [Repository],
         pinned: [String],
         hidden: Set<String>,
-        limit: Int)
+        limit: Int
+    )
         -> [Repository]
     {
         let filtered = repos.filter { !hidden.contains($0.fullName) }

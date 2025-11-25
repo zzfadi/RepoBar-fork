@@ -316,6 +316,7 @@ struct UserSettings: Equatable, Codable {
     var showHeatmap = true
     var cardDensity: CardDensity = .comfortable
     var accentTone: AccentTone = .githubGreen
+    var debugPaneEnabled: Bool = false
     var diagnosticsEnabled: Bool = false
     var githubHost: URL = .init(string: "https://github.com")!
     var enterpriseHost: URL?

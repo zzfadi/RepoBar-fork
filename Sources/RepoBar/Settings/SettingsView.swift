@@ -1,22 +1,203 @@
+import AppKit
 import SwiftUI
 
 struct SettingsView: View {
     @EnvironmentObject var session: Session
     @EnvironmentObject var appState: AppState
+    @State private var selectedTab: SettingsTab = .general
 
     var body: some View {
-        TabView {
+        TabView(selection: self.$selectedTab) {
             GeneralSettingsView()
                 .tabItem { Label("General", systemImage: "gear") }
+                .tag(SettingsTab.general)
             RepoSettingsView()
                 .tabItem { Label("Repositories", systemImage: "tray.full") }
+                .tag(SettingsTab.repositories)
             AccountSettingsView()
                 .tabItem { Label("Accounts", systemImage: "person.crop.circle") }
-            AdvancedSettingsView()
-                .tabItem { Label("Advanced", systemImage: "wrench.and.screwdriver") }
+                .tag(SettingsTab.accounts)
+#if DEBUG
+            if self.session.settings.debugPaneEnabled {
+                DebugSettingsView()
+                    .tabItem { Label("Debug", systemImage: "ant.fill") }
+                    .tag(SettingsTab.debug)
+            }
+#endif
+            AboutSettingsView()
+                .tabItem { Label("About", systemImage: "info.circle") }
+                .tag(SettingsTab.about)
         }
-        .frame(width: 520, height: 360)
+        .frame(width: 540, height: 420)
+        .onChange(of: self.session.settings.debugPaneEnabled) { _, enabled in
+#if DEBUG
+            if !enabled && self.selectedTab == .debug {
+                self.selectedTab = .general
+            }
+#endif
+        }
     }
+}
+
+struct AboutSettingsView: View {
+    @State private var iconHover = false
+    @AppStorage("autoUpdateEnabled") private var autoUpdateEnabled: Bool = true
+    @State private var didSyncUpdater = false
+
+    private var appName: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String ?? "RepoBar"
+    }
+
+    private var versionString: String {
+        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "–"
+        let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String
+        return build.map { "\(version) (\($0))" } ?? version
+    }
+
+    private var buildTimestamp: String? {
+        guard let raw = Bundle.main.object(forInfoDictionaryKey: "RepoBarBuildTimestamp") as? String else { return nil }
+        let parser = ISO8601DateFormatter()
+        parser.formatOptions = [.withInternetDateTime]
+        guard let date = parser.date(from: raw) else { return raw }
+
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        formatter.locale = .current
+        return formatter.string(from: date)
+    }
+
+    private var gitCommit: String? {
+        Bundle.main.object(forInfoDictionaryKey: "RepoBarGitCommit") as? String
+    }
+
+    var body: some View {
+        VStack(spacing: 8) {
+            if let image = NSApplication.shared.applicationIconImage {
+                Button {
+                    if let url = URL(string: "https://github.com/steipete/RepoBar") {
+                        NSWorkspace.shared.open(url)
+                    }
+                } label: {
+                    Image(nsImage: image)
+                        .resizable()
+                        .frame(width: 88, height: 88)
+                        .cornerRadius(16)
+                        .scaleEffect(self.iconHover ? 1.06 : 1.0)
+                        .shadow(color: self.iconHover ? .accentColor.opacity(0.25) : .clear, radius: 6)
+                        .padding(.bottom, 4)
+                }
+                .buttonStyle(.plain)
+                .onHover { hovering in
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                        self.iconHover = hovering
+                    }
+                }
+            }
+
+            VStack(spacing: 2) {
+                Text(self.appName)
+                    .font(.title3).bold()
+                Text("Version \(self.versionString)")
+                    .foregroundStyle(.secondary)
+                if let buildTimestamp {
+                    var suffix = ""
+                    if let git = self.gitCommit, !git.isEmpty, git != "unknown" {
+                        suffix = " (\(git))"
+                    }
+                    Text("Built \(buildTimestamp)\(suffix)")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+                Text("Menubar glance at GitHub repos: CI, issues/PRs, releases, traffic, and activity.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+
+            VStack(spacing: 6) {
+                AboutLinkRow(icon: "chevron.left.slash.chevron.right", title: "GitHub", url: "https://github.com/steipete/RepoBar")
+                AboutLinkRow(icon: "ant", title: "Issue Tracker", url: "https://github.com/steipete/RepoBar/issues")
+                AboutLinkRow(icon: "envelope", title: "Email", url: "mailto:peter@steipete.me")
+            }
+            .frame(maxWidth: .infinity)
+            .multilineTextAlignment(.center)
+            .padding(.vertical, 10)
+
+            if SparkleController.shared.canCheckForUpdates {
+                Divider()
+                    .padding(.vertical, 6)
+                VStack(spacing: 10) {
+                    Toggle("Check for updates automatically", isOn: self.$autoUpdateEnabled)
+                        .toggleStyle(.checkbox)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                    Button("Check for Updates…") {
+                        SparkleController.shared.checkForUpdates()
+                    }
+                }
+            } else {
+                Text("Updates unavailable in this build.")
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 4)
+            }
+
+            Text("© 2025 Peter Steinberger. MIT License.")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .padding(.top, 6)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(.top, 6)
+        .padding(.horizontal, 24)
+        .padding(.bottom, 22)
+        .onAppear {
+            guard !self.didSyncUpdater else { return }
+            if SparkleController.shared.canCheckForUpdates {
+                SparkleController.shared.automaticallyChecksForUpdates = self.autoUpdateEnabled
+            }
+            self.didSyncUpdater = true
+        }
+        .onChange(of: self.autoUpdateEnabled) { _, newValue in
+            if SparkleController.shared.canCheckForUpdates {
+                SparkleController.shared.automaticallyChecksForUpdates = newValue
+            }
+        }
+    }
+}
+
+private struct AboutLinkRow: View {
+    let icon: String
+    let title: String
+    let url: String
+
+    @State private var hovering = false
+
+    var body: some View {
+        Button {
+            if let url = URL(string: self.url) {
+                NSWorkspace.shared.open(url)
+            }
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: self.icon)
+                Text(self.title)
+                    .underline(self.hovering, color: .accentColor)
+            }
+            .foregroundColor(.accentColor)
+        }
+        .buttonStyle(.plain)
+        .onHover { self.hovering = $0 }
+    }
+}
+
+enum SettingsTab: Hashable {
+    case general
+    case repositories
+    case accounts
+    case about
+#if DEBUG
+    case debug
+#endif
 }
 
 struct GeneralSettingsView: View {
@@ -47,6 +228,13 @@ struct GeneralSettingsView: View {
                     }
                 }
             }
+#if DEBUG
+            Toggle("Enable debug tools", isOn: self.$session.settings.debugPaneEnabled)
+                .onChange(of: self.session.settings.debugPaneEnabled) { _, _ in
+                    self.appState.persistSettings()
+                }
+                .help("Show the Debug tab for diagnostics and developer-only controls.")
+#endif
             Toggle("Launch at login", isOn: self.$session.settings.launchAtLogin)
                 .onChange(of: self.session.settings.launchAtLogin) { _, value in
                     LaunchAtLoginHelper.set(enabled: value)
@@ -91,6 +279,24 @@ struct AppearanceSettingsView: View {
                 .foregroundStyle(.secondary)
                 .padding(.top, 4)
         }
+        .padding()
+    }
+}
+
+struct AboutSettingsView: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            if let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String,
+               let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String
+            {
+                Text("RepoBar \(version) (\(build))")
+                    .font(.headline)
+            }
+            Text("A lightweight menubar dashboard for GitHub activity.")
+                .foregroundStyle(.secondary)
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
     }
 }
@@ -192,63 +398,63 @@ struct AccountSettingsView: View {
 
 }
 
-struct AdvancedSettingsView: View {
+struct DebugSettingsView: View {
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var session: Session
     @State private var diagnostics = DiagnosticsSummary.empty
-    @State private var showDebug = false
 
     var body: some View {
         Form {
-            Toggle("Show Debug", isOn: self.$showDebug.animation())
-            if self.showDebug {
-                Section("Debug") {
-                    Button("Clear cache") {
-                        Task {
-                            await self.appState.clearCaches()
-                            await self.loadDiagnostics()
-                        }
+            Section("Debug") {
+                Button("Clear cache") {
+                    Task {
+                        await self.appState.clearCaches()
+                        await self.loadDiagnosticsIfEnabled()
                     }
-                    Button("Force refresh") {
-                        self.appState.refreshScheduler.forceRefresh()
-                    }
-                    Toggle("Show diagnostics overlay", isOn: self.$session.settings.diagnosticsEnabled)
-                        .onChange(of: self.session.settings.diagnosticsEnabled) { _, newValue in
-                            self.appState.persistSettings()
-                            Task {
-                                await DiagnosticsLogger.shared.setEnabled(newValue)
-                                await self.loadDiagnostics()
-                            }
-                        }
-                    Section("Diagnostics") {
-                        LabeledContent("API host") {
-                            Text(self.diagnostics.apiHost.absoluteString)
-                                .lineLimit(1)
-                                .truncationMode(.middle)
-                        }
-                        if let reset = diagnostics.rateLimitReset {
-                            LabeledContent("Rate limit resets") {
-                                Text(RelativeFormatter.string(from: reset, relativeTo: Date()))
-                            }
-                        }
-                        if let error = diagnostics.lastRateLimitError {
-                            LabeledContent("Last API notice") { Text(error).foregroundStyle(.red) }
-                        }
-                        LabeledContent("Backoff entries") { Text("\(self.diagnostics.backoffEntries)") }
-                        LabeledContent("ETag entries") { Text("\(self.diagnostics.etagEntries)") }
-                        Button("Refresh diagnostics") { Task { await self.loadDiagnostics() } }
-                    }
-                    .opacity(self.session.settings.diagnosticsEnabled ? 1 : 0.4)
-                    .disabled(!self.session.settings.diagnosticsEnabled)
                 }
+                Button("Force refresh") {
+                    self.appState.refreshScheduler.forceRefresh()
+                }
+                Toggle("Show diagnostics overlay", isOn: self.$session.settings.diagnosticsEnabled)
+                    .onChange(of: self.session.settings.diagnosticsEnabled) { _, newValue in
+                        self.appState.persistSettings()
+                        Task {
+                            await DiagnosticsLogger.shared.setEnabled(newValue)
+                            await self.loadDiagnosticsIfEnabled()
+                        }
+                    }
             }
+
+            Section("Diagnostics") {
+                LabeledContent("API host") {
+                    Text(self.diagnostics.apiHost.absoluteString)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
+                if let reset = diagnostics.rateLimitReset {
+                    LabeledContent("Rate limit resets") {
+                        Text(RelativeFormatter.string(from: reset, relativeTo: Date()))
+                    }
+                }
+                if let error = diagnostics.lastRateLimitError {
+                    LabeledContent("Last API notice") { Text(error).foregroundStyle(.red) }
+                }
+                LabeledContent("Backoff entries") { Text("\(self.diagnostics.backoffEntries)") }
+                LabeledContent("ETag entries") { Text("\(self.diagnostics.etagEntries)") }
+                Button("Refresh diagnostics") { Task { await self.loadDiagnosticsIfEnabled() } }
+            }
+            .opacity(self.session.settings.diagnosticsEnabled ? 1 : 0.4)
+            .disabled(!self.session.settings.diagnosticsEnabled)
         }
         .padding()
-        .task { await self.loadDiagnostics() }
+        .task { await self.loadDiagnosticsIfEnabled() }
     }
 
-    private func loadDiagnostics() async {
-        guard self.session.settings.diagnosticsEnabled else { return }
+    private func loadDiagnosticsIfEnabled() async {
+        guard self.session.settings.diagnosticsEnabled else {
+            self.diagnostics = .empty
+            return
+        }
         self.diagnostics = await self.appState.diagnostics()
     }
 }

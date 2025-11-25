@@ -13,6 +13,15 @@ final class SparkleController {
             userDriverDelegate: nil)
     }
 
+    var canCheckForUpdates: Bool {
+        self.updaterController.updater.canCheckForUpdates
+    }
+
+    var automaticallyChecksForUpdates: Bool {
+        get { self.updaterController.updater.automaticallyChecksForUpdates }
+        set { self.updaterController.updater.automaticallyChecksForUpdates = newValue }
+    }
+
     func checkForUpdates() {
         self.updaterController.checkForUpdates(nil)
     }

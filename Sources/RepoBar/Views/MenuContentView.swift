@@ -4,6 +4,7 @@ struct MenuContentView: View {
     @EnvironmentObject var session: Session
     @EnvironmentObject var appState: AppState
     @State private var showingAddRepo = false
+    @Environment(\.openSettings) private var openSettingsAction
 
     var body: some View {
         ScrollView {
@@ -51,6 +52,27 @@ struct MenuContentView: View {
                             unpin: self.unpin,
                             hide: self.hide,
                             move: self.movePin)
+                    }
+                    Divider()
+                        .padding(.top, 6)
+                    HStack(spacing: 10) {
+                        Button {
+                            self.openSettings()
+                        } label: {
+                            Label("Settings", systemImage: "gearshape")
+                                .labelStyle(.titleAndIcon)
+                        }
+                        .buttonStyle(.bordered)
+
+                        Spacer()
+
+                        Button(role: .destructive) {
+                            NSApp.terminate(nil)
+                        } label: {
+                            Label("Quit", systemImage: "power")
+                                .labelStyle(.titleAndIcon)
+                        }
+                        .buttonStyle(.bordered)
                     }
                 }
             }
@@ -100,6 +122,10 @@ struct MenuContentView: View {
 
     private func openLogin() {
         Task { await self.appState.quickLogin() }
+    }
+
+    private func openSettings() {
+        self.openSettingsAction()
     }
 }
 

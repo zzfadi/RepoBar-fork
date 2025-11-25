@@ -30,8 +30,14 @@ final class CustomMenuWindow: NSWindow {
         self.statusBarButton = button
         guard let window = button.window, window.screen != nil else { return }
 
+        self.hostingView?.layoutSubtreeIfNeeded()
+        let fittingSize = self.hostingView?.fittingSize ?? NSSize(width: 420, height: 380)
+        let width = min(max(380, fittingSize.width), 520)
+        let height = min(max(220, fittingSize.height), 620)
+        self.setContentSize(NSSize(width: width, height: height))
+
         let buttonFrame = window.convertToScreen(button.frame)
-        let windowSize = frameRect(forContentRect: frame).size
+        let windowSize = frameRect(forContentRect: NSRect(origin: .zero, size: NSSize(width: width, height: height))).size
         let origin = NSPoint(
             x: buttonFrame.midX - windowSize.width / 2,
             y: buttonFrame.minY - windowSize.height - 8)

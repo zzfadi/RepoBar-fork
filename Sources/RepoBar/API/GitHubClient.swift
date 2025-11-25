@@ -429,8 +429,21 @@ actor GitHubClient {
         let (data, response) = try await authorizedGet(url: components.url!, token: token, allowedStatuses: [200, 304, 404])
         guard response.statusCode != 404 else { throw URLError(.fileDoesNotExist) }
         let releases = try jsonDecoder.decode([ReleaseResponse].self, from: data)
-        guard let rel = releases.first(where: { $0.draft != true }) else { throw URLError(.cannotParseResponse) }
-        let published = rel.publishedAt ?? rel.createdAt ?? Date()
+        guard let rel = Self.latestRelease(from: releases) else { throw URLError(.cannotParseResponse) }
+        return rel
+    }
+
+    /// Pick the newest non-draft release, preferring publishedAt over createdAt.
+    static func latestRelease(from responses: [ReleaseResponse]) -> Release? {
+        let candidates = responses
+            .filter { $0.draft != true }
+            .sorted {
+                let lhsDate = $0.publishedAt ?? $0.createdAt ?? .distantPast
+                let rhsDate = $1.publishedAt ?? $1.createdAt ?? .distantPast
+                return lhsDate > rhsDate
+            }
+        guard let rel = candidates.first else { return nil }
+        let published = rel.publishedAt ?? rel.createdAt ?? Date.distantPast
         return Release(name: rel.name ?? rel.tagName, tag: rel.tagName, publishedAt: published, url: rel.htmlUrl)
     }
 

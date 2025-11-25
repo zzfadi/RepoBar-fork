@@ -298,18 +298,26 @@ struct AccountSettingsView: View {
     var body: some View {
         Form {
             Section("GitHub.com") {
-                TextField("Client ID", text: self.$clientID)
-                SecureField("Client Secret", text: self.$clientSecret)
-                Button("Sign in") { self.login() }
-                if case let .loggedIn(user) = session.account {
-                    Text("Signed in as \(user.username) on \(user.host.host ?? "github.com")")
-                        .font(.caption)
-                    Button("Log out") {
-                        Task {
-                            await self.appState.auth.logout()
-                            self.session.account = .loggedOut
+                switch session.account {
+                case let .loggedIn(user):
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Signed in as \(user.username) on \(user.host.host ?? "github.com")")
+                            .font(.body)
+                        Text("Use the button below to sign out.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Button("Log out") {
+                            Task {
+                                await self.appState.auth.logout()
+                                self.session.account = .loggedOut
+                            }
                         }
                     }
+                default:
+                    TextField("Client ID", text: self.$clientID)
+                    SecureField("Client Secret", text: self.$clientSecret)
+                    Button(self.session.account == .loggingIn ? "Signing in…" : "Sign in") { self.login() }
+                        .disabled(self.session.account == .loggingIn)
                 }
             }
 

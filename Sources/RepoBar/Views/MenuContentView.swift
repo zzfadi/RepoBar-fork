@@ -9,8 +9,10 @@ struct MenuContentView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                if self.session.settings.showContributionHeader {
-                    ContributionHeaderView(username: self.currentUsername())
+                if self.session.settings.showContributionHeader,
+                   self.session.settings.showHeatmap,
+                   let username = self.currentUsername() {
+                    ContributionHeaderView(username: username)
                         .frame(maxWidth: .infinity)
                 }
 

@@ -543,11 +543,18 @@ actor GitHubClient {
         startedAt: Date
     ) async {
         let durationMs = Int((Date().timeIntervalSince(startedAt) * 1000).rounded())
-        let remaining = response.value(forHTTPHeaderField: "X-RateLimit-Remaining") ?? "?"
-        let resetDate = self.rateLimitDate(from: response)
+        let snapshot = RateLimitSnapshot.from(response: response)
+        if let snapshot { self.latestRestRateLimit = snapshot }
+
+        let remaining = snapshot?.remaining.map(String.init) ?? response.value(forHTTPHeaderField: "X-RateLimit-Remaining") ?? "?"
+        let limit = snapshot?.limit.map(String.init) ?? response.value(forHTTPHeaderField: "X-RateLimit-Limit") ?? "?"
+        let used = snapshot?.used.map(String.init) ?? response.value(forHTTPHeaderField: "X-RateLimit-Used") ?? "?"
+        let resetDate = snapshot?.reset ?? self.rateLimitDate(from: response)
         let resetText = resetDate.map { RelativeFormatter.string(from: $0, relativeTo: Date()) } ?? "n/a"
+        let resource = snapshot?.resource ?? response.value(forHTTPHeaderField: "X-RateLimit-Resource") ?? "rest"
+
         await self.diag.message(
-            "HTTP \(method) \(url.path) status=\(response.statusCode) rem=\(remaining) reset=\(resetText) dur=\(durationMs)ms"
+            "HTTP \(method) \(url.path) status=\(response.statusCode) res=\(resource) lim=\(limit) rem=\(remaining) used=\(used) reset=\(resetText) dur=\(durationMs)ms"
         )
     }
 

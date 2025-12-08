@@ -32,6 +32,7 @@ actor GraphQLClient {
     func repoSummary(owner: String, name: String) async throws -> RepoSummary {
         let token = try await tokenProvider?() ?? { throw URLError(.userAuthenticationRequired) }()
         await diag.message("GraphQL RepoSummary \(owner)/\(name)")
+        let startedAt = Date()
 
         let body = GraphQLRequest(
             query: """
@@ -57,6 +58,7 @@ actor GraphQLClient {
 
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let http = response as? HTTPURLResponse else { throw URLError(.badServerResponse) }
+        await self.logGraphQLResponse(http, label: "RepoSummary", startedAt: startedAt)
         if let snapshot = RateLimitSnapshot.from(response: http) {
             self.rateLimit = snapshot
         }
@@ -85,6 +87,7 @@ actor GraphQLClient {
     func userContributionHeatmap(login: String) async throws -> [HeatmapCell] {
         let token = try await tokenProvider?() ?? { throw URLError(.userAuthenticationRequired) }()
         await diag.message("GraphQL UserContributions \(login)")
+        let startedAt = Date()
 
         let body = GraphQLRequest(
             query: """
@@ -114,6 +117,7 @@ actor GraphQLClient {
 
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let http = response as? HTTPURLResponse else { throw URLError(.badServerResponse) }
+        await self.logGraphQLResponse(http, label: "UserContributions", startedAt: startedAt)
         if let snapshot = RateLimitSnapshot.from(response: http) {
             self.rateLimit = snapshot
         }
@@ -137,6 +141,23 @@ actor GraphQLClient {
 
     func rateLimitSnapshot() -> RateLimitSnapshot? {
         self.rateLimit
+    }
+
+    // MARK: - Logging
+
+    private func logGraphQLResponse(_ response: HTTPURLResponse, label: String, startedAt: Date) async {
+        let durationMs = Int((Date().timeIntervalSince(startedAt) * 1000).rounded())
+        let remaining = response.value(forHTTPHeaderField: "X-RateLimit-Remaining") ?? "?"
+        let resetText: String
+        if let reset = response.value(forHTTPHeaderField: "X-RateLimit-Reset"), let epoch = TimeInterval(reset) {
+            let date = Date(timeIntervalSince1970: epoch)
+            resetText = RelativeFormatter.string(from: date, relativeTo: Date())
+        } else {
+            resetText = "n/a"
+        }
+        await self.diag.message(
+            "GraphQL \(label) status=\(response.statusCode) rem=\(remaining) reset=\(resetText) dur=\(durationMs)ms"
+        )
     }
 }
 

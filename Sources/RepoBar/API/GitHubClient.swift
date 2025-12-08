@@ -459,6 +459,7 @@ actor GitHubClient {
         token: String,
         allowedStatuses: Set<Int> = [200, 304]
     ) async throws -> (Data, HTTPURLResponse) {
+        let startedAt = Date()
         await self.diag.message("GET \(url.absoluteString)")
         if await self.etagCache.isRateLimited(), let until = await etagCache.rateLimitUntil() {
             await self.diag.message("Blocked by local rateLimit until \(until)")
@@ -484,6 +485,8 @@ actor GitHubClient {
 
         let (data, responseAny) = try await URLSession.shared.data(for: request)
         guard let response = responseAny as? HTTPURLResponse else { throw URLError(.badServerResponse) }
+
+        await self.logResponse("GET", url: url, response: response, startedAt: startedAt)
 
         let status = response.statusCode
         if status == 304, let cached = await etagCache.cached(for: url) {
@@ -531,6 +534,21 @@ actor GitHubClient {
         }
         self.detectRateLimit(from: response)
         return (data, response)
+    }
+
+    private func logResponse(
+        _ method: String,
+        url: URL,
+        response: HTTPURLResponse,
+        startedAt: Date
+    ) async {
+        let durationMs = Int((Date().timeIntervalSince(startedAt) * 1000).rounded())
+        let remaining = response.value(forHTTPHeaderField: "X-RateLimit-Remaining") ?? "?"
+        let resetDate = self.rateLimitDate(from: response)
+        let resetText = resetDate.map { RelativeFormatter.string(from: $0, relativeTo: Date()) } ?? "n/a"
+        await self.diag.message(
+            "HTTP \(method) \(url.path) status=\(response.statusCode) rem=\(remaining) reset=\(resetText) dur=\(durationMs)ms"
+        )
     }
 
     private func rateLimitDate(from response: HTTPURLResponse) -> Date? {

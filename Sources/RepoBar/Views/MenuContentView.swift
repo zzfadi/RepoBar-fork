@@ -281,7 +281,8 @@ struct RepoGridView: View {
             case let (left?, right?): left < right
             case (.none, .some): false
             case (.some, .none): true
-            default: lhs.title < rhs.title
+            default:
+                RepositorySort.isOrderedBefore(lhs.source, rhs.source, sortKey: .activity)
             }
         }
     }

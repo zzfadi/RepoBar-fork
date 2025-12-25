@@ -41,47 +41,6 @@ func prepareRows(repos: [Repository], now: Date = Date()) -> [RepoRow] {
     }
 }
 
-func sortRows(_ rows: [RepoRow], sortKey: SortKey) -> [RepoRow] {
-    rows.sorted { lhs, rhs in
-        if let preferred = compare(lhs: lhs, rhs: rhs, sortKey: sortKey) { return preferred }
-        let leftDate = lhs.activityDate ?? .distantPast
-        let rightDate = rhs.activityDate ?? .distantPast
-        if leftDate != rightDate { return leftDate > rightDate }
-        if lhs.repo.openIssues != rhs.repo.openIssues { return lhs.repo.openIssues > rhs.repo.openIssues }
-        if lhs.repo.openPulls != rhs.repo.openPulls { return lhs.repo.openPulls > rhs.repo.openPulls }
-        if lhs.repo.stars != rhs.repo.stars { return lhs.repo.stars > rhs.repo.stars }
-        return lhs.repo.fullName.localizedCaseInsensitiveCompare(rhs.repo.fullName) == .orderedAscending
-    }
-}
-
-private func compare(lhs: RepoRow, rhs: RepoRow, sortKey: SortKey) -> Bool? {
-    switch sortKey {
-    case .activity:
-        let leftDate = lhs.activityDate ?? .distantPast
-        let rightDate = rhs.activityDate ?? .distantPast
-        if leftDate != rightDate { return leftDate > rightDate }
-        return nil
-    case .issues:
-        if lhs.repo.openIssues != rhs.repo.openIssues { return lhs.repo.openIssues > rhs.repo.openIssues }
-        return nil
-    case .pulls:
-        if lhs.repo.openPulls != rhs.repo.openPulls { return lhs.repo.openPulls > rhs.repo.openPulls }
-        return nil
-    case .stars:
-        if lhs.repo.stars != rhs.repo.stars { return lhs.repo.stars > rhs.repo.stars }
-        return nil
-    case .repo:
-        let order = lhs.repo.fullName.localizedCaseInsensitiveCompare(rhs.repo.fullName)
-        if order != .orderedSame { return order == .orderedAscending }
-        return nil
-    case .event:
-        let left = lhs.activityLine.singleLine
-        let right = rhs.activityLine.singleLine
-        if left != right { return left.localizedCaseInsensitiveCompare(right) == .orderedAscending }
-        return nil
-    }
-}
-
 func renderTable(
     _ rows: [RepoRow],
     useColor: Bool,

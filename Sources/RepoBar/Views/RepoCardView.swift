@@ -26,6 +26,8 @@ struct RepoCardView: View {
         .overlay(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .stroke(Color.gray.opacity(0.1), lineWidth: 1))
+        .contentShape(Rectangle())
+        .onTapGesture { self.open(url: self.repoURL()) }
         .accessibilityAction(named: Text("Move down")) { self.moveDown?() }
         .accessibilityAction(named: Text("Move up")) { self.moveUp?() }
         .accessibilityElement(children: .combine)

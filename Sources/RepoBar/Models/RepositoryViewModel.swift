@@ -2,6 +2,7 @@ import Foundation
 import RepoBarCore
 
 struct RepositoryViewModel: Identifiable, Equatable {
+    let source: Repository
     let id: String
     let title: String
     let latestRelease: String?
@@ -20,6 +21,7 @@ struct RepositoryViewModel: Identifiable, Equatable {
     let rateLimitedUntil: Date?
 
     init(repo: Repository, now: Date = Date()) {
+        self.source = repo
         self.id = repo.id
         self.title = repo.fullName
         self.ciStatus = repo.ciStatus

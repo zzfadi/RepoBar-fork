@@ -35,7 +35,7 @@ struct ReposCommand: CommanderRunnableCommand {
     var includeURL: Bool = false
 
     @Option(name: .customLong("sort"), help: "Sort by activity, issues, prs, stars, repo, or event")
-    var sort: SortKey = .activity
+    var sort: RepositorySortKey = .activity
 
     @OptionGroup
     var output: OutputOptions
@@ -87,22 +87,22 @@ struct ReposCommand: CommanderRunnableCommand {
 
         let repos = try await client.activityRepositories(limit: limit)
         let now = Date()
-        let rows = prepareRows(repos: repos, now: now)
         let cutoff = Calendar.current.date(byAdding: .day, value: -self.age, to: now)
-        let filtered = rows.filter { row in
+        let filtered = repos.filter { repo in
             guard let cutoff else { return false }
-            guard let date = row.activityDate else { return false }
+            guard let date = repo.activityDate else { return false }
             return date >= cutoff
         }
-        let sorted = sortRows(filtered, sortKey: sort)
+        let sorted = RepositorySort.sorted(filtered, sortKey: sort)
+        let rows = prepareRows(repos: sorted, now: now)
 
         let baseHost = settings.enterpriseHost ?? settings.githubHost
 
         if self.output.jsonOutput {
-            try renderJSON(sorted, baseHost: baseHost)
+            try renderJSON(rows, baseHost: baseHost)
         } else {
             renderTable(
-                sorted,
+                rows,
                 useColor: self.output.useColor,
                 includeURL: self.includeURL,
                 baseHost: baseHost

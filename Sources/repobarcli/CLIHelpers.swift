@@ -1,6 +1,7 @@
 import Commander
 import Darwin
 import Foundation
+import RepoBarCore
 
 protocol CommanderRunnableCommand: ParsableCommand {
     static var commandName: String { get }
@@ -63,15 +64,8 @@ struct OutputOptions: CommanderParsable, Sendable {
     }
 }
 
-enum SortKey: String, ExpressibleFromArgument, Sendable {
-    case activity
-    case issues
-    case pulls
-    case stars
-    case repo
-    case event
-
-    init?(argument: String) {
+extension RepositorySortKey: ExpressibleFromArgument {
+    public init?(argument: String) {
         switch argument.lowercased() {
         case "activity", "act", "date":
             self = .activity
@@ -82,7 +76,7 @@ enum SortKey: String, ExpressibleFromArgument, Sendable {
         case "stars", "star":
             self = .stars
         case "repo", "name":
-            self = .repo
+            self = .name
         case "event", "activity-line", "line":
             self = .event
         default:

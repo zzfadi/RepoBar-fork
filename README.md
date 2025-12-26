@@ -15,6 +15,17 @@ pnpm codegen          # (optional) run Apollo codegen once schema access is set
 
 Requirements: Swift 6.2 toolchain, Xcode 26+, `swiftformat`, `swiftlint`, `pnpm` (v10+), and `apollo-ios` CLI if you run codegen.
 
+## CLI (repobarcli)
+
+RepoBar ships a bundled CLI for quick repo overviews.
+
+```bash
+pnpm repobarcli login
+pnpm repobarcli repos --release
+pnpm repobarcli repos --release --plain   # no colors, no links, no URLs
+pnpm repobarcli repos --release --json    # machine output
+```
+
 ## Auth setup
 
 1. In GitHub App settings, set callback `http://127.0.0.1:53682/callback`; ensure repo permissions include Actions/Checks/Contents/Issues/PRs/Admin (traffic).  

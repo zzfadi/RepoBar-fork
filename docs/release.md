@@ -30,5 +30,8 @@ read_when:
    - Optional notarization: `NOTARIZE=1 NOTARY_PROFILE="Xcode Notary" Scripts/package_app.sh release`
    - Verify: `spctl --assess --verbose .build/release/RepoBar.app`
 
-3) Post-publish asset check  
+3) Release notes (markdown)
+   - `Scripts/generate-release-notes.sh <version> > RELEASE_NOTES.md`
+
+4) Post-publish asset check  
    - `Scripts/check-release-assets.sh <tag>` (zip + dSYM present)

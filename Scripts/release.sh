@@ -30,7 +30,7 @@ KEY_FILE=$(clean_key "$SPARKLE_PRIVATE_KEY_FILE")
 NOTES_HTML=$(mktemp /tmp/repobar-notes.XXXX.html)
 "$ROOT/Scripts/changelog-to-html.sh" "$MARKETING_VERSION" "$ROOT/CHANGELOG.md" >"$NOTES_HTML"
 NOTES_MD=$(mktemp /tmp/repobar-notes.XXXX.md)
-extract_notes_from_changelog "$MARKETING_VERSION" "$NOTES_MD"
+"$ROOT/Scripts/generate-release-notes.sh" "$MARKETING_VERSION" "$NOTES_MD"
 trap 'rm -f "$KEY_FILE" "$NOTES_HTML" "$NOTES_MD"' EXIT
 
 echo "Generating Sparkle signature for appcast entry"

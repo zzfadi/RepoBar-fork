@@ -68,6 +68,7 @@ public struct OAuthLoginFlow {
             expiresAt: Date().addingTimeInterval(TimeInterval(decoded.expiresIn ?? 3600))
         )
         try self.tokenStore.save(tokens: tokens)
+        try self.tokenStore.save(clientCredentials: OAuthClientCredentials(clientID: clientID, clientSecret: clientSecret))
         server.stop()
         return tokens
     }

@@ -26,4 +26,10 @@ struct ReleaseSelectionTests {
         #expect(picked?.tag == "v0.5.0")
         #expect(picked?.publishedAt == Date(timeIntervalSince1970: 1_700_150_000))
     }
+
+    @Test
+    func returnsNilWhenNoReleases() {
+        let picked = GitHubClient.latestRelease(from: [])
+        #expect(picked == nil)
+    }
 }

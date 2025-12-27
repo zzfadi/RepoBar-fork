@@ -14,6 +14,7 @@ struct VisibilityTests {
             all: repos,
             pinned: [],
             hidden: Set(["me/b"]),
+            includeForks: false,
             limit: 5
         )
         #expect(visible.count == 1)
@@ -30,6 +31,7 @@ struct VisibilityTests {
             all: repos,
             pinned: ["me/a"],
             hidden: [],
+            includeForks: false,
             limit: 5
         )
         #expect(visible.first?.fullName == "me/a")
@@ -44,6 +46,7 @@ struct VisibilityTests {
             all: repos,
             pinned: [],
             hidden: Set(["me/r1", "me/r2", "me/r3"]),
+            includeForks: false,
             limit: 3
         )
         #expect(visible.count == 3)

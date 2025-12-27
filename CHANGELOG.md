@@ -10,6 +10,7 @@
 - repobarcli shows clickable repo links by default (use `--plain` for no links/colors/URLs).
 - repobarcli can show latest release tag/date with `--release`.
 - Forked repositories are hidden by default in the mac app and CLI (use `--forks` or enable “Include forked repositories” in Settings).
+- Archived repositories are hidden by default in the mac app and CLI (use `--archived` or enable “Include archived repositories” in Settings).
 - Repo list sorting now uses the same activity/issue/PR/star ordering in the mac app and CLI.
 - Clicking a repo card opens the repository in the browser.
 - Repo detail cache now persists on disk to survive app restarts.

@@ -8,6 +8,7 @@ struct RepoItem: Decodable {
     let id: Int
     let name: String
     let fullName: String
+    let fork: Bool
     let openIssuesCount: Int
     let stargazersCount: Int
     let pushedAt: Date?
@@ -18,6 +19,7 @@ struct RepoItem: Decodable {
     enum CodingKeys: String, CodingKey {
         case id, name
         case fullName = "full_name"
+        case fork
         case openIssuesCount = "open_issues_count"
         case stargazersCount = "stargazers_count"
         case pushedAt = "pushed_at"

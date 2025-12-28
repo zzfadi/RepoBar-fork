@@ -29,7 +29,7 @@ Last updated: 2025-12-28
 - Use same filter logic for menu and CLI to avoid mismatches.
 - Add unit tests for pipeline with fixtures.
 
-### [ ] 2) Split AppState refresh into stages
+### [x] 2) Split AppState refresh into stages
 - `fetchActivityRepos()`
 - `applyVisibilityFilters()`
 - `applyPinnedOrder()`

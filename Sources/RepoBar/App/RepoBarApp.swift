@@ -161,26 +161,14 @@ final class AppState {
                     await MainActor.run { self.session.account = .loggedIn(user) }
                 }
             }
-            let repos = try await self.github.activityRepositories(limit: nil)
-            let trimmed = AppState.selectVisible(
-                all: repos,
-                pinned: self.session.settings.pinnedRepositories,
-                hidden: Set(self.session.settings.hiddenRepositories),
-                includeForks: self.session.settings.showForks,
-                includeArchived: self.session.settings.showArchived,
-                limit: Int.max
-            )
-            let ordered = self.applyPinnedOrder(to: trimmed)
-            let menuTargets = self.menuTargets(from: ordered)
-            let detailed = await self.fetchDetailedRepos(menuTargets)
-            let merged = self.mergeDetailed(detailed, into: ordered)
+            let repos = try await self.fetchActivityRepos()
+            let visible = self.applyVisibilityFilters(to: repos)
+            let ordered = self.applyPinnedOrder(to: visible)
+            let targets = self.selectMenuTargets(from: ordered)
+            let hydrated = await self.hydrateMenuTargets(targets)
+            let merged = self.mergeHydrated(hydrated, into: ordered)
             let final = self.applyPinnedOrder(to: merged)
-            await MainActor.run {
-                self.session.repositories = final
-                self.session.hasLoadedRepositories = true
-                self.session.rateLimitReset = nil
-                self.session.lastError = nil
-            }
+            await self.updateSession(with: final)
             let now = Date()
             let reset = await self.github.rateLimitReset(now: now)
             let message = await self.github.rateLimitMessage(now: now)
@@ -193,7 +181,22 @@ final class AppState {
         }
     }
 
-    private func menuTargets(from repos: [Repository]) -> [Repository] {
+    private func fetchActivityRepos() async throws -> [Repository] {
+        try await self.github.activityRepositories(limit: nil)
+    }
+
+    private func applyVisibilityFilters(to repos: [Repository]) -> [Repository] {
+        AppState.selectVisible(
+            all: repos,
+            pinned: self.session.settings.pinnedRepositories,
+            hidden: Set(self.session.settings.hiddenRepositories),
+            includeForks: self.session.settings.showForks,
+            includeArchived: self.session.settings.showArchived,
+            limit: Int.max
+        )
+    }
+
+    private func selectMenuTargets(from repos: [Repository]) -> [Repository] {
         RepositoryPipeline.apply(repos, query: self.menuQuery())
     }
 
@@ -214,7 +217,7 @@ final class AppState {
         )
     }
 
-    private func fetchDetailedRepos(_ repos: [Repository]) async -> [Repository] {
+    private func hydrateMenuTargets(_ repos: [Repository]) async -> [Repository] {
         await withTaskGroup(of: Repository?.self) { group in
             for repo in repos {
                 group.addTask { [github] in
@@ -229,7 +232,7 @@ final class AppState {
         }
     }
 
-    private func mergeDetailed(_ detailed: [Repository], into repos: [Repository]) -> [Repository] {
+    private func mergeHydrated(_ detailed: [Repository], into repos: [Repository]) -> [Repository] {
         let lookup = Dictionary(uniqueKeysWithValues: detailed.map { ($0.fullName, $0) })
         return repos.map { lookup[$0.fullName] ?? $0 }
     }
@@ -241,6 +244,15 @@ final class AppState {
                 return repo.withOrder(idx)
             }
             return repo
+        }
+    }
+
+    private func updateSession(with repos: [Repository]) async {
+        await MainActor.run {
+            self.session.repositories = repos
+            self.session.hasLoadedRepositories = true
+            self.session.rateLimitReset = nil
+            self.session.lastError = nil
         }
     }
 

@@ -126,8 +126,8 @@ struct ReposCommand: CommanderRunnableCommand {
         let baseHost = settings.enterpriseHost ?? settings.githubHost
         let effectiveScope = self.scope ?? (self.pinnedOnly ? .pinned : .all)
         let effectiveOnlyWith = self.filter?.onlyWith ?? self.onlyWith?.filter ?? .none
-        let hidden = Set(settings.hiddenRepositories)
-        let pinned = settings.pinnedRepositories.filter { !hidden.contains($0) }
+        let hidden = Set(settings.repoList.hiddenRepositories)
+        let pinned = settings.repoList.pinnedRepositories.filter { !hidden.contains($0) }
         let ageCutoff = effectiveScope == .all
             ? Calendar.current.date(byAdding: .day, value: -self.age, to: now)
             : nil
@@ -164,7 +164,7 @@ struct ReposCommand: CommanderRunnableCommand {
             )
             return
         case .hidden:
-            let hiddenList = settings.hiddenRepositories
+            let hiddenList = settings.repoList.hiddenRepositories
             guard hiddenList.isEmpty == false else {
                 if self.output.jsonOutput {
                     try renderJSON([], baseHost: baseHost)

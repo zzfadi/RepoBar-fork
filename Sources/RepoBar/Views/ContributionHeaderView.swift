@@ -31,7 +31,7 @@ struct ContributionHeaderView: View {
             self.openProfile()
         } label: {
             VStack(alignment: .leading, spacing: 4) {
-                Text("Contributions · \(self.displayName) · last \(self.session.settings.heatmapSpan.label)")
+                Text("Contributions · \(self.displayName) · last \(self.session.settings.heatmap.span.label)")
                     .font(.caption2)
                     .foregroundStyle(MenuHighlightStyle.secondary(self.isHighlighted))
                 self.content
@@ -78,7 +78,7 @@ struct ContributionHeaderView: View {
         } else {
             let filtered = HeatmapFilter.filter(self.session.contributionHeatmap, range: self.session.heatmapRange)
             VStack(spacing: 4) {
-                HeatmapView(cells: filtered, accentTone: self.session.settings.accentTone, height: 48)
+                HeatmapView(cells: filtered, accentTone: self.session.settings.appearance.accentTone, height: 48)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 self.axisLabels
             }

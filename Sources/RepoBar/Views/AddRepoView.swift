@@ -56,8 +56,8 @@ struct AddRepoView: View {
         self.isLoading = true
         defer { self.isLoading = false }
         do {
-            let includeForks = await MainActor.run { self.session.settings.showForks }
-            let includeArchived = await MainActor.run { self.session.settings.showArchived }
+            let includeForks = await MainActor.run { self.session.settings.repoList.showForks }
+            let includeArchived = await MainActor.run { self.session.settings.repoList.showArchived }
             let trimmed = self.query.trimmingCharacters(in: .whitespacesAndNewlines)
             let repos: [Repository] = if trimmed.isEmpty {
                 try await self.appState.github.recentRepositories(limit: 10)

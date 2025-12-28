@@ -228,24 +228,24 @@ struct GeneralSettingsView: View {
                 }
 
                 Section {
-                Toggle("Show contribution header", isOn: self.$session.settings.showContributionHeader)
-                    .onChange(of: self.session.settings.showContributionHeader) { _, _ in
+                Toggle("Show contribution header", isOn: self.$session.settings.appearance.showContributionHeader)
+                    .onChange(of: self.session.settings.appearance.showContributionHeader) { _, _ in
                         self.appState.persistSettings()
                     }
-                Picker("Repository heatmap", selection: self.$session.settings.heatmapDisplay) {
+                Picker("Repository heatmap", selection: self.$session.settings.heatmap.display) {
                     ForEach(HeatmapDisplay.allCases, id: \.self) { display in
                         Text(display.label).tag(display)
                     }
                 }
-                .onChange(of: self.session.settings.heatmapDisplay) { _, _ in
+                .onChange(of: self.session.settings.heatmap.display) { _, _ in
                     self.appState.persistSettings()
                 }
-                Picker("Heatmap window", selection: self.$session.settings.heatmapSpan) {
+                Picker("Heatmap window", selection: self.$session.settings.heatmap.span) {
                     ForEach(HeatmapSpan.allCases, id: \.self) { span in
                         Text(span.label).tag(span)
                     }
                 }
-                .onChange(of: self.session.settings.heatmapSpan) { _, _ in
+                .onChange(of: self.session.settings.heatmap.span) { _, _ in
                     self.appState.persistSettings()
                     self.appState.updateHeatmapRange(now: Date())
                 }
@@ -256,24 +256,24 @@ struct GeneralSettingsView: View {
                 }
 
                 Section {
-                Picker("Repositories shown", selection: self.$session.settings.repoDisplayLimit) {
+                Picker("Repositories shown", selection: self.$session.settings.repoList.displayLimit) {
                     ForEach([3, 6, 9, 12], id: \.self) { Text("\($0)").tag($0) }
                 }
-                Picker("Menu sort", selection: self.$session.settings.menuSortKey) {
+                Picker("Menu sort", selection: self.$session.settings.repoList.menuSortKey) {
                     ForEach(RepositorySortKey.settingsCases, id: \.self) { sortKey in
                         Text(sortKey.settingsLabel).tag(sortKey)
                     }
                 }
-                .onChange(of: self.session.settings.menuSortKey) { _, _ in
+                .onChange(of: self.session.settings.repoList.menuSortKey) { _, _ in
                     self.appState.persistSettings()
                 }
-                Toggle("Include forked repositories", isOn: self.$session.settings.showForks)
-                    .onChange(of: self.session.settings.showForks) { _, _ in
+                Toggle("Include forked repositories", isOn: self.$session.settings.repoList.showForks)
+                    .onChange(of: self.session.settings.repoList.showForks) { _, _ in
                         self.appState.persistSettings()
                         self.appState.requestRefresh(cancelInFlight: true)
                     }
-                Toggle("Include archived repositories", isOn: self.$session.settings.showArchived)
-                    .onChange(of: self.session.settings.showArchived) { _, _ in
+                Toggle("Include archived repositories", isOn: self.$session.settings.repoList.showArchived)
+                    .onChange(of: self.session.settings.repoList.showArchived) { _, _ in
                         self.appState.persistSettings()
                         self.appState.requestRefresh(cancelInFlight: true)
                     }
@@ -366,19 +366,19 @@ struct AppearanceSettingsView: View {
 
     var body: some View {
         Form {
-            Picker("Card density", selection: self.$session.settings.cardDensity) {
+            Picker("Card density", selection: self.$session.settings.appearance.cardDensity) {
                 ForEach(CardDensity.allCases, id: \.self) { density in
                     Text(density.label).tag(density)
                 }
             }
-            .onChange(of: self.session.settings.cardDensity) { _, _ in self.appState.persistSettings() }
+            .onChange(of: self.session.settings.appearance.cardDensity) { _, _ in self.appState.persistSettings() }
 
-            Picker("Accent tone", selection: self.$session.settings.accentTone) {
+            Picker("Accent tone", selection: self.$session.settings.appearance.accentTone) {
                 ForEach(AccentTone.allCases, id: \.self) { tone in
                     Text(tone.label).tag(tone)
                 }
             }
-            .onChange(of: self.session.settings.accentTone) { _, _ in self.appState.persistSettings() }
+            .onChange(of: self.session.settings.appearance.accentTone) { _, _ in self.appState.persistSettings() }
 
             Text("GitHub greens keep the classic contribution palette; System accent follows your macOS accent color.")
                 .font(.caption)

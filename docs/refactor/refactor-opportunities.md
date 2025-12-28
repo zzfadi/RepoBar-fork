@@ -74,7 +74,7 @@ Last updated: 2025-12-28
 - Add versioned migrations for `UserSettings`.
 - Example: `showHeatmap -> heatmapDisplay` mapping.
 
-### [ ] 9) Typed settings groups
+### [x] 9) Typed settings groups
 - Split into structs:
   - `HeatmapSettings`
   - `RepoListSettings`

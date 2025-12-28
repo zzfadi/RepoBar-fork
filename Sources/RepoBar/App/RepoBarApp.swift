@@ -211,10 +211,10 @@ final class AppState {
     private func applyVisibilityFilters(to repos: [Repository]) -> [Repository] {
         AppState.selectVisible(
             all: repos,
-            pinned: self.session.settings.pinnedRepositories,
-            hidden: Set(self.session.settings.hiddenRepositories),
-            includeForks: self.session.settings.showForks,
-            includeArchived: self.session.settings.showArchived,
+            pinned: self.session.settings.repoList.pinnedRepositories,
+            hidden: Set(self.session.settings.repoList.hiddenRepositories),
+            includeForks: self.session.settings.repoList.showForks,
+            includeArchived: self.session.settings.repoList.showArchived,
             limit: Int.max
         )
     }
@@ -230,19 +230,19 @@ final class AppState {
         return RepositoryQuery(
             scope: scope,
             onlyWith: selection.onlyWith,
-            includeForks: settings.showForks,
-            includeArchived: settings.showArchived,
-            sortKey: settings.menuSortKey,
-            limit: settings.repoDisplayLimit,
-            pinned: settings.pinnedRepositories,
-            hidden: Set(settings.hiddenRepositories),
+            includeForks: settings.repoList.showForks,
+            includeArchived: settings.repoList.showArchived,
+            sortKey: settings.repoList.menuSortKey,
+            limit: settings.repoList.displayLimit,
+            pinned: settings.repoList.pinnedRepositories,
+            hidden: Set(settings.repoList.hiddenRepositories),
             pinPriority: true
         )
     }
 
     func updateHeatmapRange(now: Date = Date()) {
         self.session.heatmapRange = HeatmapFilter.range(
-            span: self.session.settings.heatmapSpan,
+            span: self.session.settings.heatmap.span,
             now: now,
             alignToWeek: true
         )
@@ -277,7 +277,7 @@ final class AppState {
     }
 
     private func applyPinnedOrder(to repos: [Repository]) -> [Repository] {
-        let pinned = self.session.settings.pinnedRepositories
+        let pinned = self.session.settings.repoList.pinnedRepositories
         return repos.map { repo in
             if let idx = pinned.firstIndex(of: repo.fullName) {
                 return repo.withOrder(idx)
@@ -296,30 +296,30 @@ final class AppState {
     }
 
     func addPinned(_ fullName: String) async {
-        guard !self.session.settings.pinnedRepositories.contains(fullName) else { return }
-        self.session.settings.pinnedRepositories.append(fullName)
+        guard !self.session.settings.repoList.pinnedRepositories.contains(fullName) else { return }
+        self.session.settings.repoList.pinnedRepositories.append(fullName)
         self.settingsStore.save(self.session.settings)
         await self.refresh()
     }
 
     func removePinned(_ fullName: String) async {
-        self.session.settings.pinnedRepositories.removeAll { $0 == fullName }
+        self.session.settings.repoList.pinnedRepositories.removeAll { $0 == fullName }
         self.settingsStore.save(self.session.settings)
         await self.refresh()
     }
 
     func hide(_ fullName: String) async {
-        guard !self.session.settings.hiddenRepositories.contains(fullName) else { return }
-        self.session.settings.hiddenRepositories.append(fullName)
+        guard !self.session.settings.repoList.hiddenRepositories.contains(fullName) else { return }
+        self.session.settings.repoList.hiddenRepositories.append(fullName)
         // If hidden, also unpin to avoid stale pin list.
-        self.session.settings.pinnedRepositories.removeAll { $0 == fullName }
+        self.session.settings.repoList.pinnedRepositories.removeAll { $0 == fullName }
         self.settingsStore.save(self.session.settings)
         self.session.repositories.removeAll { $0.fullName == fullName }
         await self.refresh()
     }
 
     func unhide(_ fullName: String) async {
-        self.session.settings.hiddenRepositories.removeAll { $0 == fullName }
+        self.session.settings.repoList.hiddenRepositories.removeAll { $0 == fullName }
         self.settingsStore.save(self.session.settings)
         await self.refresh()
     }
@@ -331,14 +331,14 @@ final class AppState {
         guard !trimmed.isEmpty else { return }
 
         // Remove from both buckets before re-adding.
-        self.session.settings.pinnedRepositories.removeAll { $0 == trimmed }
-        self.session.settings.hiddenRepositories.removeAll { $0 == trimmed }
+        self.session.settings.repoList.pinnedRepositories.removeAll { $0 == trimmed }
+        self.session.settings.repoList.hiddenRepositories.removeAll { $0 == trimmed }
 
         switch visibility {
         case .pinned:
-            self.session.settings.pinnedRepositories.append(trimmed)
+            self.session.settings.repoList.pinnedRepositories.append(trimmed)
         case .hidden:
-            self.session.settings.hiddenRepositories.append(trimmed)
+            self.session.settings.repoList.hiddenRepositories.append(trimmed)
         case .visible:
             break
         }
@@ -362,7 +362,7 @@ final class AppState {
 
     /// Preloads the user's contribution heatmap so the header can render without remote images.
     func loadContributionHeatmapIfNeeded(for username: String) async {
-        guard self.session.settings.showContributionHeader, self.session.hasLoadedRepositories else { return }
+        guard self.session.settings.appearance.showContributionHeader, self.session.hasLoadedRepositories else { return }
         if self.session.contributionUser == username, !self.session.contributionHeatmap.isEmpty { return }
         let hasExisting = self.session.contributionUser == username && !self.session.contributionHeatmap.isEmpty
         if let cached = ContributionCacheStore.load(), cached.username == username, cached.isValid {

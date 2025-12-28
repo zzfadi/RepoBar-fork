@@ -1,24 +1,42 @@
 import Foundation
 
 public struct UserSettings: Equatable, Codable {
-    public var showContributionHeader = true
-    public var repoDisplayLimit: Int = 6
-    public var showForks = false
-    public var showArchived = false
+    public var appearance = AppearanceSettings()
+    public var heatmap = HeatmapSettings()
+    public var repoList = RepoListSettings()
     public var refreshInterval: RefreshInterval = .fiveMinutes
     public var launchAtLogin = false
-    public var heatmapDisplay: HeatmapDisplay = .inline
-    public var heatmapSpan: HeatmapSpan = .twelveMonths
-    public var cardDensity: CardDensity = .comfortable
-    public var accentTone: AccentTone = .githubGreen
-    public var menuSortKey: RepositorySortKey = .activity
     public var debugPaneEnabled: Bool = false
     public var diagnosticsEnabled: Bool = false
     public var githubHost: URL = .init(string: "https://github.com")!
     public var enterpriseHost: URL?
     public var loopbackPort: Int = 53682
+
+    public init() {}
+}
+
+public struct HeatmapSettings: Equatable, Codable {
+    public var display: HeatmapDisplay = .inline
+    public var span: HeatmapSpan = .twelveMonths
+
+    public init() {}
+}
+
+public struct RepoListSettings: Equatable, Codable {
+    public var displayLimit: Int = 6
+    public var showForks = false
+    public var showArchived = false
+    public var menuSortKey: RepositorySortKey = .activity
     public var pinnedRepositories: [String] = [] // owner/name
     public var hiddenRepositories: [String] = [] // owner/name
+
+    public init() {}
+}
+
+public struct AppearanceSettings: Equatable, Codable {
+    public var showContributionHeader = true
+    public var cardDensity: CardDensity = .comfortable
+    public var accentTone: AccentTone = .githubGreen
 
     public init() {}
 }

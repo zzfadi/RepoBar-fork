@@ -13,9 +13,9 @@ struct SettingsStoreTests {
         #expect(store.load() == UserSettings())
 
         var settings = UserSettings()
-        settings.repoDisplayLimit = 9
-        settings.pinnedRepositories = ["steipete/RepoBar", "steipete/clawdis"]
-        settings.hiddenRepositories = ["steipete/agent-scripts"]
+        settings.repoList.displayLimit = 9
+        settings.repoList.pinnedRepositories = ["steipete/RepoBar", "steipete/clawdis"]
+        settings.repoList.hiddenRepositories = ["steipete/agent-scripts"]
         settings.enterpriseHost = URL(string: "https://ghe.example.com")!
         settings.debugPaneEnabled = true
 
@@ -39,6 +39,30 @@ struct SettingsStoreTests {
 
         let store = SettingsStore(defaults: defaults)
         let settings = store.load()
-        #expect(settings.heatmapDisplay == .submenu)
+        #expect(settings.heatmap.display == .submenu)
+    }
+
+    @Test
+    func migrateLegacyEnvelope() throws {
+        let suiteName = "repobar.settings.tests.\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        struct LegacyPayload: Codable {
+            let showHeatmap: Bool
+        }
+
+        struct LegacyEnvelope: Codable {
+            let version: Int
+            let settings: LegacyPayload
+        }
+
+        let legacy = LegacyEnvelope(version: 1, settings: LegacyPayload(showHeatmap: true))
+        let data = try JSONEncoder().encode(legacy)
+        defaults.set(data, forKey: SettingsStore.storageKey)
+
+        let store = SettingsStore(defaults: defaults)
+        let settings = store.load()
+        #expect(settings.heatmap.display == .inline)
     }
 }

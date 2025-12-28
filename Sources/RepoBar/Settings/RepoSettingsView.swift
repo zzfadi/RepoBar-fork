@@ -83,10 +83,10 @@ struct RepoSettingsView: View {
 
     private var rows: [RepoRow] {
         var out: [RepoRow] = []
-        for (index, name) in self.session.settings.pinnedRepositories.enumerated() {
+        for (index, name) in self.session.settings.repoList.pinnedRepositories.enumerated() {
             out.append(RepoRow(name: name, visibility: .pinned, sortKey: index))
         }
-        for name in self.session.settings.hiddenRepositories where !out.contains(where: { $0.name == name }) {
+        for name in self.session.settings.repoList.hiddenRepositories where !out.contains(where: { $0.name == name }) {
             out.append(RepoRow(name: name, visibility: .hidden, sortKey: Int.max))
         }
         return out.sorted { lhs, rhs in
@@ -258,8 +258,8 @@ private struct RepoInputRow<Accessory: View>: View {
         }
 
         do {
-            let includeForks = await MainActor.run { self.session.settings.showForks }
-            let includeArchived = await MainActor.run { self.session.settings.showArchived }
+            let includeForks = await MainActor.run { self.session.settings.repoList.showForks }
+            let includeArchived = await MainActor.run { self.session.settings.repoList.showArchived }
             let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
             let prefetched = try? await self.appState.github.prefetchedRepositories()
 

@@ -186,8 +186,8 @@ struct RefreshCommand: CommanderRunnableCommand {
 
     mutating func run() async throws {
         let (client, settings, _) = try await makeAuthenticatedClient()
-        let hidden = Set(settings.hiddenRepositories)
-        let pinned = settings.pinnedRepositories.filter { !hidden.contains($0) }
+        let hidden = Set(settings.repoList.hiddenRepositories)
+        let pinned = settings.repoList.pinnedRepositories.filter { !hidden.contains($0) }
 
         guard pinned.isEmpty == false else {
             if self.output.jsonOutput {

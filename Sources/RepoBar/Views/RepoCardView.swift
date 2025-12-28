@@ -153,21 +153,21 @@ struct RepoCardView: View {
 
     @ViewBuilder
     private var heatmap: some View {
-        if self.session.settings.heatmapDisplay == .inline, !self.repo.heatmap.isEmpty {
+        if self.session.settings.heatmap.display == .inline, !self.repo.heatmap.isEmpty {
             let filtered = HeatmapFilter.filter(self.repo.heatmap, range: self.session.heatmapRange)
-            HeatmapView(cells: filtered, accentTone: self.session.settings.accentTone)
+            HeatmapView(cells: filtered, accentTone: self.session.settings.appearance.accentTone)
         }
     }
 
     private var cardPadding: CGFloat {
-        switch self.session.settings.cardDensity {
+        switch self.session.settings.appearance.cardDensity {
         case .comfortable: 14
         case .compact: 10
         }
     }
 
     private var verticalSpacing: CGFloat {
-        switch self.session.settings.cardDensity {
+        switch self.session.settings.appearance.cardDensity {
         case .comfortable: 10
         case .compact: 8
         }

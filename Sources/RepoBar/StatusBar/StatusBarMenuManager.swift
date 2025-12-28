@@ -154,13 +154,13 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
 
     private func moveRepo(sender: NSMenuItem, direction: Int) {
         guard let fullName = self.repoFullName(from: sender) else { return }
-        var pins = self.appState.session.settings.pinnedRepositories
+        var pins = self.appState.session.settings.repoList.pinnedRepositories
         guard let currentIndex = pins.firstIndex(of: fullName) else { return }
         let maxIndex = max(pins.count - 1, 0)
         let target = max(0, min(maxIndex, currentIndex + direction))
         guard target != currentIndex else { return }
         pins.move(fromOffsets: IndexSet(integer: currentIndex), toOffset: target > currentIndex ? target + 1 : target)
-        self.appState.session.settings.pinnedRepositories = pins
+        self.appState.session.settings.repoList.pinnedRepositories = pins
         self.appState.persistSettings()
         self.appState.requestRefresh(cancelInFlight: true)
     }

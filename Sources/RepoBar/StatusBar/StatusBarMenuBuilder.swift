@@ -27,7 +27,7 @@ final class StatusBarMenuBuilder {
         let session = self.appState.session
         let settings = session.settings
 
-        if settings.showContributionHeader,
+        if settings.appearance.showContributionHeader,
            let username = self.currentUsername(),
            let displayName = self.currentDisplayName()
         {
@@ -108,14 +108,14 @@ final class StatusBarMenuBuilder {
             menu.addItem(self.viewItem(for: emptyState, enabled: false))
         } else {
             for (index, repo) in repos.enumerated() {
-                let isPinned = settings.pinnedRepositories.contains(repo.title)
+                let isPinned = settings.repoList.pinnedRepositories.contains(repo.title)
                 let card = RepoMenuCardView(
                     repo: repo,
                     isPinned: isPinned,
                     showsSeparator: index < repos.count - 1,
-                    showHeatmap: settings.heatmapDisplay == .inline,
+                    showHeatmap: settings.heatmap.display == .inline,
                     heatmapRange: session.heatmapRange,
-                    accentTone: settings.accentTone,
+                    accentTone: settings.appearance.accentTone,
                     onOpen: { [weak target] in
                         target?.openRepoFromMenu(fullName: repo.title)
                     }
@@ -182,9 +182,9 @@ final class StatusBarMenuBuilder {
                 systemImage: "clock.arrow.circlepath"))
         }
 
-        if settings.heatmapDisplay == .submenu, !repo.heatmap.isEmpty {
+        if settings.heatmap.display == .submenu, !repo.heatmap.isEmpty {
             let filtered = HeatmapFilter.filter(repo.heatmap, range: self.appState.session.heatmapRange)
-            let heatmap = HeatmapView(cells: filtered, accentTone: settings.accentTone, height: 44)
+            let heatmap = HeatmapView(cells: filtered, accentTone: settings.appearance.accentTone, height: 44)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 6)
             menu.addItem(.separator())
@@ -227,7 +227,7 @@ final class StatusBarMenuBuilder {
             systemImage: "eye.slash"))
 
         if isPinned {
-            let pins = self.appState.session.settings.pinnedRepositories
+            let pins = self.appState.session.settings.repoList.pinnedRepositories
             if let index = pins.firstIndex(of: repo.title) {
                 let moveUp = self.actionItem(
                     title: "Move Up",
@@ -391,12 +391,12 @@ final class StatusBarMenuBuilder {
         let query = RepositoryQuery(
             scope: scope,
             onlyWith: selection.onlyWith,
-            includeForks: settings.showForks,
-            includeArchived: settings.showArchived,
-            sortKey: settings.menuSortKey,
-            limit: settings.repoDisplayLimit,
-            pinned: settings.pinnedRepositories,
-            hidden: Set(settings.hiddenRepositories),
+            includeForks: settings.repoList.showForks,
+            includeArchived: settings.repoList.showArchived,
+            sortKey: settings.repoList.menuSortKey,
+            limit: settings.repoList.displayLimit,
+            pinned: settings.repoList.pinnedRepositories,
+            hidden: Set(settings.repoList.hiddenRepositories),
             pinPriority: true
         )
         let sorted = RepositoryPipeline.apply(session.repositories, query: query)
@@ -404,7 +404,7 @@ final class StatusBarMenuBuilder {
     }
 
     private func emptyStateMessage(for session: Session) -> (String, String) {
-        let hasPinned = !session.settings.pinnedRepositories.isEmpty
+        let hasPinned = !session.settings.repoList.pinnedRepositories.isEmpty
         let isPinnedScope = session.menuRepoSelection.isPinnedScope
         let hasFilter = session.menuRepoSelection.onlyWith.isActive
         if isPinnedScope, !hasPinned {

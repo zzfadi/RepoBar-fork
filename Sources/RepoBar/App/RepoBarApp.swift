@@ -194,30 +194,24 @@ final class AppState {
     }
 
     private func menuTargets(from repos: [Repository]) -> [Repository] {
+        RepositoryPipeline.apply(repos, query: self.menuQuery())
+    }
+
+    private func menuQuery() -> RepositoryQuery {
         let selection = self.session.menuRepoSelection
-        let sortKey = self.session.settings.menuSortKey
-        var sorted = repos.sorted { lhs, rhs in
-            switch (lhs.sortOrder, rhs.sortOrder) {
-            case let (left?, right?):
-                return left < right
-            case (.none, .some):
-                return false
-            case (.some, .none):
-                return true
-            default:
-                return RepositorySort.isOrderedBefore(lhs, rhs, sortKey: sortKey)
-            }
-        }
-        if selection.isPinnedScope {
-            let pinned = Set(self.session.settings.pinnedRepositories)
-            sorted = sorted.filter { pinned.contains($0.fullName) }
-        }
-        let onlyWith = selection.onlyWith
-        if onlyWith.isActive {
-            sorted = sorted.filter { onlyWith.matches($0) }
-        }
-        let limit = max(self.session.settings.repoDisplayLimit, 0)
-        return Array(sorted.prefix(limit))
+        let settings = self.session.settings
+        let scope: RepositoryScope = selection.isPinnedScope ? .pinned : .all
+        return RepositoryQuery(
+            scope: scope,
+            onlyWith: selection.onlyWith,
+            includeForks: settings.showForks,
+            includeArchived: settings.showArchived,
+            sortKey: settings.menuSortKey,
+            limit: settings.repoDisplayLimit,
+            pinned: settings.pinnedRepositories,
+            hidden: Set(settings.hiddenRepositories),
+            pinPriority: true
+        )
     }
 
     private func fetchDetailedRepos(_ repos: [Repository]) async -> [Repository] {

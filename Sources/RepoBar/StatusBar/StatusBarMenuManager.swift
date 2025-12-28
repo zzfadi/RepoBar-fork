@@ -571,31 +571,22 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
 
     private func orderedViewModels() -> [RepositoryViewModel] {
         let session = self.appState.session
-        let repos = session.repositories
-            .map { RepositoryViewModel(repo: $0) }
-        let sortKey = session.settings.menuSortKey
-        var sorted = repos.sorted { lhs, rhs in
-            switch (lhs.sortOrder, rhs.sortOrder) {
-            case let (left?, right?):
-                return left < right
-            case (.none, .some):
-                return false
-            case (.some, .none):
-                return true
-            default:
-                return RepositorySort.isOrderedBefore(lhs.source, rhs.source, sortKey: sortKey)
-            }
-        }
-        if session.menuRepoSelection.isPinnedScope {
-            let pinned = Set(session.settings.pinnedRepositories)
-            sorted = sorted.filter { pinned.contains($0.title) }
-        }
-        let onlyWith = session.menuRepoSelection.onlyWith
-        if onlyWith.isActive {
-            sorted = sorted.filter { onlyWith.matches($0.source) }
-        }
-        let limit = max(session.settings.repoDisplayLimit, 0)
-        return Array(sorted.prefix(limit))
+        let selection = session.menuRepoSelection
+        let settings = session.settings
+        let scope: RepositoryScope = selection.isPinnedScope ? .pinned : .all
+        let query = RepositoryQuery(
+            scope: scope,
+            onlyWith: selection.onlyWith,
+            includeForks: settings.showForks,
+            includeArchived: settings.showArchived,
+            sortKey: settings.menuSortKey,
+            limit: settings.repoDisplayLimit,
+            pinned: settings.pinnedRepositories,
+            hidden: Set(settings.hiddenRepositories),
+            pinPriority: true
+        )
+        let sorted = RepositoryPipeline.apply(session.repositories, query: query)
+        return sorted.map { RepositoryViewModel(repo: $0) }
     }
 
     private func emptyStateMessage(for session: Session) -> (String, String) {

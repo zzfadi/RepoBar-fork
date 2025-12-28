@@ -17,7 +17,7 @@ Last updated: 2025-12-28
 
 ## High-Impact Opportunities
 
-### [ ] 1) Unify data pipeline (menu + CLI)
+### [x] 1) Unify data pipeline (menu + CLI)
 - Create a shared pipeline: fetch -> filter -> sort -> hydrate -> limit.
 - Single `RepositoryQuery` or `RepositoryPipeline` with config flags:
   - scope (all/pinned/hidden)

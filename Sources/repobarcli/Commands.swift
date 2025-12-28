@@ -128,6 +128,21 @@ struct ReposCommand: CommanderRunnableCommand {
         let effectiveOnlyWith = self.filter?.onlyWith ?? self.onlyWith?.filter ?? .none
         let hidden = Set(settings.hiddenRepositories)
         let pinned = settings.pinnedRepositories.filter { !hidden.contains($0) }
+        let ageCutoff = effectiveScope == .all
+            ? Calendar.current.date(byAdding: .day, value: -self.age, to: now)
+            : nil
+        let query = RepositoryQuery(
+            scope: effectiveScope.repositoryScope,
+            onlyWith: effectiveOnlyWith,
+            includeForks: self.includeForks,
+            includeArchived: self.includeArchived,
+            sortKey: self.sort,
+            limit: self.limit,
+            ageCutoff: ageCutoff,
+            pinned: pinned,
+            hidden: hidden,
+            pinPriority: false
+        )
 
         switch effectiveScope {
         case .pinned:
@@ -140,7 +155,7 @@ struct ReposCommand: CommanderRunnableCommand {
                 return
             }
             let repos = try await self.fetchNamedRepositories(pinned, client: client)
-            let filtered = effectiveOnlyWith.isActive ? repos.filter { effectiveOnlyWith.matches($0) } : repos
+            let filtered = RepositoryPipeline.apply(repos, query: query)
             try await self.renderResults(
                 repos: filtered,
                 baseHost: baseHost,
@@ -159,7 +174,7 @@ struct ReposCommand: CommanderRunnableCommand {
                 return
             }
             let repos = try await self.fetchNamedRepositories(hiddenList, client: client)
-            let filtered = effectiveOnlyWith.isActive ? repos.filter { effectiveOnlyWith.matches($0) } : repos
+            let filtered = RepositoryPipeline.apply(repos, query: query)
             try await self.renderResults(
                 repos: filtered,
                 baseHost: baseHost,
@@ -172,26 +187,7 @@ struct ReposCommand: CommanderRunnableCommand {
         }
 
         let repos = try await client.activityRepositories(limit: limit)
-        let cutoff = Calendar.current.date(byAdding: .day, value: -self.age, to: now)
-        let filtered = repos.filter { repo in
-            guard let cutoff else { return false }
-            guard let date = repo.activityDate else { return false }
-            return date >= cutoff
-        }
-        let visible = filtered.filter { !hidden.contains($0.fullName) }
-        let pinnedSet = Set(pinned)
-        let filteredRepos = visible.filter { repo in
-            if self.includeForks == false, repo.isFork, pinnedSet.contains(repo.fullName) == false {
-                return false
-            }
-            if self.includeArchived == false, repo.isArchived, pinnedSet.contains(repo.fullName) == false {
-                return false
-            }
-            if effectiveOnlyWith.isActive, effectiveOnlyWith.matches(repo) == false {
-                return false
-            }
-            return true
-        }
+        let filteredRepos = RepositoryPipeline.apply(repos, query: query)
         try await self.renderResults(
             repos: filteredRepos,
             baseHost: baseHost,
@@ -206,12 +202,11 @@ struct ReposCommand: CommanderRunnableCommand {
         now: Date,
         client: GitHubClient
     ) async throws {
-        var sorted = RepositorySort.sorted(repos, sortKey: self.sort)
+        var output = repos
         if self.includeRelease {
-            sorted = try await self.attachLatestReleases(to: sorted, client: client)
+            output = try await self.attachLatestReleases(to: output, client: client)
         }
-        let limited = self.limit.map { Array(sorted.prefix(max($0, 0))) } ?? sorted
-        let rows = prepareRows(repos: limited, now: now)
+        let rows = prepareRows(repos: output, now: now)
 
         if self.output.jsonOutput {
             try renderJSON(rows, baseHost: baseHost)

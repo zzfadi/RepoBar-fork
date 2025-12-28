@@ -12,6 +12,16 @@ enum RepoScopeSelection: String, CaseIterable, ExpressibleFromArgument, Sendable
     }
 }
 
+extension RepoScopeSelection {
+    var repositoryScope: RepositoryScope {
+        switch self {
+        case .all: return .all
+        case .pinned: return .pinned
+        case .hidden: return .hidden
+        }
+    }
+}
+
 enum RepoFilterSelection: String, CaseIterable, ExpressibleFromArgument, Sendable {
     case all
     case work

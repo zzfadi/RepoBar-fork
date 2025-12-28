@@ -2,7 +2,7 @@ import RepoBarCore
 
 extension RepositorySortKey {
     static var menuCases: [RepositorySortKey] {
-        [.activity, .issues, .pulls, .stars]
+        [.activity, .issues, .pulls, .stars, .name]
     }
 
     static var settingsCases: [RepositorySortKey] {
@@ -37,7 +37,7 @@ extension RepositorySortKey {
         case .issues: "exclamationmark.circle"
         case .pulls: "arrow.triangle.branch"
         case .stars: "star"
-        case .name: "textformat"
+        case .name: "textformat.abc"
         case .event: "bolt.horizontal"
         }
     }

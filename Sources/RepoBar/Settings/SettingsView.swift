@@ -245,6 +245,10 @@ struct GeneralSettingsView: View {
                         Text(span.label).tag(span)
                     }
                 }
+                .onChange(of: self.session.settings.heatmapSpan) { _, _ in
+                    self.appState.persistSettings()
+                    self.appState.updateHeatmapRange(now: Date())
+                }
                 } header: {
                 Text("Display")
                 } footer: {

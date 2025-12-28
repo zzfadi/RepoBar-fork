@@ -18,18 +18,27 @@ public enum HeatmapSpan: Int, CaseIterable, Equatable, Codable {
     public var months: Int { self.rawValue }
 }
 
+public struct HeatmapRange: Equatable, Codable, Sendable {
+    public let start: Date
+    public let end: Date
+
+    public init(start: Date, end: Date) {
+        self.start = start
+        self.end = end
+    }
+}
+
 public enum HeatmapFilter {
     public static func filter(_ cells: [HeatmapCell], span: HeatmapSpan, now: Date = Date()) -> [HeatmapCell] {
-        let calendar = Calendar.current
-        guard let cutoff = calendar.date(byAdding: .month, value: -span.months, to: now) else { return cells }
-        return cells.filter { $0.date >= cutoff }
+        let range = range(span: span, now: now, alignToWeek: false)
+        return filter(cells, range: range)
     }
 
     public static func alignedRange(
         span: HeatmapSpan,
         now: Date = Date(),
         calendar: Calendar = .current
-    ) -> (start: Date, end: Date) {
+    ) -> HeatmapRange {
         let end = calendar.startOfDay(for: now)
         let startMonth = calendar.date(byAdding: .month, value: -span.months, to: end) ?? end
         let startComponents = calendar.dateComponents([.year, .month], from: startMonth)
@@ -41,7 +50,25 @@ public enum HeatmapFilter {
             matchingPolicy: .nextTime,
             direction: .backward
         ) ?? monthStart
-        return (start: alignedStart, end: end)
+        return HeatmapRange(start: alignedStart, end: end)
+    }
+
+    public static func range(
+        span: HeatmapSpan,
+        now: Date = Date(),
+        calendar: Calendar = .current,
+        alignToWeek: Bool = true
+    ) -> HeatmapRange {
+        guard alignToWeek else {
+            let end = calendar.startOfDay(for: now)
+            let start = calendar.date(byAdding: .month, value: -span.months, to: end) ?? end
+            return HeatmapRange(start: start, end: end)
+        }
+        return alignedRange(span: span, now: now, calendar: calendar)
+    }
+
+    public static func filter(_ cells: [HeatmapCell], range: HeatmapRange) -> [HeatmapCell] {
+        cells.filter { $0.date >= range.start && $0.date <= range.end }
     }
 
     public static func filter(
@@ -50,8 +77,7 @@ public enum HeatmapFilter {
         now: Date = Date(),
         alignToWeek: Bool
     ) -> [HeatmapCell] {
-        guard alignToWeek else { return filter(cells, span: span, now: now) }
-        let range = alignedRange(span: span, now: now)
-        return cells.filter { $0.date >= range.start && $0.date <= range.end }
+        let range = range(span: span, now: now, alignToWeek: alignToWeek)
+        return filter(cells, range: range)
     }
 }

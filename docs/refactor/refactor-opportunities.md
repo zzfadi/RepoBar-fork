@@ -64,9 +64,9 @@ Last updated: 2025-12-28
 - Cancel previous refresh tasks on new menu open.
 - Rate-limit hydration fan-out (TaskGroup with max concurrency).
 
-### [ ] 7) Heatmap alignment consistency
+### [x] 7) Heatmap alignment consistency
 - Move heatmap filtering and range alignment into a shared helper.
-- Store `HeatmapRange` in settings so header + repo heatmaps align.
+- Store `HeatmapRange` in session state so header + repo heatmaps align.
 
 ## Settings + Config
 

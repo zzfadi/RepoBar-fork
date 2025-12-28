@@ -114,7 +114,7 @@ final class StatusBarMenuBuilder {
                     isPinned: isPinned,
                     showsSeparator: index < repos.count - 1,
                     showHeatmap: settings.heatmapDisplay == .inline,
-                    heatmapSpan: settings.heatmapSpan,
+                    heatmapRange: session.heatmapRange,
                     accentTone: settings.accentTone,
                     onOpen: { [weak target] in
                         target?.openRepoFromMenu(fullName: repo.title)
@@ -183,12 +183,7 @@ final class StatusBarMenuBuilder {
         }
 
         if settings.heatmapDisplay == .submenu, !repo.heatmap.isEmpty {
-            let filtered = HeatmapFilter.filter(
-                repo.heatmap,
-                span: settings.heatmapSpan,
-                now: Date(),
-                alignToWeek: true
-            )
+            let filtered = HeatmapFilter.filter(repo.heatmap, range: self.appState.session.heatmapRange)
             let heatmap = HeatmapView(cells: filtered, accentTone: settings.accentTone, height: 44)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 6)

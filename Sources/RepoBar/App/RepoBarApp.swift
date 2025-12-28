@@ -168,6 +168,8 @@ final class AppState {
     func refresh() async {
         do {
             if Task.isCancelled { return }
+            let now = Date()
+            self.updateHeatmapRange(now: now)
             if self.auth.loadTokens() == nil {
                 await MainActor.run {
                     self.session.repositories = []
@@ -191,7 +193,6 @@ final class AppState {
             let merged = self.mergeHydrated(hydrated, into: ordered)
             let final = self.applyPinnedOrder(to: merged)
             await self.updateSession(with: final)
-            let now = Date()
             let reset = await self.github.rateLimitReset(now: now)
             let message = await self.github.rateLimitMessage(now: now)
             await MainActor.run {
@@ -236,6 +237,14 @@ final class AppState {
             pinned: settings.pinnedRepositories,
             hidden: Set(settings.hiddenRepositories),
             pinPriority: true
+        )
+    }
+
+    func updateHeatmapRange(now: Date = Date()) {
+        self.session.heatmapRange = HeatmapFilter.range(
+            span: self.session.settings.heatmapSpan,
+            now: now,
+            alignToWeek: true
         )
     }
 
@@ -435,6 +444,7 @@ final class Session {
     var contributionHeatmap: [HeatmapCell] = []
     var contributionUser: String?
     var contributionError: String?
+    var heatmapRange: HeatmapRange = HeatmapFilter.range(span: .twelveMonths, now: Date(), alignToWeek: true)
     var menuRepoSelection: MenuRepoSelection = .all
 }
 

@@ -19,7 +19,7 @@ struct RepoMenuCardView: View {
     let isPinned: Bool
     let showsSeparator: Bool
     let showHeatmap: Bool
-    let heatmapSpan: HeatmapSpan
+    let heatmapRange: HeatmapRange
     let accentTone: AccentTone
     let onOpen: (() -> Void)?
     @Environment(\.menuItemHighlighted) private var isHighlighted
@@ -138,7 +138,7 @@ struct RepoMenuCardView: View {
     @ViewBuilder
     private var heatmap: some View {
         if self.showHeatmap, !self.repo.heatmap.isEmpty {
-            let filtered = HeatmapFilter.filter(self.repo.heatmap, span: self.heatmapSpan, now: Date(), alignToWeek: true)
+            let filtered = HeatmapFilter.filter(self.repo.heatmap, range: self.heatmapRange)
             HeatmapView(cells: filtered, accentTone: self.accentTone, height: 48)
         }
     }

@@ -60,12 +60,6 @@ struct RepoMenuCardView: View {
                     .font(.subheadline)
                     .fontWeight(.regular)
                     .lineLimit(1)
-                if let lastPushAge = self.repo.lastPushAge {
-                    Text("• \(lastPushAge)")
-                        .font(.caption2)
-                        .foregroundStyle(MenuHighlightStyle.secondary(self.isHighlighted))
-                        .lineLimit(1)
-                }
                 if self.isPinned {
                     Image(systemName: "pin.fill")
                         .font(.caption2)
@@ -101,13 +95,16 @@ struct RepoMenuCardView: View {
                 Label(activity, systemImage: "text.bubble")
                     .font(.caption)
                     .lineLimit(2)
-                    .layoutPriority(1)
-                Spacer(minLength: 6)
+                    .truncationMode(.tail)
+                    .fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: 8)
                 if let age = self.repo.latestActivityAge {
                     Text(age)
                         .font(.caption2)
                         .foregroundStyle(MenuHighlightStyle.secondary(self.isHighlighted))
                         .lineLimit(1)
+                        .layoutPriority(1)
+                        .frame(minWidth: 56, alignment: .trailing)
                 }
             }
             .foregroundStyle(MenuHighlightStyle.secondary(self.isHighlighted))

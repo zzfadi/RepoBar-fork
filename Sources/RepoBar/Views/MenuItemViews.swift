@@ -287,7 +287,9 @@ enum MenuHighlightStyle {
     }
 
     static func secondary(_ highlighted: Bool) -> Color {
-        highlighted ? self.selectionText : self.normalSecondaryText
+        highlighted
+            ? Color(nsColor: .selectedMenuItemTextColor).opacity(0.86)
+            : self.normalSecondaryText
     }
 
     static func error(_ highlighted: Bool) -> Color {

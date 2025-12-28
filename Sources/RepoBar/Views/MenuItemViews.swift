@@ -59,6 +59,12 @@ struct RepoMenuCardView: View {
                     .font(.subheadline)
                     .fontWeight(.regular)
                     .lineLimit(1)
+                if let lastPushAge = self.repo.lastPushAge {
+                    Text("Push \(lastPushAge)")
+                        .font(.caption2)
+                        .foregroundStyle(MenuHighlightStyle.secondary(self.isHighlighted))
+                        .lineLimit(1)
+                }
                 if self.isPinned {
                     Image(systemName: "pin.fill")
                         .font(.caption2)
@@ -84,9 +90,6 @@ struct RepoMenuCardView: View {
             MenuStatBadge(label: "PRs", value: self.repo.pulls, systemImage: "arrow.triangle.branch")
             MenuStatBadge(label: nil, value: self.repo.stars, systemImage: "star")
             MenuStatBadge(label: "Forks", value: self.repo.forks, systemImage: "tuningfork")
-            if let lastPushAge = self.repo.lastPushAge {
-                MenuStatBadge(label: "Push", valueText: lastPushAge, systemImage: "arrow.up.circle")
-            }
         }
     }
 

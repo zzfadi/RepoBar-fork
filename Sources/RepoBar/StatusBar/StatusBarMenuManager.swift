@@ -4,8 +4,8 @@ import SwiftUI
 
 @MainActor
 final class StatusBarMenuManager: NSObject, NSMenuDelegate {
-    private static let menuMinWidth: CGFloat = 420
-    private static let menuMaxWidth: CGFloat = 560
+    private static let menuMinWidth: CGFloat = 360
+    private static let menuMaxWidth: CGFloat = 440
 
     private let appState: AppState
     private var mainMenu: NSMenu?
@@ -301,33 +301,81 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
         let menu = NSMenu()
         menu.autoenablesItems = false
 
-        menu.addItem(self.actionItem(title: "Open Repository", action: #selector(self.openRepo), represented: repo.title))
-        menu.addItem(self.actionItem(title: "Open Issues", action: #selector(self.openIssues), represented: repo.title))
-        menu.addItem(self.actionItem(title: "Open Pull Requests", action: #selector(self.openPulls), represented: repo.title))
-        menu.addItem(self.actionItem(title: "Open Actions", action: #selector(self.openActions), represented: repo.title))
-        menu.addItem(self.actionItem(title: "Open Releases", action: #selector(self.openReleases), represented: repo.title))
+        menu.addItem(self.actionItem(
+            title: "Open Repository",
+            action: #selector(self.openRepo),
+            represented: repo.title,
+            systemImage: "folder"))
+        menu.addItem(self.actionItem(
+            title: "Open Issues",
+            action: #selector(self.openIssues),
+            represented: repo.title,
+            systemImage: "exclamationmark.circle"))
+        menu.addItem(self.actionItem(
+            title: "Open Pull Requests",
+            action: #selector(self.openPulls),
+            represented: repo.title,
+            systemImage: "arrow.triangle.branch"))
+        menu.addItem(self.actionItem(
+            title: "Open Actions",
+            action: #selector(self.openActions),
+            represented: repo.title,
+            systemImage: "bolt"))
+        menu.addItem(self.actionItem(
+            title: "Open Releases",
+            action: #selector(self.openReleases),
+            represented: repo.title,
+            systemImage: "tag"))
         if repo.source.latestRelease != nil {
-            menu.addItem(self.actionItem(title: "Open Latest Release", action: #selector(self.openLatestRelease), represented: repo.title))
+            menu.addItem(self.actionItem(
+                title: "Open Latest Release",
+                action: #selector(self.openLatestRelease),
+                represented: repo.title,
+                systemImage: "tag.fill"))
         }
         if repo.activityURL != nil {
-            menu.addItem(self.actionItem(title: "Open Latest Activity", action: #selector(self.openActivity), represented: repo.title))
+            menu.addItem(self.actionItem(
+                title: "Open Latest Activity",
+                action: #selector(self.openActivity),
+                represented: repo.title,
+                systemImage: "clock.arrow.circlepath"))
         }
 
         menu.addItem(.separator())
 
         if isPinned {
-            menu.addItem(self.actionItem(title: "Unpin", action: #selector(self.unpinRepo), represented: repo.title))
+            menu.addItem(self.actionItem(
+                title: "Unpin",
+                action: #selector(self.unpinRepo),
+                represented: repo.title,
+                systemImage: "pin.slash"))
         } else {
-            menu.addItem(self.actionItem(title: "Pin", action: #selector(self.pinRepo), represented: repo.title))
+            menu.addItem(self.actionItem(
+                title: "Pin",
+                action: #selector(self.pinRepo),
+                represented: repo.title,
+                systemImage: "pin"))
         }
-        menu.addItem(self.actionItem(title: "Hide", action: #selector(self.hideRepo), represented: repo.title))
+        menu.addItem(self.actionItem(
+            title: "Hide",
+            action: #selector(self.hideRepo),
+            represented: repo.title,
+            systemImage: "eye.slash"))
 
         if isPinned {
             let pins = self.appState.session.settings.pinnedRepositories
             if let index = pins.firstIndex(of: repo.title) {
-                let moveUp = self.actionItem(title: "Move Up", action: #selector(self.moveRepoUp), represented: repo.title)
+                let moveUp = self.actionItem(
+                    title: "Move Up",
+                    action: #selector(self.moveRepoUp),
+                    represented: repo.title,
+                    systemImage: "arrow.up")
                 moveUp.isEnabled = index > 0
-                let moveDown = self.actionItem(title: "Move Down", action: #selector(self.moveRepoDown), represented: repo.title)
+                let moveDown = self.actionItem(
+                    title: "Move Down",
+                    action: #selector(self.moveRepoDown),
+                    represented: repo.title,
+                    systemImage: "arrow.down")
                 moveDown.isEnabled = index < pins.count - 1
                 menu.addItem(.separator())
                 menu.addItem(moveUp)
@@ -336,8 +384,16 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
         }
 
         menu.addItem(.separator())
-        menu.addItem(self.actionItem(title: "Copy Repository Name", action: #selector(self.copyRepoName), represented: repo.title))
-        menu.addItem(self.actionItem(title: "Copy Repository URL", action: #selector(self.copyRepoURL), represented: repo.title))
+        menu.addItem(self.actionItem(
+            title: "Copy Repository Name",
+            action: #selector(self.copyRepoName),
+            represented: repo.title,
+            systemImage: "doc.on.doc"))
+        menu.addItem(self.actionItem(
+            title: "Copy Repository URL",
+            action: #selector(self.copyRepoURL),
+            represented: repo.title,
+            systemImage: "link"))
         return menu
     }
 
@@ -345,11 +401,17 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
         title: String,
         action: Selector,
         keyEquivalent: String = "",
-        represented: String? = nil
+        represented: String? = nil,
+        systemImage: String? = nil
     ) -> NSMenuItem {
         let item = NSMenuItem(title: title, action: action, keyEquivalent: keyEquivalent)
         item.target = self
         if let represented { item.representedObject = represented }
+        if let systemImage, let image = NSImage(systemSymbolName: systemImage, accessibilityDescription: nil) {
+            image.isTemplate = true
+            image.size = NSSize(width: 14, height: 14)
+            item.image = image
+        }
         return item
     }
 

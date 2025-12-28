@@ -4,9 +4,9 @@ import SwiftUI
 struct HeatmapView: View {
     let cells: [HeatmapCell]
     let accentTone: AccentTone
-    private let columns = 53 // roughly a year
     private let rows = 7
-    private let spacing: CGFloat = 2
+    private let spacing: CGFloat = 0.5
+    @Environment(\.menuItemHighlighted) private var isHighlighted
     private var summary: String {
         let total = self.cells.map(\.count).reduce(0, +)
         let maxVal = self.cells.map(\.count).max() ?? 0
@@ -19,7 +19,8 @@ struct HeatmapView: View {
     }
 
     var body: some View {
-        let grid = HeatmapLayout.reshape(cells: self.cells, columns: self.columns, rows: self.rows)
+        let columns = self.columnCount
+        let grid = HeatmapLayout.reshape(cells: self.cells, columns: columns, rows: self.rows)
         Canvas { context, size in
             let cellSide = self.cellSide(for: size)
             for (x, column) in grid.enumerated() {
@@ -29,13 +30,13 @@ struct HeatmapView: View {
                         y: CGFloat(y) * (cellSide + self.spacing)
                     )
                     let rect = CGRect(origin: origin, size: CGSize(width: cellSide, height: cellSide))
-                    let path = Path(roundedRect: rect, cornerRadius: cellSide * 0.2)
+                    let path = Path(roundedRect: rect, cornerRadius: cellSide * 0.12)
                     context.fill(path, with: .color(self.color(for: cell.count)))
                 }
             }
         }
-        .aspectRatio(CGFloat(self.columns) / CGFloat(self.rows), contentMode: .fit)
-        .frame(maxWidth: .infinity, minHeight: 48, maxHeight: 120, alignment: .leading)
+        .aspectRatio(CGFloat(columns) / CGFloat(self.rows), contentMode: .fit)
+        .frame(maxWidth: .infinity, minHeight: 30, maxHeight: 80, alignment: .leading)
         .accessibilityLabel(self.summary)
         .accessibilityElement(children: .ignore)
     }
@@ -52,6 +53,16 @@ struct HeatmapView: View {
     }
 
     private func palette() -> [Color] {
+        if self.isHighlighted {
+            let base = Color(nsColor: .systemGreen)
+            return [
+                base.opacity(0.08),
+                base.opacity(0.18),
+                base.opacity(0.3),
+                base.opacity(0.45),
+                base.opacity(0.6)
+            ]
+        }
         switch self.accentTone {
         case .githubGreen:
             return [
@@ -73,12 +84,17 @@ struct HeatmapView: View {
         }
     }
 
+    private var columnCount: Int {
+        let columns = Int(ceil(Double(self.cells.count) / Double(self.rows)))
+        return max(columns, 1)
+    }
+
     private func cellSide(for size: CGSize) -> CGFloat {
-        let totalSpacingX = CGFloat(self.columns - 1) * self.spacing
+        let totalSpacingX = CGFloat(self.columnCount - 1) * self.spacing
         let totalSpacingY = CGFloat(self.rows - 1) * self.spacing
         let availableWidth = max(size.width - totalSpacingX, 0)
         let availableHeight = max(size.height - totalSpacingY, 0)
-        let side = min(availableWidth / CGFloat(self.columns), availableHeight / CGFloat(self.rows))
+        let side = min(availableWidth / CGFloat(self.columnCount), availableHeight / CGFloat(self.rows))
         return max(2, min(10, floor(side)))
     }
 }

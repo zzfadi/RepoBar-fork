@@ -29,8 +29,8 @@ struct RepoMenuCardView: View {
                 self.errorOrLimit
                 self.heatmap
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 4)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
@@ -114,7 +114,7 @@ struct RepoMenuCardView: View {
         }
     }
 
-    private var verticalSpacing: CGFloat { 6 }
+    private var verticalSpacing: CGFloat { 1 }
 }
 
 struct MenuStatBadge: View {

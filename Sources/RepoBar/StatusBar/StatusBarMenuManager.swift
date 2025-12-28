@@ -417,6 +417,7 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
             }
         }
 
+        self.refreshMenuViewHeights(in: menu)
         return menu
     }
 

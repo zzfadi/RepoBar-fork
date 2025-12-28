@@ -320,6 +320,7 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
     private func makeRepoSubmenu(for repo: RepositoryViewModel, isPinned: Bool) -> NSMenu {
         let menu = NSMenu()
         menu.autoenablesItems = false
+        menu.delegate = self
 
         menu.addItem(self.actionItem(
             title: "Open Repository",

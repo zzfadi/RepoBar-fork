@@ -380,9 +380,15 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
         item.target = self
         if let represented { item.representedObject = represented }
         if let systemImage, let image = NSImage(systemSymbolName: systemImage, accessibilityDescription: nil) {
-            image.isTemplate = true
             image.size = NSSize(width: 14, height: 14)
-            item.image = image
+            if systemImage == "eye.slash", self.isLightAppearance {
+                let config = NSImage.SymbolConfiguration(hierarchicalColor: .secondaryLabelColor)
+                item.image = image.withSymbolConfiguration(config)
+                item.image?.isTemplate = false
+            } else {
+                image.isTemplate = true
+                item.image = image
+            }
         }
         return item
     }
@@ -499,6 +505,10 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
         }
         self.lastMenuRefresh = now
         self.refreshNow()
+    }
+
+    private var isLightAppearance: Bool {
+        NSApp.effectiveAppearance.bestMatch(from: [.aqua, .darkAqua]) == .aqua
     }
 }
 

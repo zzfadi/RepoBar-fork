@@ -25,13 +25,13 @@ struct ContributionHeaderView: View {
             .buttonStyle(.plain)
             .task(id: self.session.hasLoadedRepositories) {
                 guard self.session.hasLoadedRepositories else { return }
-                let hasHeatmap = self.session.contributionUser == self.username && !self.session.contributionHeatmap.isEmpty
+                let hasHeatmap = self.hasCachedHeatmap
                 self.isLoading = !hasHeatmap
                 self.failed = false
                 await self.appState.loadContributionHeatmapIfNeeded(for: self.username)
                 await MainActor.run {
                     self.isLoading = false
-                    let hasData = self.session.contributionUser == self.username && !self.session.contributionHeatmap.isEmpty
+                    let hasData = self.hasCachedHeatmap
                     self.failed = !hasData && self.session.contributionError != nil
                 }
             }
@@ -40,10 +40,10 @@ struct ContributionHeaderView: View {
 
     @ViewBuilder
     private var content: some View {
-        if !self.session.hasLoadedRepositories {
+        if !self.session.hasLoadedRepositories && !self.hasCachedHeatmap {
             ProgressView()
                 .frame(maxWidth: .infinity, minHeight: 44, maxHeight: 52, alignment: .center)
-        } else if self.isLoading {
+        } else if self.isLoading && !self.hasCachedHeatmap {
             ProgressView()
                 .frame(maxWidth: .infinity, minHeight: 44, maxHeight: 52, alignment: .center)
         } else if self.failed {
@@ -109,6 +109,10 @@ struct ContributionHeaderView: View {
     }
 
     private var placeholderOverlay: some View {
-        self.placeholder.overlay { ProgressView() }
+            self.placeholder.overlay { ProgressView() }
+    }
+
+    private var hasCachedHeatmap: Bool {
+        self.session.contributionUser == self.username && !self.session.contributionHeatmap.isEmpty
     }
 }

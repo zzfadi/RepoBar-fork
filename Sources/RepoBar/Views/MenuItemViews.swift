@@ -219,7 +219,7 @@ struct ActivityMenuItemView: View {
                 .font(.caption)
                 .foregroundStyle(MenuHighlightStyle.primary(self.isHighlighted))
                 .lineLimit(2)
-            Spacer(minLength: 0)
+            Spacer(minLength: 2)
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 4)

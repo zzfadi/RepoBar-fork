@@ -108,7 +108,7 @@ struct RepoMenuCardView: View {
         if let error = repo.error {
             HStack(spacing: 6) {
                 Image(systemName: "exclamationmark.triangle.fill")
-                    .foregroundStyle(.yellow)
+                    .foregroundStyle(self.warningColor)
                 Text(error)
                     .font(.caption)
                     .lineLimit(2)
@@ -117,7 +117,7 @@ struct RepoMenuCardView: View {
         } else if let limit = repo.rateLimitedUntil {
             HStack(spacing: 6) {
                 Image(systemName: "clock")
-                    .foregroundStyle(.yellow)
+                    .foregroundStyle(self.warningColor)
                 Text("Rate limited until \(RelativeFormatter.string(from: limit, relativeTo: Date()))")
                     .font(.caption)
                     .foregroundStyle(MenuHighlightStyle.secondary(self.isHighlighted))
@@ -137,6 +137,10 @@ struct RepoMenuCardView: View {
 
     private var isLightAppearance: Bool {
         NSApp.effectiveAppearance.bestMatch(from: [.aqua, .darkAqua]) == .aqua
+    }
+
+    private var warningColor: Color {
+        self.isLightAppearance ? Color(nsColor: .systemOrange) : Color(nsColor: .systemYellow)
     }
 }
 

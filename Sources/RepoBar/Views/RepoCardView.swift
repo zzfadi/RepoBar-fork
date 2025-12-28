@@ -1,5 +1,6 @@
 import RepoBarCore
 import SwiftUI
+import AppKit
 
 struct RepoCardView: View {
     let repo: RepositoryViewModel
@@ -9,6 +10,7 @@ struct RepoCardView: View {
     let moveUp: (() -> Void)?
     let moveDown: (() -> Void)?
     @Bindable var session: Session
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         VStack(alignment: .leading, spacing: self.verticalSpacing) {
@@ -128,12 +130,12 @@ struct RepoCardView: View {
     private var errorOrLimit: some View {
         if let error = repo.error {
             HStack(spacing: 6) {
-                Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.yellow)
+                Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(self.warningColor)
                 Text(error).font(.caption).lineLimit(2)
             }
         } else if let limit = repo.rateLimitedUntil {
             HStack(spacing: 6) {
-                Image(systemName: "clock").foregroundStyle(.yellow)
+                Image(systemName: "clock").foregroundStyle(self.warningColor)
                 Text("Rate limited until \(RelativeFormatter.string(from: limit, relativeTo: Date()))")
                     .font(.caption)
             }
@@ -169,6 +171,10 @@ struct RepoCardView: View {
         case .pending: .yellow
         case .unknown: .gray
         }
+    }
+
+    private var warningColor: Color {
+        self.colorScheme == .light ? Color(nsColor: .systemOrange) : Color(nsColor: .systemYellow)
     }
 
     private func issuesURL() -> URL {

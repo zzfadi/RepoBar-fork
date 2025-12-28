@@ -171,6 +171,24 @@ struct MenuStatBadge: View {
     }
 }
 
+struct MenuPaddedSeparatorView: View {
+    let horizontalPadding: CGFloat
+    let verticalPadding: CGFloat
+
+    init(horizontalPadding: CGFloat = 10, verticalPadding: CGFloat = 6) {
+        self.horizontalPadding = horizontalPadding
+        self.verticalPadding = verticalPadding
+    }
+
+    var body: some View {
+        Rectangle()
+            .fill(Color(nsColor: .separatorColor))
+            .frame(height: 1)
+            .padding(.horizontal, self.horizontalPadding)
+            .padding(.vertical, self.verticalPadding)
+    }
+}
+
 struct MenuCIBadge: View {
     let status: CIStatus
     let runCount: Int?

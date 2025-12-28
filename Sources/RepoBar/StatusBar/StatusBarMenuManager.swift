@@ -308,7 +308,7 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
             }
         }
 
-        menu.addItem(.separator())
+        menu.addItem(self.paddedSeparator())
         menu.addItem(self.actionItem(title: "Preferences…", action: #selector(self.openPreferences), keyEquivalent: ","))
         menu.addItem(self.actionItem(title: "About RepoBar", action: #selector(self.openAbout)))
         if SparkleController.shared.updateStatus.isUpdateReady {
@@ -432,6 +432,10 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
             items.append(self.infoItem("Cloners (14d): \(cloners)"))
         }
         return items
+    }
+
+    private func paddedSeparator() -> NSMenuItem {
+        self.viewItem(for: MenuPaddedSeparatorView(), enabled: false)
     }
 
     private func repoActivityItems(for repo: RepositoryViewModel) -> [NSMenuItem] {

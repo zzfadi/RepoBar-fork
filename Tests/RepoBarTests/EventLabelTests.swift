@@ -50,7 +50,7 @@ struct EventLabelTests {
             createdAt: Date()
         )
         let activity = event.activityEvent(owner: "steipete", name: "RepoBar")
-        #expect(activity.title == "Fix it")
+        #expect(activity.title == "Issue opened #123: Fix it")
         #expect(activity.actor == "octo")
         #expect(activity.url.absoluteString == "https://example.com/issue/1")
     }

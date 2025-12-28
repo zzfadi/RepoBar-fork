@@ -27,11 +27,13 @@ struct HeatmapView: View {
             let cellSide = self.cellSide(for: size)
             let columns = self.columnCount(for: size, cellSide: cellSide)
             let grid = HeatmapLayout.reshape(cells: self.cells, columns: columns, rows: self.rows)
+            let gridWidth = CGFloat(columns) * cellSide + CGFloat(max(columns - 1, 0)) * self.spacing
+            let xOffset = max((size.width - gridWidth) / 2, 0)
             Canvas { context, _ in
                 for (x, column) in grid.enumerated() {
                     for (y, cell) in column.enumerated() {
                         let origin = CGPoint(
-                            x: CGFloat(x) * (cellSide + self.spacing),
+                            x: xOffset + CGFloat(x) * (cellSide + self.spacing),
                             y: CGFloat(y) * (cellSide + self.spacing)
                         )
                         let rect = CGRect(origin: origin, size: CGSize(width: cellSide, height: cellSide))

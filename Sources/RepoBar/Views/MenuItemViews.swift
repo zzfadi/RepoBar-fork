@@ -330,7 +330,7 @@ struct MenuRepoFiltersView: View {
                 }
             }
             .labelsHidden()
-            .pickerStyle(.segmented)
+            .pickerStyle(.menu)
             .controlSize(.mini)
             .fixedSize()
 

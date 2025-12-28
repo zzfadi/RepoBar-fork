@@ -1,25 +1,15 @@
-enum MenuRepoScope: String, CaseIterable, Hashable {
+import RepoBarCore
+
+enum MenuRepoSelection: String, CaseIterable, Hashable {
     case all
+    case work
     case pinned
 
     var label: String {
         switch self {
         case .all: "All"
-        case .pinned: "Pinned"
-        }
-    }
-}
-
-import RepoBarCore
-
-enum MenuRepoFilter: String, CaseIterable, Hashable {
-    case all
-    case work
-
-    var label: String {
-        switch self {
-        case .all: "All"
         case .work: "Work"
+        case .pinned: "Pinned"
         }
     }
 
@@ -29,6 +19,12 @@ enum MenuRepoFilter: String, CaseIterable, Hashable {
             return .none
         case .work:
             return RepositoryOnlyWith(requireIssues: true, requirePRs: true)
+        case .pinned:
+            return .none
         }
+    }
+
+    var isPinnedScope: Bool {
+        self == .pinned
     }
 }

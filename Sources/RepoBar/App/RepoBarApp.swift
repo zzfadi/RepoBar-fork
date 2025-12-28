@@ -358,8 +358,7 @@ final class Session {
     var contributionHeatmap: [HeatmapCell] = []
     var contributionUser: String?
     var contributionError: String?
-    var menuRepoScope: MenuRepoScope = .all
-    var menuRepoFilter: MenuRepoFilter = .all
+    var menuRepoSelection: MenuRepoSelection = .all
 }
 
 enum AccountState: Equatable {

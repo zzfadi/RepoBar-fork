@@ -303,62 +303,41 @@ struct MenuRepoFiltersView: View {
     @Bindable var session: Session
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 8) {
-                Image(systemName: "tray.full")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                Picker("Scope", selection: self.$session.menuRepoScope) {
-                    ForEach(MenuRepoScope.allCases, id: \.self) { scope in
-                        Text(scope.label).tag(scope)
-                    }
+        HStack(spacing: 8) {
+            Image(systemName: "line.3.horizontal.decrease.circle")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+            Picker("Filter", selection: self.$session.menuRepoSelection) {
+                ForEach(MenuRepoSelection.allCases, id: \.self) { selection in
+                    Text(selection.label).tag(selection)
                 }
-                .labelsHidden()
-                .pickerStyle(.segmented)
-                .controlSize(.mini)
-                .fixedSize()
-
-                Spacer(minLength: 6)
-
-                Image(systemName: "line.3.horizontal.decrease.circle")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                Picker("Filter", selection: self.$session.menuRepoFilter) {
-                    ForEach(MenuRepoFilter.allCases, id: \.self) { filter in
-                        Text(filter.label).tag(filter)
-                    }
-                }
-                .labelsHidden()
-                .pickerStyle(.segmented)
-                .controlSize(.mini)
-                .fixedSize()
             }
+            .labelsHidden()
+            .pickerStyle(.segmented)
+            .controlSize(.mini)
+            .fixedSize()
 
-            HStack(spacing: 8) {
-                Image(systemName: "arrow.up.arrow.down")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                Picker("Sort", selection: self.$session.settings.menuSortKey) {
-                    ForEach(RepositorySortKey.menuCases, id: \.self) { sortKey in
-                        Label(sortKey.menuLabel, systemImage: sortKey.menuSymbolName)
-                            .tag(sortKey)
-                    }
+            Spacer(minLength: 6)
+
+            Image(systemName: "arrow.up.arrow.down")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+            Picker("Sort", selection: self.$session.settings.menuSortKey) {
+                ForEach(RepositorySortKey.menuCases, id: \.self) { sortKey in
+                    Label(sortKey.menuLabel, systemImage: sortKey.menuSymbolName)
+                        .tag(sortKey)
                 }
-                .labelsHidden()
-                .pickerStyle(.segmented)
-                .controlSize(.mini)
-                .fixedSize()
-                Spacer(minLength: 0)
             }
+            .labelsHidden()
+            .pickerStyle(.segmented)
+            .controlSize(.mini)
+            .fixedSize()
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .onChange(of: self.session.menuRepoScope) { _, _ in
-            NotificationCenter.default.post(name: .menuFiltersDidChange, object: nil)
-        }
         .onChange(of: self.session.settings.menuSortKey) { _, _ in
             NotificationCenter.default.post(name: .menuFiltersDidChange, object: nil)
         }
-        .onChange(of: self.session.menuRepoFilter) { _, _ in
+        .onChange(of: self.session.menuRepoSelection) { _, _ in
             NotificationCenter.default.post(name: .menuFiltersDidChange, object: nil)
         }
     }

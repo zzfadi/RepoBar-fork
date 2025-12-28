@@ -419,9 +419,6 @@ struct MenuRepoFiltersView: View {
 
     var body: some View {
         HStack(spacing: 1) {
-            Image(systemName: "line.3.horizontal.decrease.circle")
-                .font(.caption2)
-                .foregroundStyle(.secondary)
             Picker("Filter", selection: self.$session.menuRepoSelection) {
                 ForEach(MenuRepoSelection.allCases, id: \.self) { selection in
                     Text(selection.label).tag(selection)
@@ -434,10 +431,6 @@ struct MenuRepoFiltersView: View {
             .fixedSize()
 
             Spacer(minLength: 0)
-
-            Image(systemName: "arrow.up.arrow.down")
-                .font(.caption2)
-                .foregroundStyle(.secondary)
             Picker("Sort", selection: self.$session.settings.menuSortKey) {
                 ForEach(RepositorySortKey.menuCases, id: \.self) { sortKey in
                     Label(sortKey.menuLabel, systemImage: sortKey.menuSymbolName)

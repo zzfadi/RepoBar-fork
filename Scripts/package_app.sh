@@ -10,29 +10,72 @@ source "$ROOT_DIR/version.env"
 log() { printf '%s\n' "$*"; }
 fail() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
 
-log "==> Building ${APP_NAME} (${CONFIGURATION})"
-swift build -c "${CONFIGURATION}"
-swift build -c "${CONFIGURATION}" --product repobarcli
-
-APP_BUNDLE="${ROOT_DIR}/.build/${CONFIGURATION}/${APP_NAME}.app"
-if [ -d "${APP_BUNDLE}" ]; then
-  log "Built app at ${APP_BUNDLE}"
+if [ "${SKIP_BUILD:-0}" -eq 1 ]; then
+  log "==> Skipping build (${CONFIGURATION})"
 else
-  fail "App bundle not found (SwiftPM may not have produced a bundle)."
+  log "==> Building ${APP_NAME} (${CONFIGURATION})"
+  swift build -c "${CONFIGURATION}"
+  swift build -c "${CONFIGURATION}" --product repobarcli
 fi
 
-CLI_BINARY="${ROOT_DIR}/.build/${CONFIGURATION}/repobarcli"
-if [ -d "${APP_BUNDLE}" ] && [ -f "${CLI_BINARY}" ]; then
+BUILD_DIR="${ROOT_DIR}/.build/${CONFIGURATION}"
+if [ ! -d "${BUILD_DIR}" ]; then
+  fail "Build dir not found: ${BUILD_DIR}"
+fi
+
+APP_EXECUTABLE="${BUILD_DIR}/${APP_NAME}"
+if [ ! -f "${APP_EXECUTABLE}" ]; then
+  fail "Missing executable: ${APP_EXECUTABLE}"
+fi
+
+APP_BUNDLE="${BUILD_DIR}/${APP_NAME}.app"
+if [ -d "${APP_BUNDLE}" ]; then
+  if command -v trash >/dev/null 2>&1; then
+    trash "${APP_BUNDLE}" || true
+  else
+    rm -rf "${APP_BUNDLE}"
+  fi
+fi
+
+log "==> Creating app bundle: ${APP_BUNDLE}"
+mkdir -p "${APP_BUNDLE}/Contents/MacOS" "${APP_BUNDLE}/Contents/Frameworks"
+cp "${APP_EXECUTABLE}" "${APP_BUNDLE}/Contents/MacOS/${APP_NAME}"
+chmod +x "${APP_BUNDLE}/Contents/MacOS/${APP_NAME}" || true
+
+CLI_BINARY="${BUILD_DIR}/repobarcli"
+if [ -f "${CLI_BINARY}" ]; then
   log "==> Installing repobarcli"
   cp "${CLI_BINARY}" "${APP_BUNDLE}/Contents/MacOS/repobarcli"
   chmod +x "${APP_BUNDLE}/Contents/MacOS/repobarcli" || true
 fi
 
+RESOURCE_BUNDLE="${BUILD_DIR}/${APP_NAME}_${APP_NAME}.bundle"
+if [ -d "${RESOURCE_BUNDLE}" ] && [ -n "$(find "${RESOURCE_BUNDLE}" -type f -print -quit 2>/dev/null || true)" ]; then
+  log "==> Installing resources: $(basename "${RESOURCE_BUNDLE}")"
+  if command -v ditto >/dev/null 2>&1; then
+    ditto "${RESOURCE_BUNDLE}" "${APP_BUNDLE}/$(basename "${RESOURCE_BUNDLE}")"
+  else
+    cp -R "${RESOURCE_BUNDLE}" "${APP_BUNDLE}/"
+  fi
+fi
+
+SPARKLE_FRAMEWORK="${BUILD_DIR}/Sparkle.framework"
+if [ -d "${SPARKLE_FRAMEWORK}" ]; then
+  log "==> Installing Sparkle.framework"
+  if command -v ditto >/dev/null 2>&1; then
+    ditto "${SPARKLE_FRAMEWORK}" "${APP_BUNDLE}/Contents/Frameworks/Sparkle.framework"
+  else
+    cp -R "${SPARKLE_FRAMEWORK}" "${APP_BUNDLE}/Contents/Frameworks/"
+  fi
+
+  # SwiftPM builds use @rpath + @loader_path, so keep Sparkle reachable next to the executable.
+  ln -sf "../Frameworks/Sparkle.framework" "${APP_BUNDLE}/Contents/MacOS/Sparkle.framework" || true
+fi
+
 # Override Info.plist with packaged settings (LSUIElement, URL scheme, versions).
 INFO_PLIST="${APP_BUNDLE}/Contents/Info.plist"
-if [ -d "${APP_BUNDLE}" ]; then
-  log "==> Writing Info.plist"
-  cat > "${INFO_PLIST}" <<PLIST
+log "==> Writing Info.plist"
+cat > "${INFO_PLIST}" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -64,10 +107,9 @@ if [ -d "${APP_BUNDLE}" ]; then
 </dict>
 </plist>
 PLIST
-fi
 
 # Codesign for distribution/debug
-IDENTITY="${CODESIGN_IDENTITY:-${CODE_SIGN_IDENTITY:-Apple Development: Peter Steinberger}}"
+IDENTITY="${CODESIGN_IDENTITY:-${CODE_SIGN_IDENTITY:-}}"
 if [ -n "${IDENTITY}" ] && [ -d "${APP_BUNDLE}" ]; then
   log "==> Codesigning with ${IDENTITY}"
   "${ROOT_DIR}/Scripts/codesign_app.sh" "${APP_BUNDLE}" "${IDENTITY}" || true

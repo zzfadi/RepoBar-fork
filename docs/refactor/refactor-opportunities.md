@@ -39,7 +39,7 @@ Last updated: 2025-12-28
 - `applyLimits()`
 - `updateSession()`
 
-### [ ] 3) Menu building refactor
+### [x] 3) Menu building refactor
 - Split `StatusBarMenuManager` into:
   - `MenuBuilder` (pure structure)
   - `MenuViewHost` (NSMenu + NSHostingView)

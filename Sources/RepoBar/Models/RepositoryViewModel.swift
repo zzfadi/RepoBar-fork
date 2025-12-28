@@ -7,6 +7,7 @@ struct RepositoryViewModel: Identifiable, Equatable {
     let title: String
     let latestRelease: String?
     let latestReleaseDate: String?
+    let lastPushAge: String?
     let ciStatus: CIStatus
     let ciRunCount: Int?
     let issues: Int
@@ -45,6 +46,12 @@ struct RepositoryViewModel: Identifiable, Equatable {
         } else {
             self.latestRelease = nil
             self.latestReleaseDate = nil
+        }
+
+        if let pushedAt = repo.pushedAt {
+            self.lastPushAge = RelativeFormatter.string(from: pushedAt, relativeTo: now)
+        } else {
+            self.lastPushAge = nil
         }
 
         self.activityLine = repo.activityLine

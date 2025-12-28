@@ -82,6 +82,9 @@ struct RepoMenuCardView: View {
             MenuStatBadge(label: "PRs", value: self.repo.pulls)
             MenuStatBadge(label: "Stars", value: self.repo.stars)
             MenuStatBadge(label: "Forks", value: self.repo.forks)
+            if let lastPushAge = self.repo.lastPushAge {
+                MenuStatBadge(label: "Push", valueText: lastPushAge)
+            }
         }
     }
 

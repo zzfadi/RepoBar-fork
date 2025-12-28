@@ -40,6 +40,7 @@
 - Settings window height increased; Quit button now uses standard styling.
 - Repo menu headers now combine CI dot, repository name, and release/time on a single row.
 - Repo menu stat row now includes stars and forks for quick popularity context.
+- Repo menu stat row now includes last push age.
 
 ### Fixed
 - Settings now open via SwiftUI `openSettings` from the MenuBarExtra.

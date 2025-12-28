@@ -71,15 +71,11 @@ struct RepoMenuCardView: View {
     @ViewBuilder
     private var stats: some View {
         HStack(spacing: 12) {
-            MenuCIBadge(status: self.repo.ciStatus, runCount: self.repo.ciRunCount)
+            MenuCIBadge(status: self.repo.ciStatus, runCount: nil)
             MenuStatBadge(label: "Issues", value: self.repo.issues)
             MenuStatBadge(label: "PRs", value: self.repo.pulls)
-            if let visitors = repo.trafficVisitors {
-                MenuStatBadge(label: "Visitors", value: visitors)
-            }
-            if let cloners = repo.trafficCloners {
-                MenuStatBadge(label: "Cloners", value: cloners)
-            }
+            MenuStatBadge(label: "Visitors", valueText: self.repo.trafficVisitors.map(String.init) ?? "--")
+            MenuStatBadge(label: "Cloners", valueText: self.repo.trafficCloners.map(String.init) ?? "--")
         }
     }
 
@@ -128,11 +124,21 @@ struct RepoMenuCardView: View {
 
 struct MenuStatBadge: View {
     let label: String
-    let value: Int
+    let valueText: String
     @Environment(\.menuItemHighlighted) private var isHighlighted
 
+    init(label: String, value: Int) {
+        self.label = label
+        self.valueText = "\(value)"
+    }
+
+    init(label: String, valueText: String) {
+        self.label = label
+        self.valueText = valueText
+    }
+
     var body: some View {
-        Text("\(self.label) \(self.value)")
+        Text("\(self.label) \(self.valueText)")
             .font(.caption2)
             .foregroundStyle(MenuHighlightStyle.secondary(self.isHighlighted))
     }

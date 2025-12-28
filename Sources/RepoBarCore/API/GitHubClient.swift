@@ -186,7 +186,7 @@ public actor GitHubClient {
             ? self.capture { try await self.latestActivity(owner: owner, name: name) }
             : .success(cachedActivity)
         async let trafficResult: Result<TrafficStats?, Error> = shouldFetchTraffic
-            ? self.capture { try await self.trafficStats(owner: owner, name: name) as TrafficStats? }
+            ? self.capture { try await self.trafficStats(owner: owner, name: name) }
             : .success(cachedTraffic)
         async let heatmapResult: Result<[HeatmapCell], Error> = shouldFetchHeatmap
             ? self.capture { try await self.commitHeatmap(owner: owner, name: name) }
@@ -641,7 +641,7 @@ public actor GitHubClient {
         )
     }
 
-    private func trafficStats(owner: String, name: String) async throws -> TrafficStats {
+    private func trafficStats(owner: String, name: String) async throws -> TrafficStats? {
         do {
             let token = try await validAccessToken()
             let viewsURL = self.apiHost.appending(path: "/repos/\(owner)/\(name)/traffic/views")
@@ -654,7 +654,7 @@ public actor GitHubClient {
         } catch let error as GitHubAPIError {
             if case let .badStatus(code, _) = error, code == 403 {
                 await self.diag.message("Traffic endpoints forbidden for \(owner)/\(name); skipping")
-                return TrafficStats(uniqueVisitors: 0, uniqueCloners: 0)
+                return nil
             }
             throw error
         }

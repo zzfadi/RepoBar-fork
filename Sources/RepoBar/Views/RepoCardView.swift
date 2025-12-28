@@ -90,7 +90,7 @@ struct RepoCardView: View {
         HStack(spacing: 10) {
             LinkBadge(
                 text: "CI",
-                valueText: self.repo.ciRunCount.map(String.init),
+                valueText: nil,
                 color: self.ciColor,
                 action: { self.open(url: self.actionsURL()) }
             )
@@ -106,12 +106,8 @@ struct RepoCardView: View {
                 color: Color(nsColor: .windowBackgroundColor),
                 action: { self.open(url: self.pullsURL()) }
             )
-            if let visitors = repo.trafficVisitors {
-                StatBadge(text: "Visitors", value: visitors)
-            }
-            if let cloners = repo.trafficCloners {
-                StatBadge(text: "Cloners", value: cloners)
-            }
+            StatBadge(text: "Visitors", valueText: self.repo.trafficVisitors.map(String.init) ?? "--")
+            StatBadge(text: "Cloners", valueText: self.repo.trafficCloners.map(String.init) ?? "--")
         }
     }
 
@@ -220,13 +216,23 @@ private struct CIBadge: View {
 
 struct StatBadge: View {
     let text: String
-    let value: Int
+    let valueText: String
+
+    init(text: String, value: Int) {
+        self.text = text
+        self.valueText = "\(value)"
+    }
+
+    init(text: String, valueText: String) {
+        self.text = text
+        self.valueText = valueText
+    }
 
     var body: some View {
         HStack(spacing: 4) {
             Text(self.text)
                 .font(.caption2)
-            Text("\(self.value)")
+            Text(self.valueText)
                 .font(.caption2).bold()
         }
         .padding(.horizontal, 6)

@@ -42,15 +42,7 @@ final class StatusBarController: NSObject {
     }
 
     @objc private func handleClick(_ sender: NSStatusBarButton) {
-        guard let event = NSApp.currentEvent else {
-            if let statusItem { self.menuManager.toggleMainMenu(relativeTo: sender, statusItem: statusItem) }
-            return
-        }
-        switch event.type {
-        case .rightMouseUp:
-            if let statusItem { self.menuManager.showContextMenu(for: sender, statusItem: statusItem) }
-        default:
-            if let statusItem { self.menuManager.toggleMainMenu(relativeTo: sender, statusItem: statusItem) }
-        }
+        _ = NSApp.currentEvent
+        if let statusItem { self.menuManager.toggleMainMenu(relativeTo: sender, statusItem: statusItem) }
     }
 }

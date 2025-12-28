@@ -17,13 +17,12 @@ import SwiftUI
 
 @MainActor
 final class StatusBarMenuManager: NSObject, NSMenuDelegate {
-    private enum MenuState { case none, mainMenu, contextMenu }
+    private enum MenuState { case none, mainMenu }
 
     private static let menuMinWidth: CGFloat = 420
     private static let menuMaxWidth: CGFloat = 560
 
     private weak var statusBarButton: NSStatusBarButton?
-    private weak var currentStatusItem: NSStatusItem?
     private var menuState: MenuState = .none
     private let appState: AppState
     private var mainMenu: NSMenu?
@@ -49,7 +48,6 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
 
     func showMainMenu(relativeTo button: NSStatusBarButton, statusItem: NSStatusItem) {
         self.updateMenuState(.mainMenu, button: button)
-        self.currentStatusItem = statusItem
         button.state = .on
 
         let menu = self.mainMenu ?? self.makeMainMenu()
@@ -59,30 +57,6 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
 
         menu.popUp(positioning: nil, at: NSPoint(x: 0, y: button.bounds.height + 5), in: button)
         self.statusBarButton?.highlight(true)
-    }
-
-    // MARK: - Right click
-
-    func showContextMenu(for button: NSStatusBarButton, statusItem: NSStatusItem) {
-        self.currentStatusItem = statusItem
-        button.state = .on
-        self.updateMenuState(.contextMenu, button: button)
-
-        let menu = NSMenu()
-        menu.delegate = self
-
-        let accountItem = self.accountStateItem()
-        menu.addItem(accountItem)
-        menu.addItem(.separator())
-
-        menu.addItem(self.actionItem(title: "Refresh now", action: #selector(self.refreshNow), keyEquivalent: "r"))
-        menu.addItem(self.actionItem(title: "Preferences…", action: #selector(self.openPreferences), keyEquivalent: ","))
-        menu.addItem(self.actionItem(title: "Check for Updates…", action: #selector(self.checkForUpdates)))
-        menu.addItem(self.actionItem(title: "Log out", action: #selector(self.logOut)))
-        menu.addItem(.separator())
-        menu.addItem(self.actionItem(title: "Quit RepoBar", action: #selector(self.quitApp), keyEquivalent: "q"))
-
-        menu.popUp(positioning: nil, at: NSPoint(x: 0, y: button.bounds.height + 5), in: button)
     }
 
     // MARK: - Menu actions
@@ -229,7 +203,6 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
         self.updateMenuState(.none)
         self.statusBarButton?.state = .off
         self.statusBarButton?.highlight(false)
-        self.currentStatusItem?.menu = nil
     }
 
     func menu(_ menu: NSMenu, willHighlight item: NSMenuItem?) {
@@ -466,8 +439,8 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
     private func refreshMenuViewHeights(in menu: NSMenu) {
         let width = self.menuWidth(for: menu)
         for item in menu.items {
-            guard let view = item.view as? NSView,
-                  let measuring = item.view as? MenuItemMeasuring else { continue }
+            guard let view = item.view,
+                  let measuring = view as? MenuItemMeasuring else { continue }
             let height = measuring.measuredHeight(width: width)
             view.frame = NSRect(origin: .zero, size: NSSize(width: width, height: height))
         }

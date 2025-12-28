@@ -317,11 +317,5 @@ struct MenuRepoFiltersView: View {
             .fixedSize()
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .onChange(of: self.session.menuRepoScope) { _, _ in
-            NotificationCenter.default.post(name: .menuFiltersDidChange, object: nil)
-        }
-        .onChange(of: self.session.menuRepoFilter) { _, _ in
-            NotificationCenter.default.post(name: .menuFiltersDidChange, object: nil)
-        }
     }
 }

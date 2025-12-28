@@ -12,12 +12,6 @@ struct RepoBarApp: App {
 
     @SceneBuilder
     var body: some Scene {
-        WindowGroup("RepoBarLifecycleKeepalive") {
-            HiddenWindowView()
-        }
-        .defaultSize(width: 20, height: 20)
-        .windowStyle(.hiddenTitleBar)
-
         MenuBarExtra {
             RepoBarMenuContent()
                 .environmentObject(self.appState.session)

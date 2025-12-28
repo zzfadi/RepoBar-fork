@@ -5,6 +5,7 @@ import SwiftUI
 struct RepoBarMenuContent: View {
     @EnvironmentObject var session: Session
     @EnvironmentObject var appState: AppState
+    @Environment(\.openSettings) private var openSettings
     @State private var hoveredRepo: String?
     @ObservedObject private var updateStatus = SparkleController.shared.updateStatus
 
@@ -150,7 +151,10 @@ struct RepoBarMenuContent: View {
     private var footer: some View {
         VStack(alignment: .leading, spacing: 6) {
             Button("About RepoBar") { AppActions.openAbout() }
-            Button("Preferences…") { AppActions.openSettings() }
+            Button("Preferences…") {
+                NSApp.activate(ignoringOtherApps: true)
+                self.openSettings()
+            }
                 .keyboardShortcut(",", modifiers: [.command])
             if self.updateStatus.isUpdateReady {
                 Button("Restart to update") { SparkleController.shared.checkForUpdates() }

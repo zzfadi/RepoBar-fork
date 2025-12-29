@@ -123,13 +123,15 @@ struct RepoMenuCardView: View {
     @ViewBuilder
     private var errorOrLimit: some View {
         if let error = repo.error {
-            HStack(spacing: 6) {
-                Image(systemName: "exclamationmark.triangle.fill")
-                    .foregroundStyle(self.warningColor)
-                Text(error)
-                    .font(.caption)
-                    .lineLimit(2)
-                    .foregroundStyle(MenuHighlightStyle.error(self.isHighlighted))
+            if RepositoryErrorClassifier.isNonCriticalMenuWarning(error) == false {
+                HStack(spacing: 6) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(self.warningColor)
+                    Text(error)
+                        .font(.caption)
+                        .lineLimit(2)
+                        .foregroundStyle(MenuHighlightStyle.error(self.isHighlighted))
+                }
             }
         } else if let limit = repo.rateLimitedUntil {
             HStack(spacing: 6) {
@@ -154,6 +156,7 @@ struct RepoMenuCardView: View {
                     foregroundStyle: MenuHighlightStyle.secondary(self.isHighlighted)
                 )
             }
+            .frame(maxWidth: .infinity)
         }
     }
 

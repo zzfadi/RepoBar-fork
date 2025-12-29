@@ -43,8 +43,7 @@
 - Repo menu stat row now includes stars and forks for quick popularity context.
 - Repo menu stat row now includes last push age.
 - Repo submenus now list remaining repository details like CI run count and traffic stats when available.
-- Repo submenus now include the last 10 recent activity events with quick links.
-- Repo submenus now surface the latest activity as the first row above the recent activity list.
+- Repo submenus now include an “Open Activity” link and a single Activity list (up to 10 items) with quick links.
 - Repo submenus now include nested lists for Issues and Pull Requests (20 most recently updated open items).
 - Repo recent item submenus now prefetch and reuse cached results to avoid showing a loading state.
 - Repo submenus now show item count badges for nested Issues/PRs/Releases.
@@ -70,3 +69,4 @@
 - Local projects branch detection now uses the first available git binary on PATH/Homebrew to avoid “unknown.”
 - Local projects scanning now correctly traverses security-scoped folder bookmarks resolved to file reference URLs.
 - CI status dots now increase contrast on highlighted menu rows.
+- GitHub “stats still generating” (HTTP 202) no longer clutters the main repo list and is now shown in repo details instead.

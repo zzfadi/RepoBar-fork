@@ -79,12 +79,12 @@ struct ContributionHeaderView: View {
             let filtered = HeatmapFilter.filter(self.session.contributionHeatmap, range: self.session.heatmapRange)
             VStack(spacing: 4) {
                 HeatmapView(cells: filtered, accentTone: self.session.settings.appearance.accentTone, height: Self.graphHeight)
-                    .padding(.trailing, -MenuStyle.menuItemContainerTrailingPadding)
                 HeatmapAxisLabelsView(
                     range: self.session.heatmapRange,
                     foregroundStyle: MenuHighlightStyle.secondary(self.isHighlighted)
                 )
             }
+            .frame(maxWidth: .infinity)
             .accessibilityLabel("Contribution graph for \(self.username)")
         }
     }

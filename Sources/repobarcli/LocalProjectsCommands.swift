@@ -57,7 +57,7 @@ struct LocalProjectsCommand: CommanderRunnableCommand {
         let resolvedRoot = PathFormatter.expandTilde(rootPath)
 
         let statuses = snapshot.statuses
-        let syncedPaths = Set(snapshot.syncedStatuses.map { $0.path.path })
+        let syncedPaths = Set(snapshot.syncedStatuses.map(\.path.path))
 
         if self.output.jsonOutput {
             let encoder = JSONEncoder()

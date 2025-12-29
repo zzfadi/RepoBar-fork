@@ -184,6 +184,14 @@ final class StatusBarMenuBuilder {
             represented: repo.title,
             systemImage: "bolt"
         ))
+        if repo.activityURL != nil {
+            menu.addItem(self.actionItem(
+                title: "Open Activity",
+                action: #selector(self.target.openActivity),
+                represented: repo.title,
+                systemImage: "clock.arrow.circlepath"
+            ))
+        }
         if let local = repo.localStatus {
             menu.addItem(self.actionItem(
                 title: "Open in Finder",
@@ -213,17 +221,10 @@ final class StatusBarMenuBuilder {
         }
 
         let events = Array(repo.activityEvents.prefix(10))
-        if let latest = events.first {
+        if events.isEmpty == false {
             menu.addItem(.separator())
-            menu.addItem(self.infoItem("Latest Activity"))
-            menu.addItem(self.repoActivityItem(for: latest))
-
-            let remaining = events.dropFirst()
-            if !remaining.isEmpty {
-                menu.addItem(.separator())
-                menu.addItem(self.infoItem("Recent Activity"))
-                remaining.forEach { menu.addItem(self.repoActivityItem(for: $0)) }
-            }
+            menu.addItem(self.infoItem("Activity"))
+            events.forEach { menu.addItem(self.repoActivityItem(for: $0)) }
         }
 
         let detailItems = self.repoDetailItems(for: repo)
@@ -343,6 +344,9 @@ final class StatusBarMenuBuilder {
 
     private func repoDetailItems(for repo: RepositoryDisplayModel) -> [NSMenuItem] {
         var items: [NSMenuItem] = []
+        if let error = repo.error, RepositoryErrorClassifier.isNonCriticalMenuWarning(error) {
+            items.append(self.infoItem(error))
+        }
         if let local = repo.localStatus {
             items.append(self.infoItem("Branch: \(local.branch)"))
             items.append(self.infoItem("Sync: \(local.syncDetail)"))

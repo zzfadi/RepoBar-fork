@@ -64,3 +64,4 @@
 - Heatmaps now pixel-align to avoid uneven left/right padding in the menu.
 - Heatmaps now fill the full menu row width (reclaim submenu chevron padding).
 - Local projects branch detection now uses the first available git binary on PATH/Homebrew to avoid “unknown.”
+- CI status dots now increase contrast on highlighted menu rows.

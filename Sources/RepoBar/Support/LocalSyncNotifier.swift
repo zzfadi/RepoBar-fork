@@ -4,15 +4,25 @@ import UserNotifications
 
 actor LocalSyncNotifier {
     static let shared = LocalSyncNotifier()
-    private let center = UNUserNotificationCenter.current()
+    private let center: UNUserNotificationCenter?
+
+    init() {
+        if Bundle.main.bundleURL.pathExtension == "app" {
+            self.center = UNUserNotificationCenter.current()
+        } else {
+            self.center = nil
+        }
+    }
 
     func notifySync(for status: LocalRepoStatus) async {
-        let authorizationStatus = await self.authorizationStatus()
+        guard let center = self.center else { return }
+
+        let authorizationStatus = await self.authorizationStatus(using: center)
         let authorized: Bool = switch authorizationStatus {
         case .authorized, .provisional:
             true
         case .notDetermined:
-            await self.requestAuthorization()
+            await self.requestAuthorization(using: center)
         default:
             false
         }
@@ -27,20 +37,20 @@ actor LocalSyncNotifier {
             content: content,
             trigger: nil
         )
-        _ = try? await self.center.add(request)
+        _ = try? await center.add(request)
     }
 
-    private func authorizationStatus() async -> UNAuthorizationStatus {
+    private func authorizationStatus(using center: UNUserNotificationCenter) async -> UNAuthorizationStatus {
         await withCheckedContinuation { continuation in
-            self.center.getNotificationSettings { settings in
+            center.getNotificationSettings { settings in
                 continuation.resume(returning: settings.authorizationStatus)
             }
         }
     }
 
-    private func requestAuthorization() async -> Bool {
+    private func requestAuthorization(using center: UNUserNotificationCenter) async -> Bool {
         await withCheckedContinuation { continuation in
-            self.center.requestAuthorization(options: [.alert, .sound]) { granted, _ in
+            center.requestAuthorization(options: [.alert, .sound]) { granted, _ in
                 continuation.resume(returning: granted)
             }
         }

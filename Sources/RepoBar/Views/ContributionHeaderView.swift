@@ -85,25 +85,14 @@ struct ContributionHeaderView: View {
         }
     }
 
-    private func axisLabels(cellCount: Int) -> some View {
+    private func axisLabels(cellCount _: Int) -> some View {
         let range = self.session.heatmapRange
-        return GeometryReader { proxy in
-            let columns = HeatmapLayout.columnCount(cellCount: cellCount)
-            let cellSide = HeatmapLayout.cellSide(
-                forHeight: Self.graphHeight,
-                width: proxy.size.width,
-                columns: columns
-            )
-            let contentWidth = HeatmapLayout.contentWidth(columns: columns, cellSide: cellSide)
-
-            HStack {
-                Text(Self.axisFormatter.string(from: range.start))
-                Spacer()
-                Text(Self.axisFormatter.string(from: range.end))
-            }
-            .frame(width: contentWidth)
-            .frame(maxWidth: .infinity, alignment: .center)
+        return HStack {
+            Text(Self.axisFormatter.string(from: range.start))
+            Spacer()
+            Text(Self.axisFormatter.string(from: range.end))
         }
+        .frame(maxWidth: .infinity)
         .frame(height: 14)
         .font(.caption2)
         .foregroundStyle(MenuHighlightStyle.secondary(self.isHighlighted))

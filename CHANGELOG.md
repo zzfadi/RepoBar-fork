@@ -50,6 +50,7 @@
 - Activity row now shows the latest activity timestamp aligned to the right.
 - Contribution and repository heatmaps now align to the same week-based date range.
 - Heatmap rendering now uses cached CoreGraphics rasterization for faster menu redraws.
+- Heatmaps now stretch to the full available menu width (respecting existing card padding).
 
 ### Fixed
 - Settings now open via SwiftUI `openSettings` from the MenuBarExtra.

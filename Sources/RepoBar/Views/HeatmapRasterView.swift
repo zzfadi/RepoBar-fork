@@ -37,6 +37,7 @@ final class HeatmapRasterNSView: NSView {
         let columns: Int
         let size: CGSize
         let cellSide: CGFloat
+        let xSpacing: CGFloat
         let xOffset: CGFloat
     }
 
@@ -96,17 +97,32 @@ final class HeatmapRasterNSView: NSView {
         self.renderTask?.cancel()
 
         let boundsSize = CGSize(width: floor(self.bounds.width), height: floor(self.bounds.height))
-        let columns = HeatmapLayout.columnCount(cellCount: self.cells.count)
-        let cellSide = HeatmapLayout.cellSide(forHeight: boundsSize.height, width: boundsSize.width, columns: columns)
-        let contentWidth = HeatmapLayout.contentWidth(columns: columns, cellSide: cellSide)
-        let xOffset = HeatmapLayout.centeredInset(available: boundsSize.width, content: contentWidth)
         let scale = max(self.window?.backingScaleFactor ?? 2, 1)
         let widthPx = max(Int(boundsSize.width * scale), 1)
         let heightPx = max(Int(boundsSize.height * scale), 1)
 
+        let columns = HeatmapLayout.columnCount(cellCount: self.cells.count)
+        let cellSide = HeatmapLayout.cellSide(forHeight: boundsSize.height, width: boundsSize.width, columns: columns)
+        let xSpacing = Self.xSpacing(availableWidth: boundsSize.width, columns: columns, cellSide: cellSide, scale: scale)
+        let contentWidth = Self.contentWidth(columns: columns, cellSide: cellSide, xSpacing: xSpacing)
+        let xOffset = HeatmapLayout.centeredInset(available: boundsSize.width, content: contentWidth)
+
         let (buckets, bucketHash) = self.ensureBuckets(columns: columns)
-        let geometryKey = GeometryKey(bucketHash: bucketHash, columns: columns, size: boundsSize, cellSide: cellSide, xOffset: xOffset)
-        let rectsByBucket = self.ensureRects(geometryKey: geometryKey, buckets: buckets, cellSide: cellSide, xOffset: xOffset)
+        let geometryKey = GeometryKey(
+            bucketHash: bucketHash,
+            columns: columns,
+            size: boundsSize,
+            cellSide: cellSide,
+            xSpacing: xSpacing,
+            xOffset: xOffset
+        )
+        let rectsByBucket = self.ensureRects(
+            geometryKey: geometryKey,
+            buckets: buckets,
+            cellSide: cellSide,
+            xSpacing: xSpacing,
+            xOffset: xOffset
+        )
 
         let (palette, paletteHash) = self.computePaletteHash()
         let appearanceKey = self.appearanceCacheKey()
@@ -118,6 +134,7 @@ final class HeatmapRasterNSView: NSView {
             "p\(paletteHash)",
             "c\(columns)",
             "cs\(Int(cellSide * 100))",
+            "xs\(Int(xSpacing * 100))",
             "cr\(Int(cornerRadius * 100))",
             "w\(widthPx)",
             "h\(heightPx)",
@@ -181,18 +198,25 @@ final class HeatmapRasterNSView: NSView {
         return (buckets, hash)
     }
 
-    private func ensureRects(geometryKey: GeometryKey, buckets: [UInt8], cellSide: CGFloat, xOffset: CGFloat) -> [[CGRect]] {
+    private func ensureRects(
+        geometryKey: GeometryKey,
+        buckets: [UInt8],
+        cellSide: CGFloat,
+        xSpacing: CGFloat,
+        xOffset: CGFloat
+    ) -> [[CGRect]] {
         if self.cachedGeometryKey == geometryKey { return self.cachedRectsByBucket }
 
         var rectsByBucket: [[CGRect]] = Array(repeating: [], count: 5)
         rectsByBucket[0].reserveCapacity(buckets.count)
 
-        let step = cellSide + HeatmapLayout.spacing
+        let stepX = cellSide + xSpacing
+        let stepY = cellSide + HeatmapLayout.spacing
         for index in 0 ..< buckets.count {
             let bucket = Int(buckets[index])
             let column = index / HeatmapLayout.rows
             let row = index % HeatmapLayout.rows
-            let origin = CGPoint(x: xOffset + CGFloat(column) * step, y: CGFloat(row) * step)
+            let origin = CGPoint(x: xOffset + CGFloat(column) * stepX, y: CGFloat(row) * stepY)
             let rect = CGRect(origin: origin, size: CGSize(width: cellSide, height: cellSide))
             rectsByBucket[bucket].append(rect)
         }
@@ -221,6 +245,20 @@ final class HeatmapRasterNSView: NSView {
             }
         }
         return (palette, hash)
+    }
+
+    private static func xSpacing(availableWidth: CGFloat, columns: Int, cellSide: CGFloat, scale: CGFloat) -> CGFloat {
+        guard columns > 1 else { return 0 }
+
+        let base = HeatmapLayout.spacing
+        let ideal = (availableWidth - CGFloat(columns) * cellSide) / CGFloat(columns - 1)
+        let clamped = max(base, ideal)
+        return max(base, round(clamped * scale) / scale)
+    }
+
+    private static func contentWidth(columns: Int, cellSide: CGFloat, xSpacing: CGFloat) -> CGFloat {
+        let totalSpacingX = CGFloat(max(columns - 1, 0)) * xSpacing
+        return CGFloat(max(columns, 0)) * cellSide + totalSpacingX
     }
 
     private static func bucketIndex(for count: Int) -> UInt8 {

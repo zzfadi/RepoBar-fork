@@ -348,7 +348,14 @@ struct MenuCIBadge: View {
             .tertiaryLabelColor
         }
         let alpha: CGFloat = isHighlighted ? 1.0 : (isLightAppearance ? 0.8 : 0.9)
-        let adjusted = base.withAlphaComponent(alpha)
+        var adjusted = base.withAlphaComponent(alpha)
+        if isHighlighted {
+            adjusted = adjusted.ensuringContrast(
+                on: .selectedContentBackgroundColor,
+                minRatio: 3.0,
+                appearance: NSApp.effectiveAppearance
+            )
+        }
         return Color(nsColor: adjusted)
     }
 }

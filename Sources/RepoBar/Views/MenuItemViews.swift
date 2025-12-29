@@ -31,6 +31,7 @@ struct RepoMenuCardView: View {
                     .fill(Color(nsColor: .separatorColor))
                     .frame(height: 1)
                     .padding(.leading, MenuStyle.cardSeparatorInset)
+                    .padding(.vertical, MenuStyle.cardSeparatorVerticalPadding)
             }
         }
         .contentShape(Rectangle())

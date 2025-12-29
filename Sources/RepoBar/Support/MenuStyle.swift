@@ -7,6 +7,7 @@ enum MenuStyle {
     static let cardVerticalPadding: CGFloat = 6
     static let cardSpacing: CGFloat = 6
     static let cardSeparatorInset: CGFloat = 10
+    static let cardSeparatorVerticalPadding: CGFloat = 4
 
     static let filterHorizontalPadding: CGFloat = 12
     static let filterVerticalPadding: CGFloat = 3

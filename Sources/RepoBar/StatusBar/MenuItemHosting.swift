@@ -78,12 +78,18 @@ final class MenuItemHostingView: NSHostingView<AnyView>, MenuItemMeasuring, Menu
     init(rootView: AnyView, highlightState: MenuItemHighlightState) {
         self.highlightState = highlightState
         super.init(rootView: rootView)
+        if #available(macOS 13.0, *) {
+            self.sizingOptions = [.minSize, .intrinsicContentSize]
+        }
     }
 
     @MainActor
     required init(rootView: AnyView) {
         self.highlightState = nil
         super.init(rootView: rootView)
+        if #available(macOS 13.0, *) {
+            self.sizingOptions = [.minSize, .intrinsicContentSize]
+        }
     }
 
     @available(*, unavailable)

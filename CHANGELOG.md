@@ -29,6 +29,7 @@
 - mac app now caches repo detail fetches for 1 hour to reduce API usage.
 - Token refresh now preserves OAuth client credentials and shows a clearer error when refresh fails.
 - Menubar repository rows now use tighter, more native spacing with submenu indicators and icons.
+- Menubar repository cards now include more breathing room between entries.
 - Menubar heatmaps adapt width to the visible span and use a muted palette on highlight.
 - Menu filters use compact segmented controls and the update prompt is labeled “Restart to update”.
 - Menu filters now sit on a single row and the menu includes an About item.
@@ -65,6 +66,7 @@
 - Activity labels now use readable event names and prefer issue/PR titles over raw event types.
 - Menu no longer preselects the first item on open.
 - Fixed a crash when opening menus with the raster heatmap renderer.
+- Menu item hosting now opts into modern sizing behavior to avoid clipped content.
 - Heatmaps now pixel-align to avoid uneven left/right padding in the menu.
 - Heatmaps now fill the full menu row width (reclaim submenu chevron padding).
 - Local projects branch detection now uses the first available git binary on PATH/Homebrew to avoid “unknown.”

@@ -349,7 +349,13 @@ struct AdvancedSettingsView: View {
                             }
                             .buttonStyle(.borderless)
                             .help("Rescan local projects")
-                            Button("Clear") { self.clearProjectFolder() }
+                            Button {
+                                self.clearProjectFolder()
+                            } label: {
+                                Image(systemName: "trash")
+                            }
+                            .buttonStyle(.borderless)
+                            .help("Clear project folder")
                         }
                     }
                 }

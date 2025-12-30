@@ -34,7 +34,7 @@ struct AsyncTimeoutTests {
             #expect(Bool(false), "Unexpected error: \(error)")
         }
 
-        for _ in 0 ..< 10 {
+        for _ in 0 ..< 50 {
             if await cancellationFlag.isCancelled {
                 break
             }

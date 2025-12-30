@@ -11,6 +11,8 @@ final class OAuthCoordinator {
     private let logger = Logger(subsystem: "com.steipete.repobar", category: "oauth")
     private let signposter = OSSignposter(subsystem: "com.steipete.repobar", category: "oauth")
     private var lastHost: URL = .init(string: "https://github.com")!
+    private var cachedTokens: OAuthTokens?
+    private var hasLoadedTokens = false
 
     func login(clientID: String, clientSecret: String, host: URL, loopbackPort: Int) async throws {
         let normalizedHost = try OAuthLoginFlow.normalizeHost(host)
@@ -18,27 +20,43 @@ final class OAuthCoordinator {
         let flow = OAuthLoginFlow(tokenStore: self.tokenStore) { url in
             NSWorkspace.shared.open(url)
         }
-        _ = try await flow.login(
+        let tokens = try await flow.login(
             clientID: clientID,
             clientSecret: clientSecret,
             host: normalizedHost,
             loopbackPort: loopbackPort
         )
+        self.cachedTokens = tokens
+        self.hasLoadedTokens = true
         await DiagnosticsLogger.shared.message("Login succeeded; tokens stored.")
     }
 
     func logout() async {
         self.tokenStore.clear()
+        self.cachedTokens = nil
+        self.hasLoadedTokens = false
     }
 
     func loadTokens() -> OAuthTokens? {
-        try? self.tokenStore.load()
+        if self.hasLoadedTokens { return self.cachedTokens }
+        self.hasLoadedTokens = true
+        let tokens = try? self.tokenStore.load()
+        self.cachedTokens = tokens
+        return tokens
     }
 
     func refreshIfNeeded() async throws -> OAuthTokens? {
         let signpost = self.signposter.beginInterval("refreshIfNeeded")
         defer { self.signposter.endInterval("refreshIfNeeded", signpost) }
-        return try await self.tokenRefresher.refreshIfNeeded(host: self.lastHost)
+        if let tokens = self.cachedTokens, tokens.expiresAt.map({ $0 > Date().addingTimeInterval(60) }) != false {
+            return tokens
+        }
+        let refreshed = try await self.tokenRefresher.refreshIfNeeded(host: self.lastHost)
+        if refreshed != nil {
+            self.cachedTokens = refreshed
+            self.hasLoadedTokens = true
+        }
+        return refreshed
     }
 
     // MARK: - Installation token

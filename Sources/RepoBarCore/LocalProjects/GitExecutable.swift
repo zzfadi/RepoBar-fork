@@ -27,11 +27,17 @@ struct GitExecutableLocator: Sendable {
             .map { "\($0)/git" }
 
         let preferred: [String] = if Self.isSandboxed {
-            ["/usr/bin/git"]
+            [
+                "/Library/Developer/CommandLineTools/usr/bin/git",
+                "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+                "/Applications/Xcode-beta.app/Contents/Developer/usr/bin/git"
+            ]
         } else {
             [
                 "/opt/homebrew/bin/git",
-                "/usr/local/bin/git"
+                "/usr/local/bin/git",
+                "/Library/Developer/CommandLineTools/usr/bin/git",
+                "/Applications/Xcode.app/Contents/Developer/usr/bin/git"
             ]
         }
 

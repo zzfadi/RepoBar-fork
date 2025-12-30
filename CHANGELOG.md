@@ -84,6 +84,7 @@
 - Local projects scanning now correctly traverses security-scoped folder bookmarks resolved to file reference URLs.
 - Local projects now match repo folders case-insensitively to avoid missing status on case-insensitive filesystems.
 - Local projects now prefer the system git binary in sandboxed builds to avoid “unknown/dirty” status when Homebrew git is blocked.
+- Local projects now show added/removed/modified counts when a repo is dirty.
 - CI status dots now increase contrast on highlighted menu rows.
 - GitHub “stats still generating” (HTTP 202) no longer clutters the main repo list and is now shown in repo details instead.
 - Fixed CLI/app binary naming collisions on case-insensitive filesystems (CLI builds as `repobarcli` and is embedded as `repobarcli` in the app bundle).

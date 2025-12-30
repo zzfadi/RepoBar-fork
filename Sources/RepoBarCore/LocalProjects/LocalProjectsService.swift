@@ -101,7 +101,9 @@ public struct LocalProjectsService {
 
         func loadStatus(at repoURL: URL) -> LocalRepoStatus? {
             let branch = currentBranch(at: repoURL, git: git)
-            let isClean = isClean(at: repoURL, git: git)
+            let statusOutput = statusOutput(at: repoURL, git: git)
+            let isClean = statusOutput?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? false
+            let dirtyCounts = statusOutput.flatMap(parseDirtyCounts(from:))
             let (ahead, behind) = aheadBehind(at: repoURL, git: git)
             let syncState = LocalSyncState.resolve(isClean: isClean, ahead: ahead, behind: behind)
             let remote = remoteInfo(at: repoURL, git: git)
@@ -115,7 +117,8 @@ public struct LocalProjectsService {
                 isClean: isClean,
                 aheadCount: ahead,
                 behindCount: behind,
-                syncState: syncState
+                syncState: syncState,
+                dirtyCounts: dirtyCounts
             )
         }
 
@@ -297,11 +300,47 @@ private func currentBranch(at repoURL: URL, git: GitRunner) -> String {
     return trimmed == "HEAD" ? "detached" : trimmed
 }
 
-private func isClean(at repoURL: URL, git: GitRunner) -> Bool {
-    guard let output = try? git.run(["status", "--porcelain"], in: repoURL) else {
-        return false
+private func statusOutput(at repoURL: URL, git: GitRunner) -> String? {
+    try? git.run(["status", "--porcelain"], in: repoURL)
+}
+
+private func parseDirtyCounts(from output: String) -> LocalDirtyCounts? {
+    var added: Set<String> = []
+    var modified: Set<String> = []
+    var deleted: Set<String> = []
+
+    for rawLine in output.split(whereSeparator: \.isNewline) {
+        let line = String(rawLine)
+        guard line.count >= 3 else { continue }
+        let status = String(line.prefix(2))
+        var path = String(line.dropFirst(3)).trimmingCharacters(in: .whitespacesAndNewlines)
+        if let arrowRange = path.range(of: " -> ") {
+            path = String(path[arrowRange.upperBound...])
+        }
+        guard path.isEmpty == false else { continue }
+
+        if status == "??" {
+            added.insert(path)
+            continue
+        }
+
+        if status.contains("D") {
+            deleted.insert(path)
+            continue
+        }
+
+        if status.contains("A") {
+            added.insert(path)
+            continue
+        }
+
+        if status.contains("M") || status.contains("R") || status.contains("C") || status.contains("T") || status.contains("U") {
+            modified.insert(path)
+        }
     }
-    return output.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+
+    if added.isEmpty, modified.isEmpty, deleted.isEmpty { return nil }
+    return LocalDirtyCounts(added: added.count, modified: modified.count, deleted: deleted.count)
 }
 
 private func aheadBehind(at repoURL: URL, git: GitRunner) -> (ahead: Int?, behind: Int?) {

@@ -9,6 +9,7 @@ public struct LocalRepoStatus: Equatable, Sendable {
     public let aheadCount: Int?
     public let behindCount: Int?
     public let syncState: LocalSyncState
+    public let dirtyCounts: LocalDirtyCounts?
 
     public init(
         path: URL,
@@ -18,7 +19,8 @@ public struct LocalRepoStatus: Equatable, Sendable {
         isClean: Bool,
         aheadCount: Int?,
         behindCount: Int?,
-        syncState: LocalSyncState
+        syncState: LocalSyncState,
+        dirtyCounts: LocalDirtyCounts? = nil
     ) {
         self.path = path
         self.name = name
@@ -28,6 +30,7 @@ public struct LocalRepoStatus: Equatable, Sendable {
         self.aheadCount = aheadCount
         self.behindCount = behindCount
         self.syncState = syncState
+        self.dirtyCounts = dirtyCounts
     }
 
     public var displayName: String { self.fullName ?? self.name }
@@ -43,7 +46,11 @@ public struct LocalRepoStatus: Equatable, Sendable {
         case .diverged:
             "Diverged"
         case .dirty:
-            "Dirty"
+            if let dirtyCounts, dirtyCounts.isEmpty == false {
+                "Dirty (\(dirtyCounts.summary))"
+            } else {
+                "Dirty"
+            }
         case .unknown:
             "No upstream"
         }
@@ -54,6 +61,30 @@ public struct LocalRepoStatus: Equatable, Sendable {
             && self.syncState == .behind
             && (self.aheadCount ?? 0) == 0
             && self.branch != "detached"
+    }
+}
+
+public struct LocalDirtyCounts: Equatable, Sendable {
+    public let added: Int
+    public let modified: Int
+    public let deleted: Int
+
+    public init(added: Int, modified: Int, deleted: Int) {
+        self.added = added
+        self.modified = modified
+        self.deleted = deleted
+    }
+
+    public var isEmpty: Bool {
+        self.added == 0 && self.modified == 0 && self.deleted == 0
+    }
+
+    public var summary: String {
+        var parts: [String] = []
+        if self.added > 0 { parts.append("+\(self.added)") }
+        if self.deleted > 0 { parts.append("-\(self.deleted)") }
+        if self.modified > 0 { parts.append("~\(self.modified)") }
+        return parts.joined(separator: " ")
     }
 }
 

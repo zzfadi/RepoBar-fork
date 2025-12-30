@@ -699,6 +699,7 @@ struct DebugSettingsView: View {
     @Bindable var session: Session
     let appState: AppState
     @State private var diagnostics = DiagnosticsSummary.empty
+    @State private var gitExecutableInfo = LocalProjectsService.gitExecutableInfo()
 
     var body: some View {
         Form {
@@ -732,6 +733,16 @@ struct DebugSettingsView: View {
             }
 
             Section("Diagnostics") {
+                LabeledContent("Git binary") {
+                    Text(self.gitExecutableInfo.path)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
+                LabeledContent("Git version") {
+                    Text(self.gitExecutableInfo.version ?? "—")
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
                 LabeledContent("API host") {
                     Text(self.diagnostics.apiHost.absoluteString)
                         .lineLimit(1)
@@ -765,7 +776,10 @@ struct DebugSettingsView: View {
             .disabled(!self.session.settings.diagnosticsEnabled)
         }
         .padding()
-        .task { await self.loadDiagnosticsIfEnabled() }
+        .task {
+            self.gitExecutableInfo = LocalProjectsService.gitExecutableInfo()
+            await self.loadDiagnosticsIfEnabled()
+        }
     }
 
     private func loadDiagnosticsIfEnabled() async {

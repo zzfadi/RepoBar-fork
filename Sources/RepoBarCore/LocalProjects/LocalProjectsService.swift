@@ -16,6 +16,12 @@ public struct LocalProjectsSnapshot: Equatable, Sendable {
 public struct LocalProjectsService {
     public init() {}
 
+    public static func gitExecutableInfo() -> GitExecutableInfo {
+        let url = GitExecutableLocator.shared.url
+        let version = GitExecutableLocator.version(at: url)
+        return GitExecutableInfo(path: url.path, version: version)
+    }
+
     public func discoverRepoRoots(rootPath: String, maxDepth: Int = 2) -> [URL] {
         let fileManager = FileManager.default
         let expandedRoot = PathFormatter.expandTilde(rootPath)
@@ -208,6 +214,16 @@ public struct LocalProjectsService {
     }
 }
 
+public struct GitExecutableInfo: Equatable, Sendable {
+    public let path: String
+    public let version: String?
+
+    public init(path: String, version: String?) {
+        self.path = path
+        self.version = version
+    }
+}
+
 private struct GitRunner: Sendable {
     func run(_ arguments: [String], in directory: URL) throws -> String {
         let process = Process()
@@ -265,6 +281,27 @@ private struct GitExecutableLocator: Sendable {
         guard let task = SecTaskCreateFromSelf(nil) else { return false }
         let entitlement = SecTaskCopyValueForEntitlement(task, "com.apple.security.app-sandbox" as CFString, nil)
         return (entitlement as? Bool) == true
+    }
+
+    static func version(at url: URL) -> String? {
+        let process = Process()
+        process.executableURL = url
+        process.arguments = ["--version"]
+        let out = Pipe()
+        let err = Pipe()
+        process.standardOutput = out
+        process.standardError = err
+        do {
+            try process.run()
+        } catch {
+            return nil
+        }
+        process.waitUntilExit()
+        if process.terminationStatus != 0 { return nil }
+        let data = out.fileHandleForReading.readDataToEndOfFile()
+        let raw = String(data: data, encoding: .utf8) ?? ""
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
     }
 }
 

@@ -70,7 +70,7 @@ private extension OAuthTokenRefresher {
     static func refreshErrorDetail(from data: Data) -> String? {
         if let decoded = try? JSONDecoder().decode(OAuthErrorResponse.self, from: data) {
             let error = decoded.errorDescription ?? decoded.message ?? decoded.error
-            return error.flatMap(Self.cleaned) ?? nil
+            return error.flatMap(Self.cleaned)
         }
         if let text = String(data: data, encoding: .utf8) {
             return self.cleaned(text)

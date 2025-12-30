@@ -113,8 +113,7 @@ final class AppState {
     func refreshIfNeededForMenu() {
         let now = Date()
         if let snapshot = self.session.menuSnapshot,
-           snapshot.isStale(now: now, interval: self.menuRefreshInterval) == false
-        {
+           snapshot.isStale(now: now, interval: self.menuRefreshInterval) == false {
             return
         }
         if self.refreshTask != nil { return }
@@ -300,14 +299,14 @@ final class AppState {
     }
 
     private func applyVisibilityFilters(to repos: [Repository]) -> [Repository] {
-        AppState.selectVisible(
-            all: repos,
+        let options = AppState.VisibleSelectionOptions(
             pinned: self.session.settings.repoList.pinnedRepositories,
             hidden: Set(self.session.settings.repoList.hiddenRepositories),
             includeForks: self.session.settings.repoList.showForks,
             includeArchived: self.session.settings.repoList.showArchived,
             limit: Int.max
         )
+        return AppState.selectVisible(all: repos, options: options)
     }
 
     private func selectMenuTargets(from repos: [Repository]) -> [Repository] {
@@ -531,25 +530,26 @@ final class AppState {
         self.session.contributionError = nil
     }
 
-    nonisolated static func selectVisible(
-        all repos: [Repository],
-        pinned: [String],
-        hidden: Set<String>,
-        includeForks: Bool,
-        includeArchived: Bool,
-        limit: Int
-    ) -> [Repository] {
-        let pinnedSet = Set(pinned)
-        let filtered = repos.filter { !hidden.contains($0.fullName) }
+    struct VisibleSelectionOptions {
+        let pinned: [String]
+        let hidden: Set<String>
+        let includeForks: Bool
+        let includeArchived: Bool
+        let limit: Int
+    }
+
+    nonisolated static func selectVisible(all repos: [Repository], options: VisibleSelectionOptions) -> [Repository] {
+        let pinnedSet = Set(options.pinned)
+        let filtered = repos.filter { !options.hidden.contains($0.fullName) }
         let visible = RepositoryFilter.apply(
             filtered,
-            includeForks: includeForks,
-            includeArchived: includeArchived,
+            includeForks: options.includeForks,
+            includeArchived: options.includeArchived,
             pinned: pinnedSet
         )
-        let limited = Array(visible.prefix(max(limit, 0)))
+        let limited = Array(visible.prefix(max(options.limit, 0)))
         return limited.sorted { lhs, rhs in
-            switch (pinned.firstIndex(of: lhs.fullName), pinned.firstIndex(of: rhs.fullName)) {
+            switch (options.pinned.firstIndex(of: lhs.fullName), options.pinned.firstIndex(of: rhs.fullName)) {
             case let (l?, r?): l < r
             case (.some, .none): true
             case (.none, .some): false

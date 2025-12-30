@@ -328,15 +328,19 @@ struct MenuCIBadge: View {
     static func dotColor(for status: CIStatus, isLightAppearance: Bool, isHighlighted: Bool) -> Color {
         let base: NSColor = switch status {
         case .passing:
-            isLightAppearance
-                ? NSColor(srgbRed: 0.12, green: 0.55, blue: 0.24, alpha: 1)
-                : NSColor(srgbRed: 0.23, green: 0.8, blue: 0.4, alpha: 1)
+            if isLightAppearance {
+                NSColor(srgbRed: 0.12, green: 0.55, blue: 0.24, alpha: 1)
+            } else {
+                NSColor(srgbRed: 0.23, green: 0.8, blue: 0.4, alpha: 1)
+            }
         case .failing:
             .systemRed
         case .pending:
-            isLightAppearance
-                ? NSColor(srgbRed: 0.0, green: 0.45, blue: 0.9, alpha: 1)
-                : NSColor(srgbRed: 0.2, green: 0.65, blue: 1.0, alpha: 1)
+            if isLightAppearance {
+                NSColor(srgbRed: 0.0, green: 0.45, blue: 0.9, alpha: 1)
+            } else {
+                NSColor(srgbRed: 0.2, green: 0.65, blue: 1.0, alpha: 1)
+            }
         case .unknown:
             .tertiaryLabelColor
         }

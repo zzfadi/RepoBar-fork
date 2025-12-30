@@ -33,6 +33,31 @@ struct StatusOutput: Codable {
     let expired: Bool?
 }
 
+struct RepoTableContext {
+    let useColor: Bool
+    let includeURL: Bool
+    let includeRelease: Bool
+    let includeEvent: Bool
+    let baseHost: URL
+    let now: Date
+
+    init(
+        useColor: Bool,
+        includeURL: Bool,
+        includeRelease: Bool,
+        includeEvent: Bool,
+        baseHost: URL,
+        now: Date = Date()
+    ) {
+        self.useColor = useColor
+        self.includeURL = includeURL
+        self.includeRelease = includeRelease
+        self.includeEvent = includeEvent
+        self.baseHost = baseHost
+        self.now = now
+    }
+}
+
 func prepareRows(repos: [Repository], now: Date = Date()) -> [RepoRow] {
     repos.map { repo in
         let activityDate = repo.activityDate
@@ -42,37 +67,13 @@ func prepareRows(repos: [Repository], now: Date = Date()) -> [RepoRow] {
     }
 }
 
-func renderTable(
-    _ rows: [RepoRow],
-    useColor: Bool,
-    includeURL: Bool,
-    includeRelease: Bool,
-    includeEvent: Bool,
-    baseHost: URL,
-    now: Date = Date()
-) {
-    for line in tableLines(
-        rows,
-        useColor: useColor,
-        includeURL: includeURL,
-        includeRelease: includeRelease,
-        includeEvent: includeEvent,
-        baseHost: baseHost,
-        now: now
-    ) {
+func renderTable(_ rows: [RepoRow], context: RepoTableContext) {
+    for line in tableLines(rows, context: context) {
         print(line)
     }
 }
 
-func tableLines(
-    _ rows: [RepoRow],
-    useColor: Bool,
-    includeURL: Bool,
-    includeRelease: Bool,
-    includeEvent: Bool,
-    baseHost: URL,
-    now: Date = Date()
-) -> [String] {
+func tableLines(_ rows: [RepoRow], context: RepoTableContext) -> [String] {
     let activityHeader = "ACTIVITY"
     let issuesHeader = "ISSUES"
     let pullsHeader = "PR"
@@ -90,7 +91,8 @@ func tableLines(
     let releaseWidth = max(releaseHeader.count, rows.map { $0.repo.latestRelease?.tag.count ?? 1 }.max() ?? 1)
     let releasedWidth = max(
         releasedHeader.count,
-        rows.map { $0.repo.latestRelease.map { ReleaseFormatter.releasedLabel(for: $0.publishedAt, now: now).count } ?? 1 }.max() ?? 1
+        rows.map { $0.repo.latestRelease.map { ReleaseFormatter.releasedLabel(for: $0.publishedAt, now: context.now).count } ?? 1 }
+            .max() ?? 1
     )
 
     var headerParts = [
@@ -99,10 +101,10 @@ func tableLines(
         padLeft(pullsHeader, to: pullsWidth),
         padLeft(starsHeader, to: starsWidth)
     ]
-    if includeEvent {
+    if context.includeEvent {
         headerParts.append(padRight(eventHeader, to: eventWidth))
     }
-    if includeRelease {
+    if context.includeRelease {
         headerParts.append(padRight(releaseHeader, to: releaseWidth))
         headerParts.append(padRight(releasedHeader, to: releasedWidth))
     }
@@ -111,7 +113,7 @@ func tableLines(
     let header = headerParts.joined(separator: "  ")
 
     var lines: [String] = []
-    lines.append(useColor ? Ansi.bold.wrap(header) : header)
+    lines.append(context.useColor ? Ansi.bold.wrap(header) : header)
 
     for row in rows {
         let issues = padLeft(String(row.repo.stats.openIssues), to: issuesWidth)
@@ -121,26 +123,32 @@ func tableLines(
         let event = padRight(row.activityLine.singleLine, to: eventWidth)
         let rel = padRight(row.repo.latestRelease?.tag ?? "-", to: releaseWidth)
         let released = padRight(
-            row.repo.latestRelease.map { ReleaseFormatter.releasedLabel(for: $0.publishedAt, now: now) } ?? "-",
+            row.repo.latestRelease.map { ReleaseFormatter.releasedLabel(for: $0.publishedAt, now: context.now) } ?? "-",
             to: releasedWidth
         )
         let repoName = row.repo.fullName
-        let repoURL = makeRepoURL(baseHost: baseHost, repo: row.repo)
+        let repoURL = makeRepoURL(baseHost: context.baseHost, repo: row.repo)
         let repoLabel = formatRepoLabel(
             repoName: repoName,
             repoURL: repoURL,
-            includeURL: includeURL,
+            includeURL: context.includeURL,
             linkEnabled: Ansi.supportsLinks
         )
 
-        let coloredActivity = useColor ? Ansi.gray.wrap(activity) : activity
-        let coloredIssues = useColor ? (row.repo.stats.openIssues > 0 ? Ansi.red.wrap(issues) : Ansi.gray.wrap(issues)) : issues
-        let coloredPulls = useColor ? (row.repo.stats.openPulls > 0 ? Ansi.magenta.wrap(pulls) : Ansi.gray.wrap(pulls)) : pulls
-        let coloredStars = useColor ? (row.repo.stats.stars > 0 ? Ansi.yellow.wrap(stars) : Ansi.gray.wrap(stars)) : stars
-        let coloredRel = useColor ? (row.repo.latestRelease == nil ? Ansi.gray.wrap(rel) : rel) : rel
-        let coloredReleased = useColor ? (row.repo.latestRelease == nil ? Ansi.gray.wrap(released) : released) : released
-        let coloredRepo = useColor ? Ansi.cyan.wrap(repoLabel) : repoLabel
-        let coloredEvent = useColor ? Ansi.gray.wrap(event) : event
+        let coloredActivity = context.useColor ? Ansi.gray.wrap(activity) : activity
+        let coloredIssues = context.useColor
+            ? (row.repo.stats.openIssues > 0 ? Ansi.red.wrap(issues) : Ansi.gray.wrap(issues))
+            : issues
+        let coloredPulls = context.useColor
+            ? (row.repo.stats.openPulls > 0 ? Ansi.magenta.wrap(pulls) : Ansi.gray.wrap(pulls))
+            : pulls
+        let coloredStars = context.useColor
+            ? (row.repo.stats.stars > 0 ? Ansi.yellow.wrap(stars) : Ansi.gray.wrap(stars))
+            : stars
+        let coloredRel = context.useColor ? (row.repo.latestRelease == nil ? Ansi.gray.wrap(rel) : rel) : rel
+        let coloredReleased = context.useColor ? (row.repo.latestRelease == nil ? Ansi.gray.wrap(released) : released) : released
+        let coloredRepo = context.useColor ? Ansi.cyan.wrap(repoLabel) : repoLabel
+        let coloredEvent = context.useColor ? Ansi.gray.wrap(event) : event
 
         var outputParts = [
             coloredActivity,
@@ -148,10 +156,10 @@ func tableLines(
             coloredPulls,
             coloredStars
         ]
-        if includeEvent {
+        if context.includeEvent {
             outputParts.append(coloredEvent)
         }
-        if includeRelease {
+        if context.includeRelease {
             outputParts.append(coloredRel)
             outputParts.append(coloredReleased)
         }
@@ -162,7 +170,7 @@ func tableLines(
 
         if let error = row.repo.error {
             let message = "  ! \(error)"
-            lines.append(useColor ? Ansi.red.wrap(message) : message)
+            lines.append(context.useColor ? Ansi.red.wrap(message) : message)
         }
     }
 

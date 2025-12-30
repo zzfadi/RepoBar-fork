@@ -23,9 +23,9 @@ struct OAuthLoginFlowTests {
             #expect(body.contains("code_verifier="))
 
             let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!
-            let data = """
+            let data = Data("""
             {"access_token":"tok","token_type":"bearer","scope":"repo","expires_in":3600,"refresh_token":"ref"}
-            """.data(using: .utf8)!
+            """.utf8)
             return (data, response)
         }
         defer { Self.MockURLProtocol.unregister(handlerID: handlerID) }
@@ -122,6 +122,7 @@ private extension OAuthLoginFlowTests {
         func stop() {}
     }
 
+    // swiftlint:disable static_over_final_class
     final class MockURLProtocol: URLProtocol {
         private static let handlersLock = NSLock()
         private nonisolated(unsafe) static var handlers: [String: @Sendable (URLRequest) throws -> (Data, URLResponse)] = [:]
@@ -174,6 +175,7 @@ private extension OAuthLoginFlowTests {
             return self.handlers[handlerID]
         }
     }
+    // swiftlint:enable static_over_final_class
 
     static func bodyString(from request: URLRequest) -> String? {
         if let body = request.httpBody, let string = String(data: body, encoding: .utf8) {

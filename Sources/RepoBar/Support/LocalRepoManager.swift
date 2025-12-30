@@ -105,8 +105,7 @@ actor LocalRepoManager {
     ) -> [URL] {
         if forceRescan == false,
            let cached = self.discoveryCache[resolvedRoot],
-           now.timeIntervalSince(cached.discoveredAt) < self.discoveryCacheTTL
-        {
+           now.timeIntervalSince(cached.discoveredAt) < self.discoveryCacheTTL {
             return cached.repoRoots
         }
 

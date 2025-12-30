@@ -106,14 +106,14 @@ final class HeatmapRasterNSView: NSView {
         let cellSide = HeatmapLayout.cellSide(forHeight: boundsSize.height, width: boundsSize.width, columns: columns)
         let xSpacing = Self.xSpacing(availableWidth: boundsSize.width, columns: columns, cellSide: cellSide, scale: scale)
         let contentWidth = Self.contentWidth(columns: columns, cellSide: cellSide, xSpacing: xSpacing)
-        let xOffset = Self.balancedInset(
+        let xOffset = Self.balancedInset(HeatmapLayoutMetrics(
             availableWidth: boundsSize.width,
             columns: columns,
             cellSide: cellSide,
             xSpacing: xSpacing,
             contentWidth: contentWidth,
             scale: scale
-        )
+        ))
 
         let (buckets, bucketHash) = self.ensureBuckets(columns: columns)
         let geometryKey = GeometryKey(
@@ -285,34 +285,36 @@ final class HeatmapRasterNSView: NSView {
         return CGFloat(max(columns, 0)) * cellSide + totalSpacingX
     }
 
-    private static func balancedInset(
-        availableWidth: CGFloat,
-        columns: Int,
-        cellSide: CGFloat,
-        xSpacing: CGFloat,
-        contentWidth: CGFloat,
-        scale: CGFloat
-    ) -> CGFloat {
-        guard availableWidth >= contentWidth, columns > 0 else { return 0 }
+    private struct HeatmapLayoutMetrics {
+        let availableWidth: CGFloat
+        let columns: Int
+        let cellSide: CGFloat
+        let xSpacing: CGFloat
+        let contentWidth: CGFloat
+        let scale: CGFloat
+    }
 
-        let stepX = cellSide + xSpacing
-        let ideal = (availableWidth - contentWidth) / 2
-        let step = 1 / max(scale, 1)
+    private static func balancedInset(_ metrics: HeatmapLayoutMetrics) -> CGFloat {
+        guard metrics.availableWidth >= metrics.contentWidth, metrics.columns > 0 else { return 0 }
 
-        var best = Self.snapToPixel(ideal, scale: scale)
+        let stepX = metrics.cellSide + metrics.xSpacing
+        let ideal = (metrics.availableWidth - metrics.contentWidth) / 2
+        let step = 1 / max(metrics.scale, 1)
+
+        var best = Self.snapToPixel(ideal, scale: metrics.scale)
         var bestScore = CGFloat.greatestFiniteMagnitude
 
         var candidates: [CGFloat] = []
         candidates.reserveCapacity(5)
         for delta in -2 ... 2 {
-            candidates.append(Self.snapToPixel(ideal + CGFloat(delta) * step, scale: scale))
+            candidates.append(Self.snapToPixel(ideal + CGFloat(delta) * step, scale: metrics.scale))
         }
 
         for offset in Array(Set(candidates)).sorted() {
-            let left = Self.snapToPixel(offset, scale: scale)
-            let lastX = Self.snapToPixel(left + CGFloat(columns - 1) * stepX, scale: scale)
-            let rightEdge = lastX + cellSide
-            let rightGap = availableWidth - rightEdge
+            let left = Self.snapToPixel(offset, scale: metrics.scale)
+            let lastX = Self.snapToPixel(left + CGFloat(metrics.columns - 1) * stepX, scale: metrics.scale)
+            let rightEdge = lastX + metrics.cellSide
+            let rightGap = metrics.availableWidth - rightEdge
             let score = abs(left - rightGap) + (rightGap < 0 ? abs(rightGap) * 10 : 0)
             if score < bestScore {
                 bestScore = score

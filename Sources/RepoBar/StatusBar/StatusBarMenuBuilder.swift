@@ -29,8 +29,7 @@ final class StatusBarMenuBuilder {
 
         if settings.appearance.showContributionHeader,
            let username = self.currentUsername(),
-           let displayName = self.currentDisplayName()
-        {
+           let displayName = self.currentDisplayName() {
             let header = ContributionHeaderView(
                 username: username,
                 displayName: displayName,
@@ -151,7 +150,7 @@ final class StatusBarMenuBuilder {
             systemImage: "folder"
         ))
 
-        menu.addItem(self.recentListSubmenuItem(
+        menu.addItem(self.recentListSubmenuItem(RecentListConfig(
             title: "Issues",
             systemImage: "exclamationmark.circle",
             fullName: repo.title,
@@ -159,8 +158,8 @@ final class StatusBarMenuBuilder {
             openTitle: "Open Issues",
             openAction: #selector(self.target.openIssues),
             badgeText: repo.issues > 0 ? StatValueFormatter.compact(repo.issues) : nil
-        ))
-        menu.addItem(self.recentListSubmenuItem(
+        )))
+        menu.addItem(self.recentListSubmenuItem(RecentListConfig(
             title: "Pull Requests",
             systemImage: "arrow.triangle.branch",
             fullName: repo.title,
@@ -168,9 +167,9 @@ final class StatusBarMenuBuilder {
             openTitle: "Open Pull Requests",
             openAction: #selector(self.target.openPulls),
             badgeText: repo.pulls > 0 ? StatValueFormatter.compact(repo.pulls) : nil
-        ))
+        )))
         let cachedReleaseCount = self.target.cachedRecentListCount(fullName: repo.title, kind: .releases)
-        menu.addItem(self.recentListSubmenuItem(
+        menu.addItem(self.recentListSubmenuItem(RecentListConfig(
             title: "Releases",
             systemImage: "tag",
             fullName: repo.title,
@@ -178,7 +177,7 @@ final class StatusBarMenuBuilder {
             openTitle: "Open Releases",
             openAction: #selector(self.target.openReleases),
             badgeText: cachedReleaseCount.flatMap { $0 > 0 ? String($0) : nil }
-        ))
+        )))
 
         menu.addItem(self.actionItem(
             title: "Open Actions",
@@ -290,32 +289,41 @@ final class StatusBarMenuBuilder {
         return menu
     }
 
-    private func recentListSubmenuItem(
-        title: String,
-        systemImage: String,
-        fullName: String,
-        kind: RepoRecentMenuKind,
-        openTitle: String,
-        openAction: Selector,
-        badgeText: String? = nil
-    ) -> NSMenuItem {
+    private struct RecentListConfig {
+        let title: String
+        let systemImage: String
+        let fullName: String
+        let kind: RepoRecentMenuKind
+        let openTitle: String
+        let openAction: Selector
+        let badgeText: String?
+    }
+
+    private func recentListSubmenuItem(_ config: RecentListConfig) -> NSMenuItem {
         let submenu = NSMenu()
         submenu.autoenablesItems = false
         submenu.delegate = self.target
-        self.target.registerRecentListMenu(submenu, context: RepoRecentMenuContext(fullName: fullName, kind: kind))
+        self.target.registerRecentListMenu(
+            submenu,
+            context: RepoRecentMenuContext(fullName: config.fullName, kind: config.kind)
+        )
 
         submenu.addItem(self.actionItem(
-            title: openTitle,
-            action: openAction,
-            represented: fullName,
-            systemImage: systemImage
+            title: config.openTitle,
+            action: config.openAction,
+            represented: config.fullName,
+            systemImage: config.systemImage
         ))
         submenu.addItem(.separator())
         let loading = NSMenuItem(title: "Loading…", action: nil, keyEquivalent: "")
         loading.isEnabled = false
         submenu.addItem(loading)
 
-        let row = RecentListSubmenuRowView(title: title, systemImage: systemImage, badgeText: badgeText)
+        let row = RecentListSubmenuRowView(
+            title: config.title,
+            systemImage: config.systemImage,
+            badgeText: config.badgeText
+        )
         return self.viewItem(for: row, enabled: true, highlightable: true, submenu: submenu)
     }
 
@@ -338,14 +346,12 @@ final class StatusBarMenuBuilder {
     private func menuWidth(for menu: NSMenu) -> CGFloat {
         if let view = menu.items.compactMap(\.view).first,
            let contentWidth = view.window?.contentView?.bounds.width,
-           contentWidth > 0
-        {
+           contentWidth > 0 {
             return max(contentWidth, Self.menuFixedWidth)
         }
         if let view = menu.items.compactMap(\.view).first,
            let windowWidth = view.window?.frame.width,
-           windowWidth > 0
-        {
+           windowWidth > 0 {
             return max(windowWidth, Self.menuFixedWidth)
         }
         let menuWidth = menu.size.width

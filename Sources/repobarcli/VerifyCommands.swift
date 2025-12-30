@@ -338,9 +338,9 @@ struct RefreshCommand: CommanderRunnableCommand {
     }
 
     mutating func run() async throws {
-        let (client, settings, _) = try await makeAuthenticatedClient()
-        let hidden = Set(settings.repoList.hiddenRepositories)
-        let pinned = settings.repoList.pinnedRepositories.filter { !hidden.contains($0) }
+        let context = try await makeAuthenticatedClient()
+        let hidden = Set(context.settings.repoList.hiddenRepositories)
+        let pinned = context.settings.repoList.pinnedRepositories.filter { !hidden.contains($0) }
 
         guard pinned.isEmpty == false else {
             if self.output.jsonOutput {
@@ -351,7 +351,7 @@ struct RefreshCommand: CommanderRunnableCommand {
             return
         }
 
-        let results = try await refreshPinned(pinned, client: client)
+        let results = try await refreshPinned(pinned, client: context.client)
 
         if self.output.jsonOutput {
             try printJSON(RefreshOutput(count: results.count, repositories: results))
@@ -368,7 +368,13 @@ struct RefreshCommand: CommanderRunnableCommand {
     }
 }
 
-private func makeAuthenticatedClient() async throws -> (GitHubClient, UserSettings, URL) {
+private struct AuthContext {
+    let client: GitHubClient
+    let settings: UserSettings
+    let host: URL
+}
+
+private func makeAuthenticatedClient() async throws -> AuthContext {
     guard (try? TokenStore.shared.load()) != nil else {
         throw CLIError.notAuthenticated
     }
@@ -386,7 +392,7 @@ private func makeAuthenticatedClient() async throws -> (GitHubClient, UserSettin
     await client.setTokenProvider { @Sendable () async throws -> OAuthTokens? in
         try await OAuthTokenRefresher().refreshIfNeeded(host: host)
     }
-    return (client, settings, host)
+    return AuthContext(client: client, settings: settings, host: host)
 }
 
 private func refreshPinned(_ pinned: [String], client: GitHubClient) async throws -> [RefreshRepositoryOutput] {

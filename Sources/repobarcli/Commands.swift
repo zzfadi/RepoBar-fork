@@ -216,14 +216,15 @@ struct ReposCommand: CommanderRunnableCommand {
         if self.output.jsonOutput {
             try renderJSON(rows, baseHost: baseHost)
         } else {
-            renderTable(
-                rows,
+            let context = RepoTableContext(
                 useColor: self.output.useColor,
                 includeURL: self.output.plain == false,
                 includeRelease: self.includeRelease,
                 includeEvent: self.includeEvent,
-                baseHost: baseHost
+                baseHost: baseHost,
+                now: now
             )
+            renderTable(rows, context: context)
         }
     }
 
@@ -254,17 +255,23 @@ struct ReposCommand: CommanderRunnableCommand {
         }
     }
 
+    private struct RepoLookup {
+        let index: Int
+        let owner: String
+        let name: String
+    }
+
     private func fetchNamedRepositories(_ names: [String], client: GitHubClient) async throws -> [Repository] {
-        let targets: [(Int, String, String)] = names.enumerated().compactMap { index, name in
+        let targets: [RepoLookup] = names.enumerated().compactMap { index, name in
             let parts = name.split(separator: "/", maxSplits: 1).map(String.init)
             guard parts.count == 2 else { return nil }
-            return (index, parts[0], parts[1])
+            return RepoLookup(index: index, owner: parts[0], name: parts[1])
         }
         return try await withThrowingTaskGroup(of: (Int, Repository).self) { group in
-            for (index, owner, name) in targets {
+            for target in targets {
                 group.addTask {
-                    let repo = try await client.fullRepository(owner: owner, name: name)
-                    return (index, repo.withOrder(index))
+                    let repo = try await client.fullRepository(owner: target.owner, name: target.name)
+                    return (target.index, repo.withOrder(target.index))
                 }
             }
 

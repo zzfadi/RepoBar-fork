@@ -24,9 +24,9 @@ struct OAuthTokenRefresherTests {
             #expect(body.contains("refresh_token=r1"))
 
             let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!
-            let data = """
+            let data = Data("""
             {"access_token":"new","token_type":"bearer","scope":"repo","expires_in":3600,"refresh_token":"r2"}
-            """.data(using: .utf8)!
+            """.utf8)
             return (data, response)
         }
         defer { Self.MockURLProtocol.unregister(handlerID: handlerID) }
@@ -53,9 +53,9 @@ struct OAuthTokenRefresherTests {
         let handlerID = UUID().uuidString
         Self.MockURLProtocol.register(handlerID: handlerID) { request in
             let response = HTTPURLResponse(url: request.url!, statusCode: 400, httpVersion: nil, headerFields: nil)!
-            let data = """
+            let data = Data("""
             {"error":"invalid_grant","error_description":"refresh token revoked"}
-            """.data(using: .utf8)!
+            """.utf8)
             return (data, response)
         }
         defer { Self.MockURLProtocol.unregister(handlerID: handlerID) }
@@ -88,6 +88,7 @@ private extension OAuthTokenRefresherTests {
         return config
     }
 
+    // swiftlint:disable static_over_final_class
     final class MockURLProtocol: URLProtocol {
         private static let handlersLock = NSLock()
         private nonisolated(unsafe) static var handlers: [String: @Sendable (URLRequest) throws -> (Data, URLResponse)] = [:]
@@ -140,6 +141,7 @@ private extension OAuthTokenRefresherTests {
             return self.handlers[handlerID]
         }
     }
+    // swiftlint:enable static_over_final_class
 
     static func bodyString(from request: URLRequest) -> String? {
         if let body = request.httpBody, let string = String(data: body, encoding: .utf8) {

@@ -125,7 +125,7 @@ final class MenuItemHostingView: NSHostingView<AnyView>, MenuItemMeasuring, Menu
         self.needsLayout = true
         self.layoutSubtreeIfNeeded()
         let oldHeight = self.frame.height
-        self.frame.size.height = 10_000
+        self.frame.size.height = 10000
         self.needsLayout = true
         self.layoutSubtreeIfNeeded()
         let size = self.fittingSize

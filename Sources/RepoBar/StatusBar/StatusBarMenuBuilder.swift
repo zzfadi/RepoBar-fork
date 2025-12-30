@@ -211,11 +211,14 @@ final class StatusBarMenuBuilder {
 
         if settings.heatmap.display == .submenu, !repo.heatmap.isEmpty {
             let filtered = HeatmapFilter.filter(repo.heatmap, range: self.appState.session.heatmapRange)
-            let heatmap = HeatmapView(
-                cells: filtered,
-                accentTone: settings.appearance.accentTone,
-                height: MenuStyle.heatmapSubmenuHeight
-            )
+            let heatmap = VStack(spacing: 4) {
+                HeatmapView(
+                    cells: filtered,
+                    accentTone: settings.appearance.accentTone,
+                    height: MenuStyle.heatmapSubmenuHeight
+                )
+                HeatmapAxisLabelsView(range: self.appState.session.heatmapRange, foregroundStyle: Color.secondary)
+            }
             .padding(.horizontal, MenuStyle.cardHorizontalPadding)
             .padding(.vertical, MenuStyle.cardVerticalPadding)
             menu.addItem(.separator())

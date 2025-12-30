@@ -76,6 +76,7 @@
 - Menu rows now remeasure on menu resize, and highlighted separators stay visible.
 - Repo menu separators now render as their own rows to avoid height clipping.
 - Repo submenu warnings now wrap to five lines instead of stretching the menu.
+- Repo submenu warning rows now expand to the full menu width.
 - Repo submenu open row now aligns its icon column with submenu items.
 - Open in Finder/Terminal now uses security-scoped bookmarks for local project paths.
 - Heatmap raster view now re-renders on size/backing changes to avoid first-open sizing glitches.

@@ -102,3 +102,4 @@
 - Fixed CLI/app binary naming collisions on case-insensitive filesystems (CLI builds as `repobarcli` and is embedded as `repobarcli` in the app bundle).
 - Menu item avatar placeholders no longer expand to infinite height during size measurements.
 - Menu open no longer does a redundant resize pass when the width is unchanged.
+- Repo submenu local status rows now align icon columns with the rest of the submenu.

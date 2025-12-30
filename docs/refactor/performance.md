@@ -55,7 +55,7 @@ Goal: reduce menu open/close latency; verify via CLI-only profiling (xctrace). W
 
 - [x] Precompute derived strings/attributed titles outside menu open.
 - [x] Batch GitHub activity mapping; avoid per-item async in build loop.
-- [ ] Cache icons/images; avoid per-open rendering or re-encoding.
+- [x] Cache icons/images; avoid per-open rendering or re-encoding.
 
 ## 6) Validate improvements
 

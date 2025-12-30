@@ -12,6 +12,7 @@ final class StatusBarMenuBuilder {
     private let signposter = OSSignposter(subsystem: "com.steipete.repobar", category: "menu")
     private var repoMenuItemCache: [String: NSMenuItem] = [:]
     private var repoSubmenuCache: [String: RepoSubmenuCacheEntry] = [:]
+    private var systemImageCache: [String: NSImage] = [:]
 
     init(appState: AppState, target: StatusBarMenuManager) {
         self.appState = appState
@@ -560,18 +561,31 @@ final class StatusBarMenuBuilder {
         let item = NSMenuItem(title: title, action: action, keyEquivalent: keyEquivalent)
         item.target = self.target
         if let represented { item.representedObject = represented }
-        if let systemImage, let image = NSImage(systemSymbolName: systemImage, accessibilityDescription: nil) {
-            image.size = NSSize(width: 14, height: 14)
-            if systemImage == "eye.slash", self.isLightAppearance {
-                let config = NSImage.SymbolConfiguration(hierarchicalColor: .secondaryLabelColor)
-                item.image = image.withSymbolConfiguration(config)
-                item.image?.isTemplate = false
-            } else {
-                image.isTemplate = true
-                item.image = image
-            }
+        if let systemImage, let image = self.cachedSystemImage(named: systemImage) {
+            item.image = image
         }
         return item
+    }
+
+    private func cachedSystemImage(named name: String) -> NSImage? {
+        let key = "\(name)|\(self.isLightAppearance ? "light" : "dark")"
+        if let cached = self.systemImageCache[key] {
+            return cached
+        }
+        guard let image = NSImage(systemSymbolName: name, accessibilityDescription: nil) else { return nil }
+        image.size = NSSize(width: 14, height: 14)
+        if name == "eye.slash", self.isLightAppearance {
+            let config = NSImage.SymbolConfiguration(hierarchicalColor: .secondaryLabelColor)
+            let tinted = image.withSymbolConfiguration(config)
+            tinted?.isTemplate = false
+            if let tinted {
+                self.systemImageCache[key] = tinted
+                return tinted
+            }
+        }
+        image.isTemplate = true
+        self.systemImageCache[key] = image
+        return image
     }
 
     private func viewItem(

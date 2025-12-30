@@ -49,7 +49,7 @@ struct LocalRepoStateMenuView: View {
     }
 
     private var visibleDirtyFiles: [String] {
-        Array(self.status.dirtyFiles.prefix(MenuStyle.submenuDirtyFileLimit))
+        Array(self.status.dirtyFiles.prefix(AppLimits.LocalRepo.submenuDirtyFileLimit))
     }
 
     private var syncEnabled: Bool {

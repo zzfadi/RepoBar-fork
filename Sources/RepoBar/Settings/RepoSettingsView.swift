@@ -276,7 +276,7 @@ private struct RepoInputRow<Accessory: View>: View {
                 let mergedRepos = RepoAutocompleteScoring.merge(
                     local: merged,
                     remote: remoteScored,
-                    limit: 8
+                        limit: AppLimits.Autocomplete.settingsSearchLimit
                 )
                 merged = mergedRepos.map { RepoAutocompleteScoring.Scored(repo: $0, score: 0, sourceRank: 0) }
             } else {

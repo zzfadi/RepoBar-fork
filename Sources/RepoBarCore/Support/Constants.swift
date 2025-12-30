@@ -8,3 +8,18 @@ public enum RepoCacheConstants {
     /// How long the prefetched repo list stays warm before we refetch.
     public static let cacheTTL: TimeInterval = 60 * 60 // 1 hour
 }
+
+public enum LocalProjectsConstants {
+    public static let defaultMaxDepth: Int = 2
+    public static let defaultSnapshotConcurrencyLimit: Int = 8
+    public static let dirtyFileLimit: Int = 10
+}
+
+public enum RepoDetailCacheConstants {
+    public static let openPullsTTL: TimeInterval = 60 * 60
+    public static let ciTTL: TimeInterval = 60 * 60
+    public static let activityTTL: TimeInterval = 60 * 60
+    public static let trafficTTL: TimeInterval = 60 * 60
+    public static let heatmapTTL: TimeInterval = 60 * 60
+    public static let releaseTTL: TimeInterval = 60 * 60
+}

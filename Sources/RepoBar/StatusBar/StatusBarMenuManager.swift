@@ -18,11 +18,11 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
     private var lastMainMenuWidthSignature: MenuBuildSignature?
     private var webURLBuilder: RepoWebURLBuilder { RepoWebURLBuilder(host: self.appState.session.settings.githubHost) }
 
-    private let recentListLimit = 20
-    private let recentListPreviewLimit = 5
-    private let recentListCacheTTL: TimeInterval = 90
-    private let recentListLoadTimeout: TimeInterval = 12
-    private let issueLabelChipLimit = 6
+    private let recentListLimit = AppLimits.RecentLists.limit
+    private let recentListPreviewLimit = AppLimits.RecentLists.previewLimit
+    private let recentListCacheTTL: TimeInterval = AppLimits.RecentLists.cacheTTL
+    private let recentListLoadTimeout: TimeInterval = AppLimits.RecentLists.loadTimeout
+    private let issueLabelChipLimit = AppLimits.RecentLists.issueLabelChipLimit
     private let recentIssuesCache = RecentListCache<RepoIssueSummary>()
     private let recentPullRequestsCache = RecentListCache<RepoPullRequestSummary>()
     private let recentReleasesCache = RecentListCache<RepoReleaseSummary>()
@@ -1650,9 +1650,11 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
     private func recentListExtras(for context: RepoRecentMenuContext, items: RecentMenuItems?) -> [NSMenuItem] {
         switch context.kind {
         case .pullRequests:
-            self.pullRequestFilterMenuItems()
+            guard case let .pullRequests(pullRequests) = items, pullRequests.isEmpty == false else { return [] }
+            return self.pullRequestFilterMenuItems()
         case .issues:
-            self.issueFilterMenuItems(items: items)
+            guard case let .issues(issues) = items, issues.isEmpty == false else { return [] }
+            return self.issueFilterMenuItems(items: .issues(issues))
         default:
             []
         }
@@ -1665,7 +1667,7 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
     }
 
     private func issueFilterMenuItems(items: RecentMenuItems?) -> [NSMenuItem] {
-        guard case let .issues(issueItems) = items ?? .issues([]) else { return [] }
+        guard case let .issues(issueItems) = items ?? .issues([]), issueItems.isEmpty == false else { return [] }
         let labelOptions = self.issueLabelOptions(for: issueItems)
         let chipOptions = self.issueLabelChipOptions(from: labelOptions)
         let filters = RecentIssueFiltersView(session: self.appState.session, labels: chipOptions)

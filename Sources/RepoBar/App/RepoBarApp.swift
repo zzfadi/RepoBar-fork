@@ -365,14 +365,14 @@ final class AppState {
             try await self.github.userActivityEvents(
                 username: username,
                 scope: scope,
-                limit: MenuStyle.globalActivityLimit
+                limit: AppLimits.GlobalActivity.limit
             )
         }
         async let commitResult: Result<[RepoCommitSummary], Error> = self.capture {
             try await self.github.userCommitEvents(
                 username: username,
                 scope: scope,
-                limit: MenuStyle.globalCommitLimit
+                limit: AppLimits.GlobalCommits.limit
             )
         }
 
@@ -403,7 +403,7 @@ final class AppState {
             repoEvents: repoEvents,
             scope: scope,
             username: username,
-            limit: MenuStyle.globalActivityLimit
+            limit: AppLimits.GlobalActivity.limit
         )
 
         return GlobalActivityResult(

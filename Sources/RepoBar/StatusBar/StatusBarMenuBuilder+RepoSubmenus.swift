@@ -171,8 +171,8 @@ extension StatusBarMenuBuilder {
             menu.addItem(self.viewItem(for: heatmap, enabled: false))
         }
 
-        let events = Array(repo.activityEvents.prefix(10))
-        let activityPreview = Array(events.prefix(MenuStyle.globalActivityPreviewLimit))
+        let events = Array(repo.activityEvents.prefix(AppLimits.RepoActivity.limit))
+        let activityPreview = Array(events.prefix(AppLimits.RepoActivity.previewLimit))
         if activityPreview.isEmpty == false {
             menu.addItem(.separator())
             menu.addItem(self.infoItem("Activity"))

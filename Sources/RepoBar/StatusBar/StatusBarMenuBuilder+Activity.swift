@@ -19,8 +19,8 @@ extension StatusBarMenuBuilder {
 
         let commitEvents = self.appState.session.globalCommitEvents
         let activityEvents = self.appState.session.globalActivityEvents
-        let commitPreview = Array(commitEvents.prefix(MenuStyle.globalCommitPreviewLimit))
-        let activityPreview = Array(activityEvents.prefix(MenuStyle.globalActivityPreviewLimit))
+        let commitPreview = Array(commitEvents.prefix(AppLimits.GlobalCommits.previewLimit))
+        let activityPreview = Array(activityEvents.prefix(AppLimits.GlobalActivity.previewLimit))
 
         if commitPreview.isEmpty == false {
             menu.addItem(.separator())

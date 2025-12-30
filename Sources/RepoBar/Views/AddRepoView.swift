@@ -60,7 +60,7 @@ struct AddRepoView: View {
             let includeArchived = await MainActor.run { self.session.settings.repoList.showArchived }
             let trimmed = self.query.trimmingCharacters(in: .whitespacesAndNewlines)
             let repos: [Repository] = if trimmed.isEmpty {
-                try await self.appState.github.recentRepositories(limit: 10)
+                try await self.appState.github.recentRepositories(limit: AppLimits.Autocomplete.addRepoRecentLimit)
             } else {
                 try await self.appState.github.searchRepositories(matching: trimmed)
             }

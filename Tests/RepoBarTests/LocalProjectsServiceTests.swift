@@ -260,7 +260,7 @@ struct LocalProjectsServiceTests {
 
         let status = snapshot.statuses.first(where: { $0.name == "repo" })
         #expect(status != nil)
-        #expect(status?.dirtyFiles.count == 10)
+        #expect(status?.dirtyFiles.count == LocalProjectsConstants.dirtyFileLimit)
         let dirtySet = Set(status?.dirtyFiles ?? [])
         let created = Set((0 ..< 12).map { "file-\($0).txt" })
         #expect(dirtySet.isSubset(of: created))

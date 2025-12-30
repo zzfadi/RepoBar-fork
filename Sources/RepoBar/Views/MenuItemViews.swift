@@ -94,7 +94,7 @@ struct RepoMenuCardView: View {
     private var localDirtyFiles: some View {
         let dirtyFiles = self.repo.localStatus?.dirtyFiles ?? []
         if self.showDirtyFiles, dirtyFiles.isEmpty == false {
-            let files = dirtyFiles.prefix(MenuStyle.mainMenuDirtyFileLimit)
+            let files = dirtyFiles.prefix(AppLimits.LocalRepo.mainMenuDirtyFileLimit)
             VStack(alignment: .leading, spacing: 2) {
                 ForEach(Array(files), id: \.self) { file in
                     Text("- \(file)")

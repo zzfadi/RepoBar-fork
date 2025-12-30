@@ -36,14 +36,20 @@ public struct LocalProjectsService {
         )
     }
 
-    public func discoverRepoRoots(rootPath: String, maxDepth: Int = 2) -> [URL] {
+    public func discoverRepoRoots(
+        rootPath: String,
+        maxDepth: Int = LocalProjectsConstants.defaultMaxDepth
+    ) -> [URL] {
         let fileManager = FileManager.default
         let expandedRoot = PathFormatter.expandTilde(rootPath)
         let rootURL = URL(fileURLWithPath: expandedRoot, isDirectory: true)
         return self.discoverRepoRoots(rootURL: rootURL, maxDepth: maxDepth, fileManager: fileManager)
     }
 
-    public func discoverRepoRoots(rootURL: URL, maxDepth: Int = 2) -> [URL] {
+    public func discoverRepoRoots(
+        rootURL: URL,
+        maxDepth: Int = LocalProjectsConstants.defaultMaxDepth
+    ) -> [URL] {
         self.discoverRepoRoots(rootURL: rootURL, maxDepth: maxDepth, fileManager: .default)
     }
 
@@ -60,11 +66,11 @@ public struct LocalProjectsService {
 
     public func snapshot(
         rootPath: String,
-        maxDepth: Int = 2,
+        maxDepth: Int = LocalProjectsConstants.defaultMaxDepth,
         autoSyncEnabled: Bool,
         maxRepoCount: Int? = nil,
         includeOnlyRepoNames: Set<String>? = nil,
-        concurrencyLimit: Int = 8
+        concurrencyLimit: Int = LocalProjectsConstants.defaultSnapshotConcurrencyLimit
     ) async -> LocalProjectsSnapshot {
         let repos = self.discoverRepoRoots(rootPath: rootPath, maxDepth: maxDepth)
         return await self.snapshot(
@@ -81,7 +87,7 @@ public struct LocalProjectsService {
         autoSyncEnabled: Bool,
         maxRepoCount: Int? = nil,
         includeOnlyRepoNames: Set<String>? = nil,
-        concurrencyLimit: Int = 8,
+        concurrencyLimit: Int = LocalProjectsConstants.defaultSnapshotConcurrencyLimit,
         fetchTargets: Set<URL> = []
     ) async -> LocalProjectsSnapshot {
         let git = GitRunner()
@@ -117,7 +123,7 @@ public struct LocalProjectsService {
             let statusOutput = statusOutput(at: repoURL, git: git)
             let isClean = statusOutput?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? false
             let dirtyCounts = statusOutput.flatMap(parseDirtyCounts(from:))
-            let dirtyFiles = statusOutput.map { parseDirtyFiles(from: $0, limit: 10) } ?? []
+            let dirtyFiles = statusOutput.map { parseDirtyFiles(from: $0, limit: LocalProjectsConstants.dirtyFileLimit) } ?? []
             let (ahead, behind) = aheadBehind(at: repoURL, git: git)
             let syncState = LocalSyncState.resolve(isClean: isClean, ahead: ahead, behind: behind)
             let remote = remoteInfo(at: repoURL, git: git)

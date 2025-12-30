@@ -3,8 +3,8 @@ import RepoBarCore
 
 actor LocalRepoManager {
     private let notifier = LocalSyncNotifier.shared
-    private let discoveryCacheTTL: TimeInterval = 10 * 60
-    private let statusCacheTTL: TimeInterval = 2 * 60
+    private let discoveryCacheTTL: TimeInterval = AppLimits.LocalRepo.discoveryCacheTTL
+    private let statusCacheTTL: TimeInterval = AppLimits.LocalRepo.statusCacheTTL
     private var discoveryCache: [String: DiscoveryCacheEntry] = [:]
     private var statusCache: [String: StatusCacheEntry] = [:]
     private var lastFetchByPath: [String: Date] = [:]
@@ -79,7 +79,7 @@ actor LocalRepoManager {
             repoRoots: refreshRoots,
             autoSyncEnabled: options.autoSyncEnabled,
             includeOnlyRepoNames: nil,
-            concurrencyLimit: 6,
+            concurrencyLimit: AppLimits.LocalRepo.snapshotConcurrencyLimit,
             fetchTargets: fetchTargets
         )
 
@@ -133,7 +133,10 @@ actor LocalRepoManager {
             if now.timeIntervalSince(cached.discoveredAt) < self.discoveryCacheTTL { return cached.repoRoots }
         }
 
-        let roots = LocalProjectsService().discoverRepoRoots(rootURL: rootURL, maxDepth: 2)
+        let roots = LocalProjectsService().discoverRepoRoots(
+            rootURL: rootURL,
+            maxDepth: LocalProjectsConstants.defaultMaxDepth
+        )
         self.discoveryCache[resolvedRoot] = DiscoveryCacheEntry(repoRoots: roots, discoveredAt: now)
         return roots
     }

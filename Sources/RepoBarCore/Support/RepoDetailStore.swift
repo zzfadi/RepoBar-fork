@@ -46,12 +46,12 @@ struct RepoDetailCachePolicy: Sendable {
     var releaseTTL: TimeInterval
 
     static let `default` = RepoDetailCachePolicy(
-        openPullsTTL: 60 * 60,
-        ciTTL: 60 * 60,
-        activityTTL: 60 * 60,
-        trafficTTL: 60 * 60,
-        heatmapTTL: 60 * 60,
-        releaseTTL: 60 * 60
+        openPullsTTL: RepoDetailCacheConstants.openPullsTTL,
+        ciTTL: RepoDetailCacheConstants.ciTTL,
+        activityTTL: RepoDetailCacheConstants.activityTTL,
+        trafficTTL: RepoDetailCacheConstants.trafficTTL,
+        heatmapTTL: RepoDetailCacheConstants.heatmapTTL,
+        releaseTTL: RepoDetailCacheConstants.releaseTTL
     )
 
     func state(for cache: RepoDetailCache, now: Date) -> RepoDetailCacheState {

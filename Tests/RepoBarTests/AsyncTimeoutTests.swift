@@ -22,7 +22,7 @@ struct AsyncTimeoutTests {
                 try await Task.sleep(nanoseconds: 2_000_000_000)
                 return 1
             } onCancel: {
-                Task.detached { await cancellationFlag.markCancelled() }
+                cancellationFlag.markCancelled()
             }
         }
 
@@ -35,21 +35,24 @@ struct AsyncTimeoutTests {
         }
 
         for _ in 0 ..< 50 {
-            if await cancellationFlag.isCancelled {
+            if cancellationFlag.isCancelled {
                 break
             }
             try? await Task.sleep(nanoseconds: 20_000_000)
         }
 
-        #expect(await cancellationFlag.isCancelled)
+        #expect(cancellationFlag.isCancelled)
         #expect(task.isCancelled)
     }
 }
 
-private actor CancellationFlag {
+private final class CancellationFlag {
+    private let lock = NSLock()
     private(set) var isCancelled = false
 
     func markCancelled() {
+        self.lock.lock()
         self.isCancelled = true
+        self.lock.unlock()
     }
 }

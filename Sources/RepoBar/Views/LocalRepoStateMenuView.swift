@@ -189,28 +189,18 @@ private struct LocalRepoActionButton: View {
                 .padding(.vertical, 4)
         }
         .buttonStyle(.plain)
-        .foregroundStyle(self.foregroundStyle)
+        .foregroundStyle(self.enabled ? MenuHighlightStyle.primary(self.isHighlighted) : .secondary)
         .background(self.hoverBackground, in: Capsule(style: .continuous))
         .opacity(self.enabled ? 1 : 0.5)
         .disabled(!self.enabled)
         .onHover { self.isHovered = $0 }
     }
 
-    private var foregroundStyle: Color {
-        guard self.enabled else { return .secondary }
-        if self.isDestructive { return Color(nsColor: .systemRed) }
-        return MenuHighlightStyle.primary(self.isHighlighted)
-    }
-
     private var hoverBackground: Color {
         guard self.isHovered else { return .clear }
         if self.isHighlighted {
-            return self.isDestructive
-                ? Color(nsColor: .systemRed).opacity(0.18)
-                : MenuHighlightStyle.selectionText.opacity(0.18)
+            return MenuHighlightStyle.selectionText.opacity(0.18)
         }
-        return self.isDestructive
-            ? Color(nsColor: .systemRed).opacity(0.12)
-            : Color(nsColor: .controlAccentColor).opacity(0.12)
+        return Color(nsColor: .controlAccentColor).opacity(0.12)
     }
 }

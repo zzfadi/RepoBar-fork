@@ -413,7 +413,9 @@ final class StatusBarMenuBuilder {
             guard let view = item.view,
                   let measuring = view as? MenuItemMeasuring else { continue }
             let height = measuring.measuredHeight(width: width)
-            view.frame = NSRect(origin: .zero, size: NSSize(width: width, height: height))
+            if abs(view.frame.size.height - height) > 0.5 || view.frame.size.width != width {
+                view.frame = NSRect(origin: .zero, size: NSSize(width: width, height: height))
+            }
         }
     }
 

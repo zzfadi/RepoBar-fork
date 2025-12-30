@@ -41,7 +41,7 @@ Goal: reduce menu open/close latency; verify via CLI-only profiling (xctrace). W
 
 - [x] Cache menu width per context; recompute only on font/prefs change.
 - [x] Cache `MenuItemHostingView.measuredHeight(width:)` by content hash + width.
-- [ ] Avoid multiple measure passes in `refreshMenuViewHeights` (single pass + diff).
+- [x] Avoid multiple measure passes in `refreshMenuViewHeights` (single pass + diff).
 - [ ] Defer size measurement for offscreen items until submenu opens.
 
 ## 4) Data refresh off the hot path

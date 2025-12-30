@@ -69,5 +69,5 @@ Goal: reduce menu open/close latency; verify via CLI-only profiling (xctrace). W
 ## 7) Guardrails
 
 - [x] Ensure no token/log leakage in signposts.
-- [ ] Keep files <500 LOC; split helpers if needed.
+- [x] Keep files <500 LOC; split helpers if needed.
 - [ ] Add regression tests if logic changes are non-trivial.

@@ -1,4 +1,4 @@
-import NukeUI
+import Kingfisher
 import RepoBarCore
 import SwiftUI
 
@@ -74,17 +74,12 @@ struct PullRequestMenuItemView: View {
     @ViewBuilder
     private var avatar: some View {
         if let url = self.pullRequest.authorAvatarURL {
-            LazyImage(url: url, transaction: Transaction(animation: nil)) { state in
-                if let image = state.image {
-                    image
-                        .resizable()
-                        .scaledToFill()
-                } else {
-                    self.avatarPlaceholder
-                }
-            }
-            .frame(width: 20, height: 20)
-            .clipShape(Circle())
+            KFImage(url)
+                .placeholder { self.avatarPlaceholder }
+                .resizable()
+                .scaledToFill()
+                .frame(width: 20, height: 20)
+                .clipShape(Circle())
         } else {
             self.avatarPlaceholder
                 .frame(width: 20, height: 20)

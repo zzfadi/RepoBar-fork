@@ -1,6 +1,6 @@
 import AppKit
+import Kingfisher
 import MenuBarExtraAccess
-import Nuke
 import Observation
 import RepoBarCore
 import SwiftUI
@@ -65,14 +65,10 @@ extension AppDelegate {
     }
 
     private func configureImagePipeline() {
-        var config = ImagePipeline.Configuration()
-        let dataCache = try? DataCache(name: "RepoBarAvatars")
-        dataCache?.sizeLimit = 64 * 1024 * 1024
-        config.dataCache = dataCache
-        let imageCache = ImageCache()
-        imageCache.costLimit = 64 * 1024 * 1024
-        config.imageCache = imageCache
-        ImagePipeline.shared = ImagePipeline(configuration: config)
+        let cache = ImageCache(name: "RepoBarAvatars")
+        cache.memoryStorage.config.totalCostLimit = 64 * 1024 * 1024
+        cache.diskStorage.config.sizeLimit = 64 * 1024 * 1024
+        KingfisherManager.shared.cache = cache
     }
 }
 

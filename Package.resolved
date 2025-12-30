@@ -1,5 +1,5 @@
 {
-  "originHash" : "66ca7636f95624b544ba826ee24761fdf0d87c1f7f3d81f113c2b786c8f42e78",
+  "originHash" : "7c43c6ca3869ad480b424d492833a3b9c1d1531fd0c170b68b2d3bbd4a2c14db",
   "pins" : [
     {
       "identity" : "apollo-ios",
@@ -29,21 +29,21 @@
       }
     },
     {
+      "identity" : "kingfisher",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/onevcat/Kingfisher",
+      "state" : {
+        "revision" : "d30a5fad881137e2267f96a8e3fc35c58999bb94",
+        "version" : "8.6.2"
+      }
+    },
+    {
       "identity" : "menubarextraaccess",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/orchetect/MenuBarExtraAccess",
       "state" : {
         "revision" : "707dff6f55217b3ef5b6be84ced3e83511d4df5c",
         "version" : "1.2.2"
-      }
-    },
-    {
-      "identity" : "nuke",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/kean/Nuke",
-      "state" : {
-        "revision" : "0ead44350d2737db384908569c012fe67c421e4d",
-        "version" : "12.8.0"
       }
     },
     {

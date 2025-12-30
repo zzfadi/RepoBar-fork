@@ -1,5 +1,5 @@
 import AppKit
-import NukeUI
+import Kingfisher
 import RepoBarCore
 import SwiftUI
 
@@ -288,17 +288,12 @@ struct ActivityMenuItemView: View {
     @ViewBuilder
     private var avatar: some View {
         if let url = self.event.actorAvatarURL {
-            LazyImage(url: url, transaction: Transaction(animation: nil)) { state in
-                if let image = state.image {
-                    image
-                        .resizable()
-                        .scaledToFill()
-                } else {
-                    self.avatarPlaceholder
-                }
-            }
-            .frame(width: 16, height: 16)
-            .clipShape(Circle())
+            KFImage(url)
+                .placeholder { self.avatarPlaceholder }
+                .resizable()
+                .scaledToFill()
+                .frame(width: 16, height: 16)
+                .clipShape(Circle())
         } else {
             self.avatarPlaceholder
                 .frame(width: 16, height: 16)

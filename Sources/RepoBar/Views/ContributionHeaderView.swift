@@ -28,28 +28,28 @@ struct ContributionHeaderView: View {
         if !self.hasCachedHeatmap, !self.isLoading {
             EmptyView()
         } else {
-        Button {
-            self.openProfile()
-        } label: {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Contributions · \(self.displayName) · last \(self.session.settings.heatmap.span.label)")
-                    .font(.caption2)
-                    .foregroundStyle(MenuHighlightStyle.secondary(self.isHighlighted))
-                self.content
+            Button {
+                self.openProfile()
+            } label: {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Contributions · \(self.displayName) · last \(self.session.settings.heatmap.span.label)")
+                        .font(.caption2)
+                        .foregroundStyle(MenuHighlightStyle.secondary(self.isHighlighted))
+                    self.content
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .task(id: self.session.hasLoadedRepositories) {
-            guard self.session.hasLoadedRepositories else { return }
-            let hasHeatmap = self.hasCachedHeatmap
-            self.isLoading = !hasHeatmap
-            await self.appState.loadContributionHeatmapIfNeeded(for: self.username)
-            await MainActor.run {
-                self.isLoading = false
+            .buttonStyle(.plain)
+            .task(id: self.session.hasLoadedRepositories) {
+                guard self.session.hasLoadedRepositories else { return }
+                let hasHeatmap = self.hasCachedHeatmap
+                self.isLoading = !hasHeatmap
+                await self.appState.loadContributionHeatmapIfNeeded(for: self.username)
+                await MainActor.run {
+                    self.isLoading = false
+                }
             }
-        }
         }
     }
 

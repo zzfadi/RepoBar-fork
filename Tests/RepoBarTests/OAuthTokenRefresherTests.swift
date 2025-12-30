@@ -141,6 +141,7 @@ private extension OAuthTokenRefresherTests {
             return self.handlers[handlerID]
         }
     }
+
     // swiftlint:enable static_over_final_class
 
     static func bodyString(from request: URLRequest) -> String? {

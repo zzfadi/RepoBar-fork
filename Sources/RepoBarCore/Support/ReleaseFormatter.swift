@@ -10,7 +10,8 @@ public enum ReleaseFormatter {
         let calendar = Calendar.current
         if calendar.isDate(date, inSameDayAs: now) { return "today" }
         if let yesterday = calendar.date(byAdding: .day, value: -1, to: now),
-           calendar.isDate(date, inSameDayAs: yesterday) {
+           calendar.isDate(date, inSameDayAs: yesterday)
+        {
             return "yesterday"
         }
         return DateFormatters.yyyyMMdd.string(from: date)

@@ -37,8 +37,8 @@ struct ContributionsCommand: CommanderRunnableCommand {
         }
 
         let cells = try await client.userContributionHeatmap(login: resolvedLogin)
-        let total = cells.map { $0.count }.reduce(0, +)
-        let maxCount = cells.map { $0.count }.max() ?? 0
+        let total = cells.map(\.count).reduce(0, +)
+        let maxCount = cells.map(\.count).max() ?? 0
 
         if self.output.jsonOutput {
             let output = ContributionsOutput(
@@ -150,7 +150,7 @@ struct RepoCommand: CommanderRunnableCommand {
         }
 
         if self.includeHeatmap {
-            let maxCount = repo.heatmap.map { $0.count }.max() ?? 0
+            let maxCount = repo.heatmap.map(\.count).max() ?? 0
             print("Heatmap days: \(repo.heatmap.count), max \(maxCount)")
         }
 

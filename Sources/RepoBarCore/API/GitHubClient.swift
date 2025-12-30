@@ -744,7 +744,7 @@ public actor GitHubClient {
     }
 
     public func recentPullRequests(owner: String, name: String, limit: Int = 20) async throws -> [RepoPullRequestSummary] {
-        try await recentList(
+        try await self.recentList(
             owner: owner,
             name: name,
             path: "pulls",
@@ -759,7 +759,7 @@ public actor GitHubClient {
     }
 
     public func recentIssues(owner: String, name: String, limit: Int = 20) async throws -> [RepoIssueSummary] {
-        try await recentList(
+        try await self.recentList(
             owner: owner,
             name: name,
             path: "issues",
@@ -774,7 +774,7 @@ public actor GitHubClient {
     }
 
     public func recentReleases(owner: String, name: String, limit: Int = 20) async throws -> [RepoReleaseSummary] {
-        try await recentList(
+        try await self.recentList(
             owner: owner,
             name: name,
             path: "releases",
@@ -784,7 +784,7 @@ public actor GitHubClient {
     }
 
     public func recentWorkflowRuns(owner: String, name: String, limit: Int = 20) async throws -> [RepoWorkflowRunSummary] {
-        try await recentList(
+        try await self.recentList(
             owner: owner,
             name: name,
             path: "actions/runs",
@@ -794,7 +794,7 @@ public actor GitHubClient {
     }
 
     public func recentDiscussions(owner: String, name: String, limit: Int = 20) async throws -> [RepoDiscussionSummary] {
-        try await recentList(
+        try await self.recentList(
             owner: owner,
             name: name,
             path: "discussions",
@@ -808,7 +808,7 @@ public actor GitHubClient {
     }
 
     public func recentTags(owner: String, name: String, limit: Int = 20) async throws -> [RepoTagSummary] {
-        try await recentList(
+        try await self.recentList(
             owner: owner,
             name: name,
             path: "tags",
@@ -818,7 +818,7 @@ public actor GitHubClient {
     }
 
     public func recentBranches(owner: String, name: String, limit: Int = 20) async throws -> [RepoBranchSummary] {
-        try await recentList(
+        try await self.recentList(
             owner: owner,
             name: name,
             path: "branches",
@@ -828,7 +828,7 @@ public actor GitHubClient {
     }
 
     public func topContributors(owner: String, name: String, limit: Int = 20) async throws -> [RepoContributorSummary] {
-        try await recentList(
+        try await self.recentList(
             owner: owner,
             name: name,
             path: "contributors",
@@ -939,13 +939,13 @@ public actor GitHubClient {
         let response = try decoder.decode(ActionsRunsResponse.self, from: data)
         return response.workflowRuns.compactMap { run in
             guard let url = run.htmlUrl else { return nil }
-            let title = workflowRunTitle(run)
+            let title = self.workflowRunTitle(run)
             let updatedAt = run.updatedAt ?? run.createdAt ?? Date.distantPast
             return RepoWorkflowRunSummary(
                 name: title,
                 url: url,
                 updatedAt: updatedAt,
-                status: ciStatus(fromStatus: run.status, conclusion: run.conclusion),
+                status: self.ciStatus(fromStatus: run.status, conclusion: run.conclusion),
                 conclusion: run.conclusion,
                 branch: run.headBranch,
                 event: run.event,
@@ -1012,10 +1012,10 @@ public actor GitHubClient {
 
     private static func ciStatus(fromStatus status: String?, conclusion: String?) -> CIStatus {
         switch conclusion ?? status {
-        case "success": return .passing
-        case "failure", "cancelled", "timed_out": return .failing
-        case "in_progress", "queued", "waiting": return .pending
-        default: return .unknown
+        case "success": .passing
+        case "failure", "cancelled", "timed_out": .failing
+        case "in_progress", "queued", "waiting": .pending
+        default: .unknown
         }
     }
 

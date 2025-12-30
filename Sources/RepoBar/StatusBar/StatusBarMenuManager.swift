@@ -69,7 +69,6 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
         menu.update()
     }
 
-
     @objc func logOut() {
         Task { @MainActor in
             await self.appState.auth.logout()
@@ -229,7 +228,8 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
         if menu === self.mainMenu {
             self.recentListMenuContexts.removeAll(keepingCapacity: true)
             if self.appState.session.settings.appearance.showContributionHeader,
-               case let .loggedIn(user) = self.appState.session.account {
+               case let .loggedIn(user) = self.appState.session.account
+            {
                 Task { await self.appState.loadContributionHeatmapIfNeeded(for: user.username) }
             }
             self.appState.refreshIfNeededForMenu()
@@ -257,7 +257,8 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
                 self.startObservingMenuResize(for: menu)
             }
         } else if let fullName = menu.items.first?.representedObject as? String,
-                  fullName.contains("/") {
+                  fullName.contains("/")
+        {
             // Repo submenu opened; prefetch so nested recent lists appear instantly.
             self.prefetchRecentLists(fullNames: [fullName])
         }
@@ -329,7 +330,7 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
         }
 
         let descriptors: [RecentMenuDescriptor] = [
-            self.makeDescriptor(
+            self.makeDescriptor(RecentMenuDescriptorConfig(
                 kind: .issues,
                 headerTitle: "Open Issues",
                 headerIcon: "exclamationmark.circle",
@@ -349,8 +350,8 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
                         self.addIssueMenuItem(issue, to: menu)
                     }
                 }
-            ),
-            self.makeDescriptor(
+            )),
+            self.makeDescriptor(RecentMenuDescriptorConfig(
                 kind: .pullRequests,
                 headerTitle: "Open Pull Requests",
                 headerIcon: "arrow.triangle.branch",
@@ -370,8 +371,8 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
                         self.addPullRequestMenuItem(pr, to: menu)
                     }
                 }
-            ),
-            self.makeDescriptor(
+            )),
+            self.makeDescriptor(RecentMenuDescriptorConfig(
                 kind: .releases,
                 headerTitle: "Open Releases",
                 headerIcon: "tag",
@@ -383,7 +384,6 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
                     if case let .releases(items) = boxed { return items }
                     return nil
                 },
-                actions: releaseActions,
                 fetch: { github, owner, name, limit in
                     try await github.recentReleases(owner: owner, name: name, limit: limit)
                 },
@@ -392,8 +392,8 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
                         self.addReleaseMenuItem(release, to: menu)
                     }
                 }
-            ),
-            self.makeDescriptor(
+            ), actions: releaseActions),
+            self.makeDescriptor(RecentMenuDescriptorConfig(
                 kind: .ciRuns,
                 headerTitle: "Open Actions",
                 headerIcon: "bolt",
@@ -413,8 +413,8 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
                         self.addWorkflowRunMenuItem(run, to: menu)
                     }
                 }
-            ),
-            self.makeDescriptor(
+            )),
+            self.makeDescriptor(RecentMenuDescriptorConfig(
                 kind: .discussions,
                 headerTitle: "Open Discussions",
                 headerIcon: "bubble.left.and.bubble.right",
@@ -434,8 +434,8 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
                         self.addDiscussionMenuItem(discussion, to: menu)
                     }
                 }
-            ),
-            self.makeDescriptor(
+            )),
+            self.makeDescriptor(RecentMenuDescriptorConfig(
                 kind: .tags,
                 headerTitle: "Open Tags",
                 headerIcon: "tag",
@@ -455,8 +455,8 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
                         self.addTagMenuItem(tag, repoFullName: fullName, to: menu)
                     }
                 }
-            ),
-            self.makeDescriptor(
+            )),
+            self.makeDescriptor(RecentMenuDescriptorConfig(
                 kind: .branches,
                 headerTitle: "Open Branches",
                 headerIcon: "point.topleft.down.curvedto.point.bottomright.up",
@@ -476,8 +476,8 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
                         self.addBranchMenuItem(branch, repoFullName: fullName, to: menu)
                     }
                 }
-            ),
-            self.makeDescriptor(
+            )),
+            self.makeDescriptor(RecentMenuDescriptorConfig(
                 kind: .contributors,
                 headerTitle: "Open Contributors",
                 headerIcon: "person.2",
@@ -497,55 +497,47 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
                         self.addContributorMenuItem(contributor, to: menu)
                     }
                 }
-            )
+            ))
         ]
 
         return Dictionary(uniqueKeysWithValues: descriptors.map { ($0.kind, $0) })
     }
 
-    private func makeDescriptor<Item>(
-        kind: RepoRecentMenuKind,
-        headerTitle: String,
-        headerIcon: String?,
-        openAction: Selector,
-        emptyTitle: String,
-        cache: RecentListCache<Item>,
-        wrap: @escaping ([Item]) -> RecentMenuItems,
-        unwrap: @escaping (RecentMenuItems) -> [Item]?,
-        actions: @escaping (String) -> [RecentMenuAction] = { _ in [] },
-        fetch: @escaping @Sendable (GitHubClient, String, String, Int) async throws -> [Item],
-        render: @escaping (NSMenu, String, [Item]) -> Void
+    private func makeDescriptor(
+        _ config: RecentMenuDescriptorConfig<some Sendable>,
+        actions: @escaping (String) -> [RecentMenuAction] = { _ in [] }
     ) -> RecentMenuDescriptor {
         let github = self.appState.github
+        let fetch = config.fetch
 
         return RecentMenuDescriptor(
-            kind: kind,
-            headerTitle: headerTitle,
-            headerIcon: headerIcon,
-            openAction: openAction,
-            emptyTitle: emptyTitle,
+            kind: config.kind,
+            headerTitle: config.headerTitle,
+            headerIcon: config.headerIcon,
+            openAction: config.openAction,
+            emptyTitle: config.emptyTitle,
             actions: actions,
             cached: { key, now, ttl in
-                cache.cached(for: key, now: now, maxAge: ttl).map(wrap)
+                config.cache.cached(for: key, now: now, maxAge: ttl).map(config.wrap)
             },
             stale: { key in
-                cache.stale(for: key).map(wrap)
+                config.cache.stale(for: key).map(config.wrap)
             },
             needsRefresh: { key, now, ttl in
-                cache.needsRefresh(for: key, now: now, maxAge: ttl)
+                config.cache.needsRefresh(for: key, now: now, maxAge: ttl)
             },
             load: { key, owner, name, limit in
-                let task = cache.task(for: key) {
+                let task = config.cache.task(for: key) {
                     try await fetch(github, owner, name, limit)
                 }
-                defer { cache.clearInflight(for: key) }
+                defer { config.cache.clearInflight(for: key) }
                 let items = try await task.value
-                cache.store(items, for: key, fetchedAt: Date())
-                return wrap(items)
+                config.cache.store(items, for: key, fetchedAt: Date())
+                return config.wrap(items)
             },
             render: { menu, fullName, boxed in
-                guard let items = unwrap(boxed) else { return }
-                render(menu, fullName, items)
+                guard let items = config.unwrap(boxed) else { return }
+                config.render(menu, fullName, items)
             }
         )
     }
@@ -716,6 +708,19 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
         case items(isEmpty: Bool, emptyTitle: String?, render: (NSMenu) -> Void)
     }
 
+    private struct RecentMenuDescriptorConfig<Item: Sendable> {
+        let kind: RepoRecentMenuKind
+        let headerTitle: String
+        let headerIcon: String?
+        let openAction: Selector
+        let emptyTitle: String
+        let cache: RecentListCache<Item>
+        let wrap: ([Item]) -> RecentMenuItems
+        let unwrap: (RecentMenuItems) -> [Item]?
+        let fetch: @Sendable (GitHubClient, String, String, Int) async throws -> [Item]
+        let render: (NSMenu, String, [Item]) -> Void
+    }
+
     private struct RecentMenuDescriptor {
         let kind: RepoRecentMenuKind
         let headerTitle: String
@@ -805,16 +810,15 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
             )
         }
 
-        let listContent: ListMenuContent
-        switch content {
+        let listContent: ListMenuContent = switch content {
         case .signedOut:
-            listContent = .message("Sign in to load items")
+            .message("Sign in to load items")
         case .loading:
-            listContent = .message("Loading…")
+            .message("Loading…")
         case let .message(text):
-            listContent = .message(text)
+            .message(text)
         case let .items(items, emptyTitle, render):
-            listContent = .items(isEmpty: items.isEmpty, emptyTitle: emptyTitle, render: { menu in
+            .items(isEmpty: items.isEmpty, emptyTitle: emptyTitle, render: { menu in
                 render(menu, items)
             })
         }

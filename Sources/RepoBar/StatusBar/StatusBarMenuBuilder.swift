@@ -32,7 +32,8 @@ final class StatusBarMenuBuilder {
             && (hasContributionHeatmap || session.contributionError == nil)
         if shouldShowContributionHeader,
            let username = self.currentUsername(),
-           let displayName = self.currentDisplayName() {
+           let displayName = self.currentDisplayName()
+        {
             let header = ContributionHeaderView(
                 username: username,
                 displayName: displayName,
@@ -396,12 +397,14 @@ final class StatusBarMenuBuilder {
     func menuWidth(for menu: NSMenu) -> CGFloat {
         if let view = menu.items.compactMap(\.view).first,
            let contentWidth = view.window?.contentView?.bounds.width,
-           contentWidth > 0 {
+           contentWidth > 0
+        {
             return max(contentWidth, Self.menuFixedWidth)
         }
         if let view = menu.items.compactMap(\.view).first,
            let windowWidth = view.window?.frame.width,
-           windowWidth > 0 {
+           windowWidth > 0
+        {
             return max(windowWidth, Self.menuFixedWidth)
         }
         let menuWidth = menu.size.width

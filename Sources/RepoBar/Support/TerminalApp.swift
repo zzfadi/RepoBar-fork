@@ -61,7 +61,8 @@ enum TerminalApp: String, CaseIterable {
         Self.logger.info("Open terminal: \(self.displayName, privacy: .public) mode=\(ghosttyOpenMode.rawValue, privacy: .public) path=\(url.path, privacy: .private)")
         if self == .ghostty,
            ghosttyOpenMode == .newWindow,
-           self.openGhosttyNewWindow(at: url, rootBookmarkData: rootBookmarkData) {
+           self.openGhosttyNewWindow(at: url, rootBookmarkData: rootBookmarkData)
+        {
             return
         }
         if self == .ghostty, ghosttyOpenMode == .newWindow {

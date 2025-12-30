@@ -47,7 +47,7 @@ struct ArchivedFilteringTests {
             )
         )
 
-        #expect(visible.map { $0.fullName } == [pinnedArchived.fullName, normal.fullName])
+        #expect(visible.map(\.fullName) == [pinnedArchived.fullName, normal.fullName])
     }
 }
 

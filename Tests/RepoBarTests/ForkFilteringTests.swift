@@ -47,7 +47,7 @@ struct ForkFilteringTests {
             )
         )
 
-        #expect(visible.map { $0.fullName } == [pinnedFork.fullName, normal.fullName])
+        #expect(visible.map(\.fullName) == [pinnedFork.fullName, normal.fullName])
     }
 }
 

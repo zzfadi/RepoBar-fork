@@ -308,8 +308,8 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
             }
         } else {
             self.menuBuilder.refreshMenuViewHeights(in: menu)
-            if let fullName = menu.supermenu?.items.first(where: { $0.submenu === menu })?.representedObject as? String,
-               fullName.contains("/") {
+            let submenuFullName = menu.supermenu?.items.first(where: { $0.submenu === menu })?.representedObject as? String
+            if let fullName = submenuFullName, fullName.contains("/") {
                 // Repo submenu opened; prefetch so nested recent lists appear instantly.
                 self.prefetchRecentLists(fullNames: [fullName])
             }

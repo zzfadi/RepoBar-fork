@@ -449,15 +449,18 @@ struct MenuInfoTextRowView: View {
     let lineLimit: Int
 
     var body: some View {
-        Text(self.text)
-            .font(.caption)
-            .foregroundStyle(.secondary)
-            .lineLimit(self.lineLimit)
-            .multilineTextAlignment(.leading)
-            .fixedSize(horizontal: false, vertical: true)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, MenuStyle.cardHorizontalPadding)
-            .padding(.vertical, 4)
+        HStack(spacing: 6) {
+            Text(self.text)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(self.lineLimit)
+                .multilineTextAlignment(.leading)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, MenuStyle.cardHorizontalPadding)
+        .padding(.vertical, 4)
     }
 }
 

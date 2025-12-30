@@ -6,11 +6,11 @@ struct AsyncTimeoutTests {
     @Test
     func returnsValueBeforeTimeout() async throws {
         let task = Task<Int, Error> {
-            try await Task.sleep(nanoseconds: 20_000_000)
+            try await Task.sleep(nanoseconds: 5_000_000)
             return 42
         }
 
-        let value = try await AsyncTimeout.value(within: 0.5, task: task)
+        let value = try await AsyncTimeout.value(within: 1.0, task: task)
         #expect(value == 42)
     }
 

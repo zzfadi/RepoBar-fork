@@ -157,4 +157,4 @@ Last updated: 2025-12-28
 - [x] Extract a shared SwiftUI row layout for recent submenu items (issues/PRs/releases/CI/discussions/tags/branches/contributors/assets).
 - [x] Add a GitHubClient helper for recent-list REST calls + decoding to reduce endpoint boilerplate.
 - [x] Centralize repo web URL building (actions/discussions/tags/branches/contributors/releases/assets).
-- [ ] Reuse a single list-submenu builder for releases + release assets + recent list menus.
+- [x] Reuse a single list-submenu builder for releases + release assets + recent list menus.

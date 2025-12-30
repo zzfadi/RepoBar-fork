@@ -696,6 +696,26 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
         let isEnabled: Bool
     }
 
+    private struct ListMenuHeader {
+        let title: String
+        let action: Selector?
+        let systemImage: String?
+        let representedObject: Any?
+    }
+
+    private struct ListMenuAction {
+        let title: String
+        let action: Selector
+        let systemImage: String?
+        let representedObject: Any?
+        let isEnabled: Bool
+    }
+
+    private enum ListMenuContent {
+        case message(String)
+        case items(isEmpty: Bool, emptyTitle: String?, render: (NSMenu) -> Void)
+    }
+
     private struct RecentMenuDescriptor {
         let kind: RepoRecentMenuKind
         let headerTitle: String
@@ -710,17 +730,17 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
         let render: (NSMenu, String, RecentMenuItems) -> Void
     }
 
-    private func populateRecentListMenu(
+    private func populateListMenu(
         _ menu: NSMenu,
-        header: RecentMenuHeader,
-        actions: [RecentMenuAction] = [],
-        content: RecentMenuContent
+        header: ListMenuHeader,
+        actions: [ListMenuAction] = [],
+        content: ListMenuContent
     ) {
         menu.removeAllItems()
 
         let open = NSMenuItem(title: header.title, action: header.action, keyEquivalent: "")
         open.target = self
-        open.representedObject = header.fullName
+        open.representedObject = header.representedObject
         if let systemImage = header.systemImage, let image = NSImage(systemSymbolName: systemImage, accessibilityDescription: nil) {
             image.size = NSSize(width: 14, height: 14)
             image.isTemplate = true
@@ -745,28 +765,61 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
         menu.addItem(.separator())
 
         switch content {
-        case .signedOut:
-            let item = NSMenuItem(title: "Sign in to load items", action: nil, keyEquivalent: "")
-            item.isEnabled = false
-            menu.addItem(item)
-        case .loading:
-            let item = NSMenuItem(title: "Loading…", action: nil, keyEquivalent: "")
-            item.isEnabled = false
-            menu.addItem(item)
         case let .message(text):
             let item = NSMenuItem(title: text, action: nil, keyEquivalent: "")
             item.isEnabled = false
             menu.addItem(item)
-        case let .items(items, emptyTitle, render):
-            if items.isEmpty {
-                let item = NSMenuItem(title: emptyTitle, action: nil, keyEquivalent: "")
-                item.isEnabled = false
-                menu.addItem(item)
+        case let .items(isEmpty, emptyTitle, render):
+            if isEmpty {
+                if let emptyTitle {
+                    let item = NSMenuItem(title: emptyTitle, action: nil, keyEquivalent: "")
+                    item.isEnabled = false
+                    menu.addItem(item)
+                }
                 return
             }
-            render(menu, items)
+            render(menu)
             self.menuBuilder.refreshMenuViewHeights(in: menu)
         }
+    }
+
+    private func populateRecentListMenu(
+        _ menu: NSMenu,
+        header: RecentMenuHeader,
+        actions: [RecentMenuAction] = [],
+        content: RecentMenuContent
+    ) {
+        let listHeader = ListMenuHeader(
+            title: header.title,
+            action: header.action,
+            systemImage: header.systemImage,
+            representedObject: header.fullName
+        )
+        let listActions = actions.map {
+            ListMenuAction(
+                title: $0.title,
+                action: $0.action,
+                systemImage: $0.systemImage,
+                representedObject: $0.representedObject,
+                isEnabled: $0.isEnabled
+            )
+        }
+
+        let listContent: ListMenuContent
+        switch content {
+        case .signedOut:
+            listContent = .message("Sign in to load items")
+        case .loading:
+            listContent = .message("Loading…")
+        case let .message(text):
+            listContent = .message(text)
+        case let .items(items, emptyTitle, render):
+            listContent = .items(isEmpty: items.isEmpty, emptyTitle: emptyTitle, render: { menu in
+                render(menu, items)
+            })
+        }
+
+        self.populateListMenu(menu, header: listHeader, actions: listActions, content: listContent)
     }
 
     private func addIssueMenuItem(_ issue: RepoIssueSummary, to menu: NSMenu) {
@@ -911,15 +964,25 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
         menu.autoenablesItems = false
         menu.delegate = self
 
-        let open = NSMenuItem(title: "Open Release", action: #selector(self.openURLFromMenuItem(_:)), keyEquivalent: "")
-        open.target = self
-        open.representedObject = release.url
-        menu.addItem(open)
-        menu.addItem(.separator())
-
-        for asset in release.assets {
-            self.addReleaseAssetMenuItem(asset, to: menu)
-        }
+        let header = ListMenuHeader(
+            title: "Open Release",
+            action: #selector(self.openURLFromMenuItem(_:)),
+            systemImage: nil,
+            representedObject: release.url
+        )
+        self.populateListMenu(
+            menu,
+            header: header,
+            content: .items(
+                isEmpty: release.assets.isEmpty,
+                emptyTitle: "No assets",
+                render: { menu in
+                    for asset in release.assets {
+                        self.addReleaseAssetMenuItem(asset, to: menu)
+                    }
+                }
+            )
+        )
 
         return menu
     }

@@ -26,6 +26,12 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
             name: .menuFiltersDidChange,
             object: nil
         )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(self.menuContentNeedsResize),
+            name: .menuContentNeedsResize,
+            object: nil
+        )
     }
 
     func attachMainMenu(to statusItem: NSStatusItem) {
@@ -57,6 +63,13 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
         self.recentListMenuContexts.removeAll(keepingCapacity: true)
         self.appState.persistSettings()
         self.menuBuilder.populateMainMenu(menu)
+        self.menuBuilder.refreshMenuViewHeights(in: menu)
+        menu.update()
+    }
+
+    @objc func menuContentNeedsResize() {
+        guard let menu = self.mainMenu else { return }
+        guard menu.items.compactMap(\.view).first?.window != nil else { return }
         self.menuBuilder.refreshMenuViewHeights(in: menu)
         menu.update()
     }

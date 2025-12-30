@@ -496,6 +496,7 @@ final class AppState {
                 self.session.contributionUser = username
                 self.session.contributionHeatmap = cached.cells
                 self.session.contributionError = nil
+                NotificationCenter.default.post(name: .menuContentNeedsResize, object: nil)
             }
             return
         }
@@ -505,6 +506,7 @@ final class AppState {
                 self.session.contributionUser = username
                 self.session.contributionHeatmap = cells
                 self.session.contributionError = nil
+                NotificationCenter.default.post(name: .menuContentNeedsResize, object: nil)
             }
             let cache = ContributionCache(
                 username: username,
@@ -519,6 +521,7 @@ final class AppState {
                     self.session.contributionUser = username
                 }
                 self.session.contributionError = error.userFacingMessage
+                NotificationCenter.default.post(name: .menuContentNeedsResize, object: nil)
             }
         }
     }
@@ -528,6 +531,7 @@ final class AppState {
         self.session.contributionHeatmap = []
         self.session.contributionUser = nil
         self.session.contributionError = nil
+        NotificationCenter.default.post(name: .menuContentNeedsResize, object: nil)
     }
 
     struct VisibleSelectionOptions {

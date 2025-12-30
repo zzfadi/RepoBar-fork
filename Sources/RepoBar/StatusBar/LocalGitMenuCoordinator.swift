@@ -249,9 +249,11 @@ final class LocalGitMenuCoordinator {
                 menu: menu,
                 entry: entry,
                 localResult: localResult,
-                remoteBranches: nil,
-                remoteMessage: "Sign in to load branches",
-                remoteEmptyTitle: "No branches"
+                remoteState: BranchesRemoteState(
+                    branches: nil,
+                    message: "Sign in to load branches",
+                    emptyTitle: "No branches"
+                )
             )
             return
         }
@@ -261,9 +263,11 @@ final class LocalGitMenuCoordinator {
                 menu: menu,
                 entry: entry,
                 localResult: localResult,
-                remoteBranches: nil,
-                remoteMessage: "Invalid repository name",
-                remoteEmptyTitle: "No branches"
+                remoteState: BranchesRemoteState(
+                    branches: nil,
+                    message: "Invalid repository name",
+                    emptyTitle: "No branches"
+                )
             )
             return
         }
@@ -278,9 +282,11 @@ final class LocalGitMenuCoordinator {
             menu: menu,
             entry: entry,
             localResult: localResult,
-            remoteBranches: cachedBranches,
-            remoteMessage: remoteMessage,
-            remoteEmptyTitle: descriptor.emptyTitle
+            remoteState: BranchesRemoteState(
+                branches: cachedBranches,
+                message: remoteMessage,
+                emptyTitle: descriptor.emptyTitle
+            )
         )
 
         guard needsRefresh else { return }
@@ -291,9 +297,11 @@ final class LocalGitMenuCoordinator {
                 menu: menu,
                 entry: entry,
                 localResult: localResult,
-                remoteBranches: branches,
-                remoteMessage: nil,
-                remoteEmptyTitle: descriptor.emptyTitle
+                remoteState: BranchesRemoteState(
+                    branches: branches,
+                    message: nil,
+                    emptyTitle: descriptor.emptyTitle
+                )
             )
         } catch is AsyncTimeoutError {
             await DiagnosticsLogger.shared.message("Recent list timed out: branches \(fullName)")
@@ -302,9 +310,11 @@ final class LocalGitMenuCoordinator {
                     menu: menu,
                     entry: entry,
                     localResult: localResult,
-                    remoteBranches: nil,
-                    remoteMessage: "Timed out",
-                    remoteEmptyTitle: descriptor.emptyTitle
+                    remoteState: BranchesRemoteState(
+                        branches: nil,
+                        message: "Timed out",
+                        emptyTitle: descriptor.emptyTitle
+                    )
                 )
             }
         } catch {
@@ -316,9 +326,11 @@ final class LocalGitMenuCoordinator {
                     menu: menu,
                     entry: entry,
                     localResult: localResult,
-                    remoteBranches: nil,
-                    remoteMessage: "Failed to load",
-                    remoteEmptyTitle: descriptor.emptyTitle
+                    remoteState: BranchesRemoteState(
+                        branches: nil,
+                        message: "Failed to load",
+                        emptyTitle: descriptor.emptyTitle
+                    )
                 )
             }
         }
@@ -328,9 +340,7 @@ final class LocalGitMenuCoordinator {
         menu: NSMenu,
         entry: LocalGitMenuEntry,
         localResult: Result<LocalGitBranchSnapshot, Error>,
-        remoteBranches: [RepoBranchSummary]?,
-        remoteMessage: String?,
-        remoteEmptyTitle: String
+        remoteState: BranchesRemoteState
     ) {
         menu.removeAllItems()
         self.addLocalBranchMenuHeader(menu: menu, repoPath: entry.repoPath)
@@ -386,18 +396,18 @@ final class LocalGitMenuCoordinator {
         ))
         menu.addItem(.separator())
 
-        if let remoteMessage {
+        if let remoteMessage = remoteState.message {
             menu.addItem(self.menuBuilder.infoItem(remoteMessage))
-        } else if let remoteBranches {
+        } else if let remoteBranches = remoteState.branches {
             if remoteBranches.isEmpty {
-                menu.addItem(self.menuBuilder.infoItem(remoteEmptyTitle))
+                menu.addItem(self.menuBuilder.infoItem(remoteState.emptyTitle))
             } else {
                 for branch in remoteBranches {
                     self.addRemoteBranchMenuItem(branch, repoFullName: entry.fullName, to: menu)
                 }
             }
         } else {
-            menu.addItem(self.menuBuilder.infoItem(remoteEmptyTitle))
+            menu.addItem(self.menuBuilder.infoItem(remoteState.emptyTitle))
         }
 
         self.menuBuilder.refreshMenuViewHeights(in: menu)
@@ -652,6 +662,12 @@ private struct LocalGitMenuEntry {
     let fullName: String
     let localStatus: LocalRepoStatus?
     let includesRemoteBranches: Bool
+}
+
+private struct BranchesRemoteState {
+    let branches: [RepoBranchSummary]?
+    let message: String?
+    let emptyTitle: String
 }
 
 private struct LocalBranchAction {

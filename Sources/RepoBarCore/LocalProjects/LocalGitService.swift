@@ -365,11 +365,12 @@ private func dirtyCounts(at repoURL: URL, git: LocalGitRunner) -> LocalDirtyCoun
             continue
         }
 
-        if status.contains("M")
+        let isModified = status.contains("M")
             || status.contains("R")
             || status.contains("C")
             || status.contains("T")
-            || status.contains("U") {
+            || status.contains("U")
+        if isModified {
             modified.insert(path)
         }
     }

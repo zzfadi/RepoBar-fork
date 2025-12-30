@@ -264,7 +264,11 @@ struct RepoCardView: View {
     private func openTerminal(at url: URL) {
         let preferred = self.session.settings.localProjects.preferredTerminal
         let terminal = TerminalApp.resolve(preferred)
-        terminal.open(at: url, rootBookmarkData: self.session.settings.localProjects.rootBookmarkData)
+        terminal.open(
+            at: url,
+            rootBookmarkData: self.session.settings.localProjects.rootBookmarkData,
+            ghosttyOpenMode: self.session.settings.localProjects.ghosttyOpenMode
+        )
     }
 }
 

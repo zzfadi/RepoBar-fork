@@ -17,6 +17,7 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
     private let recentIssuesCache = RecentListCache<RepoIssueSummary>()
     private let recentPullRequestsCache = RecentListCache<RepoPullRequestSummary>()
     private let recentReleasesCache = RecentListCache<RepoReleaseSummary>()
+    private let recentWorkflowRunsCache = RecentListCache<RepoWorkflowRunSummary>()
 
     init(appState: AppState) {
         self.appState = appState
@@ -138,7 +139,11 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
         guard let url = sender.representedObject as? URL else { return }
         let preferred = self.appState.session.settings.localProjects.preferredTerminal
         let terminal = TerminalApp.resolve(preferred)
-        terminal.open(at: url, rootBookmarkData: self.appState.session.settings.localProjects.rootBookmarkData)
+        terminal.open(
+            at: url,
+            rootBookmarkData: self.appState.session.settings.localProjects.rootBookmarkData,
+            ghosttyOpenMode: self.appState.session.settings.localProjects.ghosttyOpenMode
+        )
     }
 
     @objc func copyRepoName(_ sender: NSMenuItem) {
@@ -409,6 +414,37 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
                 }
             }
             menu.update()
+        case .ciRuns:
+            let header = RecentMenuHeader(
+                title: "Open Actions",
+                action: #selector(self.openActions),
+                fullName: context.fullName,
+                systemImage: "bolt"
+            )
+            let cached = self.recentWorkflowRunsCache.cached(for: context.fullName, now: now, maxAge: self.recentListCacheTTL)
+            let stale = cached ?? self.recentWorkflowRunsCache.stale(for: context.fullName)
+            if let stale {
+                self.populateRecentListMenu(menu, header: header, rows: .workflowRuns(stale))
+            } else {
+                self.populateRecentListMenu(menu, header: header, rows: .loading)
+            }
+            menu.update()
+
+            guard self.recentWorkflowRunsCache.needsRefresh(for: context.fullName, now: now, maxAge: self.recentListCacheTTL) else { return }
+            let task = self.recentWorkflowRunsCache.task(for: context.fullName) { [github = self.appState.github, recentListLimit = self.recentListLimit] in
+                try await github.recentWorkflowRuns(owner: owner, name: name, limit: recentListLimit)
+            }
+            defer { self.recentWorkflowRunsCache.clearInflight(for: context.fullName) }
+            do {
+                let items = try await task.value
+                self.recentWorkflowRunsCache.store(items, for: context.fullName, fetchedAt: Date())
+                self.populateRecentListMenu(menu, header: header, rows: .workflowRuns(items))
+            } catch {
+                if stale == nil {
+                    self.populateRecentListMenu(menu, header: header, rows: .message("Failed to load"))
+                }
+            }
+            menu.update()
         }
     }
 
@@ -420,6 +456,7 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
             self.prefetchRecentList(fullName: fullName, kind: .issues)
             self.prefetchRecentList(fullName: fullName, kind: .pullRequests)
             self.prefetchRecentList(fullName: fullName, kind: .releases)
+            self.prefetchRecentList(fullName: fullName, kind: .ciRuns)
         }
     }
 
@@ -464,6 +501,18 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
                     self.recentReleasesCache.store(items, for: fullName, fetchedAt: Date())
                 }
             }
+        case .ciRuns:
+            guard self.recentWorkflowRunsCache.needsRefresh(for: fullName, now: now, maxAge: self.recentListCacheTTL) else { return }
+            let task = self.recentWorkflowRunsCache.task(for: fullName) { [github = self.appState.github, recentListLimit = self.recentListLimit] in
+                try await github.recentWorkflowRuns(owner: owner, name: name, limit: recentListLimit)
+            }
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                defer { self.recentWorkflowRunsCache.clearInflight(for: fullName) }
+                if let items = try? await task.value {
+                    self.recentWorkflowRunsCache.store(items, for: fullName, fetchedAt: Date())
+                }
+            }
         }
     }
 
@@ -474,6 +523,7 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
         case issues([RepoIssueSummary])
         case pullRequests([RepoPullRequestSummary])
         case releases([RepoReleaseSummary])
+        case workflowRuns([RepoWorkflowRunSummary])
     }
 
     private struct RecentMenuHeader {
@@ -571,6 +621,17 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
                 self.addReleaseMenuItem(release, to: menu)
             }
             self.menuBuilder.refreshMenuViewHeights(in: menu)
+        case let .workflowRuns(items):
+            if items.isEmpty {
+                let item = NSMenuItem(title: "No CI runs", action: nil, keyEquivalent: "")
+                item.isEnabled = false
+                menu.addItem(item)
+                return
+            }
+            for run in items.prefix(self.recentListLimit) {
+                self.addWorkflowRunMenuItem(run, to: menu)
+            }
+            self.menuBuilder.refreshMenuViewHeights(in: menu)
         }
     }
 
@@ -620,6 +681,21 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
         item.isEnabled = true
         item.view = MenuItemHostingView(rootView: AnyView(view), highlightState: highlightState)
         item.toolTip = self.recentItemTooltip(title: release.name, author: release.authorLogin, updatedAt: release.publishedAt)
+        menu.addItem(item)
+    }
+
+    private func addWorkflowRunMenuItem(_ run: RepoWorkflowRunSummary, to menu: NSMenu) {
+        let highlightState = MenuItemHighlightState()
+        let view = MenuItemContainerView(highlightState: highlightState, showsSubmenuIndicator: false) {
+            WorkflowRunMenuItemView(run: run) { [weak self] in
+                self?.open(url: run.url)
+            }
+        }
+
+        let item = NSMenuItem(title: "", action: nil, keyEquivalent: "")
+        item.isEnabled = true
+        item.view = MenuItemHostingView(rootView: AnyView(view), highlightState: highlightState)
+        item.toolTip = self.recentItemTooltip(title: run.name, author: run.actorLogin, updatedAt: run.updatedAt)
         menu.addItem(item)
     }
 
@@ -689,6 +765,8 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
             self.recentPullRequestsCache.stale(for: fullName)?.count
         case .releases:
             self.recentReleasesCache.stale(for: fullName)?.count
+        case .ciRuns:
+            self.recentWorkflowRunsCache.stale(for: fullName)?.count
         }
     }
 }

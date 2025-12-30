@@ -47,8 +47,21 @@ public struct LocalProjectsSettings: Equatable, Codable {
     public var rootBookmarkData: Data?
     public var autoSyncEnabled: Bool = true
     public var preferredTerminal: String?
+    public var ghosttyOpenMode: GhosttyOpenMode = .tab
 
     public init() {}
+}
+
+public enum GhosttyOpenMode: String, CaseIterable, Equatable, Codable {
+    case newWindow
+    case tab
+
+    public var label: String {
+        switch self {
+        case .newWindow: "New Window"
+        case .tab: "Tab"
+        }
+    }
 }
 
 public enum RefreshInterval: CaseIterable, Equatable, Codable {

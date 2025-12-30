@@ -18,6 +18,8 @@
     <true/>
     <key>LSMultipleInstancesProhibited</key>
     <true/>
+    <key>NSAppleEventsUsageDescription</key>
+    <string>RepoBar uses Apple Events to open Ghostty in a new window.</string>
     <key>NSHighResolutionCapable</key>
     <true/>
 </dict>

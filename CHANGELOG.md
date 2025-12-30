@@ -20,6 +20,7 @@
 - Clicking a repo card opens the repository in the browser.
 - Repo detail cache now persists on disk to survive app restarts.
 - Repo display limit options expanded to 3/6/9/12 (default 6).
+- Ghostty open mode picker for “Open in Terminal” (New Window or Tab).
 
 ### Changed
 - OAuth/login helpers moved to RepoBarCore so app and CLI share the same keychain flow.
@@ -85,6 +86,7 @@
 - Local projects now match repo folders case-insensitively to avoid missing status on case-insensitive filesystems.
 - Local projects now prefer the system git binary in sandboxed builds to avoid “unknown/dirty” status when Homebrew git is blocked.
 - Local projects now show added/removed/modified counts when a repo is dirty.
+- Repo submenus now include a CI Runs list with per-run entries (and the count in the badge).
 - CI status dots now increase contrast on highlighted menu rows.
 - GitHub “stats still generating” (HTTP 202) no longer clutters the main repo list and is now shown in repo details instead.
 - Fixed CLI/app binary naming collisions on case-insensitive filesystems (CLI builds as `repobarcli` and is embedded as `repobarcli` in the app bundle).

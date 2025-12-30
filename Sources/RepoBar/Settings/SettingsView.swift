@@ -391,6 +391,22 @@ struct AdvancedSettingsView: View {
                     .labelsHidden()
                     .disabled(self.session.settings.localProjects.rootPath == nil)
                 }
+
+                if self.isGhosttySelected {
+                    HStack {
+                        Text("Ghostty opens in")
+                        Spacer()
+                        Picker("", selection: self.ghosttyOpenModeBinding) {
+                            ForEach(GhosttyOpenMode.allCases, id: \.self) { mode in
+                                Text(mode.label)
+                                    .tag(mode)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                        .labelsHidden()
+                        .disabled(self.session.settings.localProjects.rootPath == nil)
+                    }
+                }
             } header: {
                 Text("Local Projects")
             } footer: {
@@ -482,6 +498,20 @@ struct AdvancedSettingsView: View {
                 self.appState.persistSettings()
             }
         )
+    }
+
+    private var ghosttyOpenModeBinding: Binding<GhosttyOpenMode> {
+        Binding(
+            get: { self.session.settings.localProjects.ghosttyOpenMode },
+            set: { newValue in
+                self.session.settings.localProjects.ghosttyOpenMode = newValue
+                self.appState.persistSettings()
+            }
+        )
+    }
+
+    private var isGhosttySelected: Bool {
+        TerminalApp.resolve(self.session.settings.localProjects.preferredTerminal) == .ghostty
     }
 
     private func pickProjectFolder() {

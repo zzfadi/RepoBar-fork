@@ -21,6 +21,7 @@
 - Repo detail cache now persists on disk to survive app restarts.
 - Repo display limit options expanded to 3/6/9/12 (default 6).
 - Ghostty open mode picker for “Open in Terminal” (New Window or Tab).
+- Repo autocomplete now uses a floating window and hybrid fuzzy matching for owner/repo input.
 
 ### Changed
 - OAuth/login helpers moved to RepoBarCore so app and CLI share the same keychain flow.
@@ -64,7 +65,6 @@
 - Heatmaps now stretch to the full available menu width (respecting existing card padding).
 - `pnpm restart` now rebuilds and relaunches without running tests; use `pnpm test` for tests and `pnpm check:coverage` for coverage.
 - `repobar local --sync` now shows a per-repo SYNC column and includes a `synced` flag in JSON output.
-- Repo autocomplete now uses a floating window and hybrid fuzzy matching for owner/repo input.
 
 ### Fixed
 - Settings now open via SwiftUI `openSettings` from the MenuBarExtra.

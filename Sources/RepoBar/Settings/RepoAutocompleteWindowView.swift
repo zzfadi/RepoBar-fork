@@ -10,7 +10,7 @@ struct RepoAutocompleteWindowView: NSViewRepresentable {
     let width: CGFloat
     @Binding var isShowing: Bool
 
-    func makeNSView(context: Context) -> NSView {
+    func makeNSView(context _: Context) -> NSView {
         let view = NSView()
         view.wantsLayer = true
         return view
@@ -23,7 +23,8 @@ struct RepoAutocompleteWindowView: NSViewRepresentable {
                 suggestions: self.suggestions,
                 selectedIndex: self.$selectedIndex,
                 keyboardNavigating: self.keyboardNavigating,
-                width: self.width)
+                width: self.width
+            )
         } else {
             context.coordinator.hideDropdown()
         }
@@ -80,7 +81,8 @@ struct RepoAutocompleteWindowView: NSViewRepresentable {
                     contentRect: NSRect(x: 0, y: 0, width: width, height: 200),
                     styleMask: [.borderless],
                     backing: .buffered,
-                    defer: false)
+                    defer: false
+                )
                 window.isOpaque = false
                 window.backgroundColor = .clear
                 window.hasShadow = true
@@ -123,7 +125,8 @@ struct RepoAutocompleteWindowView: NSViewRepresentable {
                 x: screenFrame.minX,
                 y: screenFrame.minY - 224,
                 width: resolvedWidth,
-                height: 220)
+                height: 220
+            )
             window.setFrame(windowFrame, display: false)
 
             if window.parent == nil {
@@ -192,7 +195,8 @@ private struct RepoAutocompleteListView: View {
             .frame(maxHeight: 220)
             .onChange(of: self.selectedIndex) { _, newIndex in
                 if newIndex >= 0, newIndex < self.suggestions.count, self.keyboardNavigating,
-                   !self.mouseHoverTriggered {
+                   !self.mouseHoverTriggered
+                {
                     withAnimation(.easeInOut(duration: 0.1)) {
                         proxy.scrollTo(newIndex, anchor: .center)
                     }
@@ -216,13 +220,13 @@ private struct RepoAutocompleteRow: View {
                     .foregroundStyle(.secondary)
                     .frame(width: 16)
 
-                Text(repo.fullName)
+                Text(self.repo.fullName)
                     .lineLimit(1)
                     .truncationMode(.middle)
 
                 Spacer()
 
-                Text(repo.owner)
+                Text(self.repo.owner)
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             }

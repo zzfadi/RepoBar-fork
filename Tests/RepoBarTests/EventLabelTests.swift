@@ -8,6 +8,7 @@ struct EventLabelTests {
         let event = RepoEvent(
             type: "PullRequestEvent",
             actor: EventActor(login: "octo", avatarUrl: nil),
+            repo: nil,
             payload: EventPayload(action: nil, comment: nil, issue: nil, pullRequest: nil),
             createdAt: Date()
         )
@@ -19,6 +20,7 @@ struct EventLabelTests {
         let event = RepoEvent(
             type: "IssuesEvent",
             actor: EventActor(login: "octo", avatarUrl: nil),
+            repo: nil,
             payload: EventPayload(action: "opened", comment: nil, issue: nil, pullRequest: nil),
             createdAt: Date()
         )
@@ -30,6 +32,7 @@ struct EventLabelTests {
         let event = RepoEvent(
             type: "ProjectCardEvent",
             actor: EventActor(login: "octo", avatarUrl: nil),
+            repo: nil,
             payload: EventPayload(action: nil, comment: nil, issue: nil, pullRequest: nil),
             createdAt: Date()
         )
@@ -41,6 +44,7 @@ struct EventLabelTests {
         let event = RepoEvent(
             type: "IssuesEvent",
             actor: EventActor(login: "octo", avatarUrl: nil),
+            repo: nil,
             payload: EventPayload(
                 action: "opened",
                 comment: nil,
@@ -60,6 +64,7 @@ struct EventLabelTests {
         let event = RepoEvent(
             type: "WatchEvent",
             actor: EventActor(login: "octo", avatarUrl: nil),
+            repo: nil,
             payload: EventPayload(action: nil, comment: nil, issue: nil, pullRequest: nil),
             createdAt: Date()
         )
@@ -72,6 +77,7 @@ struct EventLabelTests {
         let event = RepoEvent(
             type: "PushEvent",
             actor: EventActor(login: "octo", avatarUrl: nil),
+            repo: nil,
             payload: EventPayload(
                 action: nil,
                 comment: nil,
@@ -95,6 +101,7 @@ struct EventLabelTests {
         let event = RepoEvent(
             type: "PullRequestEvent",
             actor: EventActor(login: "octo", avatarUrl: nil),
+            repo: nil,
             payload: EventPayload(
                 action: "closed",
                 comment: nil,
@@ -118,6 +125,7 @@ struct EventLabelTests {
         let event = RepoEvent(
             type: "ReleaseEvent",
             actor: EventActor(login: "octo", avatarUrl: nil),
+            repo: nil,
             payload: EventPayload(
                 action: "published",
                 comment: nil,
@@ -140,6 +148,7 @@ struct EventLabelTests {
         let event = RepoEvent(
             type: "ForkEvent",
             actor: EventActor(login: "octo", avatarUrl: nil),
+            repo: nil,
             payload: EventPayload(
                 action: nil,
                 comment: nil,

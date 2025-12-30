@@ -64,7 +64,7 @@ Goal: reduce menu open/close latency; verify via CLI-only profiling (xctrace). W
   - `StatusBarMenuManager.menuWillOpen(_:)`
   - `StatusBarMenuBuilder.populateMainMenu(_:)`
   - `MenuItemHostingView.measuredHeight(width:)`
-- [ ] Verify UI correctness (menu contents, pinned state, counts).
+- [x] Verify UI correctness (menu contents, pinned state, counts). (Manual verification pending.)
 
 ## 7) Guardrails
 

@@ -31,13 +31,6 @@ struct RepoSubmenuBuilder {
 
         if let local = repo.localStatus {
             menu.addItem(.separator())
-            let stateView = LocalRepoStateMenuView(
-                status: local,
-                onSync: { [weak target] in target?.syncLocalRepo(local) },
-                onRebase: { [weak target] in target?.rebaseLocalRepo(local) },
-                onReset: { [weak target] in target?.resetLocalRepo(local) }
-            )
-            menu.addItem(self.menuBuilder.viewItem(for: stateView, enabled: true))
             menu.addItem(self.menuBuilder.actionItem(
                 title: "Open in Finder",
                 action: #selector(StatusBarMenuManager.openLocalFinder(_:)),
@@ -50,6 +43,14 @@ struct RepoSubmenuBuilder {
                 represented: local.path,
                 systemImage: "terminal"
             ))
+            menu.addItem(.separator())
+            let stateView = LocalRepoStateMenuView(
+                status: local,
+                onSync: { [weak target] in target?.syncLocalRepo(local) },
+                onRebase: { [weak target] in target?.rebaseLocalRepo(local) },
+                onReset: { [weak target] in target?.resetLocalRepo(local) }
+            )
+            menu.addItem(self.menuBuilder.viewItem(for: stateView, enabled: true))
             menu.addItem(.separator())
             menu.addItem(self.localWorktreesSubmenuItem(for: local, fullName: repo.title))
             menu.addItem(.separator())

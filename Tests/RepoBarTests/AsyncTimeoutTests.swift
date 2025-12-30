@@ -1,5 +1,5 @@
-import Testing
 @testable import RepoBar
+import Testing
 
 @Suite("AsyncTimeout")
 struct AsyncTimeoutTests {
@@ -34,7 +34,7 @@ struct AsyncTimeoutTests {
             #expect(Bool(false), "Unexpected error: \(error)")
         }
 
-        for _ in 0..<10 {
+        for _ in 0 ..< 10 {
             if await cancellationFlag.isCancelled {
                 break
             }

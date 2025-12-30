@@ -135,8 +135,7 @@ struct RepoAutocompleteWindowView: NSViewRepresentable {
             window.makeKeyAndOrderFront(nil)
 
             if self.clickMonitor == nil {
-                self.clickMonitor = NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) {
-                    [weak self] event in
+                self.clickMonitor = NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] event in
                     if event.window != window {
                         self?.isShowing = false
                     }
@@ -195,8 +194,7 @@ private struct RepoAutocompleteListView: View {
             .frame(maxHeight: 220)
             .onChange(of: self.selectedIndex) { _, newIndex in
                 if newIndex >= 0, newIndex < self.suggestions.count, self.keyboardNavigating,
-                   !self.mouseHoverTriggered
-                {
+                   !self.mouseHoverTriggered {
                     withAnimation(.easeInOut(duration: 0.1)) {
                         proxy.scrollTo(newIndex, anchor: .center)
                     }

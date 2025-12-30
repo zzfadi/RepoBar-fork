@@ -1,6 +1,13 @@
 import Foundation
 
-public struct RepoAutocompleteScoring {
+public enum RepoAutocompleteScoring {
+    private struct ComponentScoreWeights {
+        let exact: Int
+        let prefix: Int
+        let substring: Int
+        let subsequence: Int
+    }
+
     public struct Scored {
         public let repo: Repository
         public let score: Int
@@ -55,8 +62,11 @@ public struct RepoAutocompleteScoring {
         guard !trimmed.isEmpty else { return nil }
         let lowerQuery = trimmed.lowercased()
         let fullName = repo.fullName.lowercased()
-        if fullName == lowerQuery { return 1_000 }
-        if fullName.hasPrefix(lowerQuery) { return 700 }
+        let hasSlash = lowerQuery.contains("/")
+        if hasSlash {
+            if fullName == lowerQuery { return 1000 }
+            if fullName.hasPrefix(lowerQuery) { return 700 }
+        }
 
         let parts = lowerQuery.split(separator: "/", omittingEmptySubsequences: false)
         let ownerQuery = parts.count > 1 ? String(parts[0]) : nil
@@ -65,17 +75,23 @@ public struct RepoAutocompleteScoring {
         let ownerScore = Self.componentScore(
             query: ownerQuery ?? "",
             target: repo.owner,
-            exact: 200,
-            prefix: 120,
-            substring: 80,
-            subsequence: 40)
+            weights: ComponentScoreWeights(
+                exact: 200,
+                prefix: 120,
+                substring: 80,
+                subsequence: 40
+            )
+        )
         let repoScore = Self.componentScore(
             query: repoQuery,
             target: repo.name,
-            exact: 600,
-            prefix: 420,
-            substring: 260,
-            subsequence: 160)
+            weights: ComponentScoreWeights(
+                exact: 600,
+                prefix: 420,
+                substring: 260,
+                subsequence: 160
+            )
+        )
 
         var score = 0
         if let ownerScore, ownerQuery != nil {
@@ -90,14 +106,17 @@ public struct RepoAutocompleteScoring {
                 let ownerFallback = Self.componentScore(
                     query: lowerQuery,
                     target: repo.owner,
-                    exact: 120,
-                    prefix: 80,
-                    substring: 60,
-                    subsequence: 30)
+                    weights: ComponentScoreWeights(
+                        exact: 120,
+                        prefix: 80,
+                        substring: 60,
+                        subsequence: 30
+                    )
+                )
                 guard let ownerFallback else { return nil }
                 score += ownerFallback
             }
-        } else if ownerScore == nil && repoScore == nil {
+        } else if ownerScore == nil, repoScore == nil {
             return nil
         }
 
@@ -110,17 +129,14 @@ public struct RepoAutocompleteScoring {
     private static func componentScore(
         query: String,
         target: String,
-        exact: Int,
-        prefix: Int,
-        substring: Int,
-        subsequence: Int
+        weights: ComponentScoreWeights
     ) -> Int? {
         guard !query.isEmpty else { return 0 }
         let lowerTarget = target.lowercased()
-        if lowerTarget == query { return exact }
-        if lowerTarget.hasPrefix(query) { return prefix }
-        if lowerTarget.contains(query) { return substring }
-        if Self.isSubsequence(query, of: lowerTarget) { return subsequence }
+        if lowerTarget == query { return weights.exact }
+        if lowerTarget.hasPrefix(query) { return weights.prefix }
+        if lowerTarget.contains(query) { return weights.substring }
+        if Self.isSubsequence(query, of: lowerTarget) { return weights.subsequence }
         return nil
     }
 
@@ -128,7 +144,7 @@ public struct RepoAutocompleteScoring {
         var needleIndex = needle.startIndex
         var haystackIndex = haystack.startIndex
 
-        while needleIndex < needle.endIndex && haystackIndex < haystack.endIndex {
+        while needleIndex < needle.endIndex, haystackIndex < haystack.endIndex {
             if needle[needleIndex] == haystack[haystackIndex] {
                 needleIndex = needle.index(after: needleIndex)
             }

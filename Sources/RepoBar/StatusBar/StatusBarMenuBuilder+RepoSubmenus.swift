@@ -319,5 +319,4 @@ extension StatusBarMenuBuilder {
         }
         return items
     }
-
 }

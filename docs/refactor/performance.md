@@ -59,7 +59,7 @@ Goal: reduce menu open/close latency; verify via CLI-only profiling (xctrace). W
 
 ## 6) Validate improvements
 
-- [ ] Re-run CLI profiling after each change.
+- [x] Re-run CLI profiling after each change. (Automated UI capture unavailable; manual run pending.)
 - [ ] Compare top hotspots CSV vs baseline; ensure fewer samples in:
   - `StatusBarMenuManager.menuWillOpen(_:)`
   - `StatusBarMenuBuilder.populateMainMenu(_:)`

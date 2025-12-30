@@ -87,6 +87,7 @@ final class AppState {
     private var refreshTask: Task<Void, Never>?
     private var localProjectsTask: Task<Void, Never>?
     private var tokenRefreshTask: Task<Void, Never>?
+    private var menuRefreshTask: Task<Void, Never>?
     private var refreshTaskToken = UUID()
     private let hydrateConcurrencyLimit = 4
     private var prefetchTask: Task<Void, Never>?
@@ -130,8 +131,15 @@ final class AppState {
         if hasFreshSnapshot {
             return
         }
-        if self.refreshTask != nil { return }
-        self.requestRefresh(cancelInFlight: false)
+        if self.refreshTask != nil || self.menuRefreshTask != nil { return }
+        self.menuRefreshTask = Task { [weak self] in
+            try? await Task.sleep(for: .milliseconds(250))
+            await MainActor.run {
+                guard let self else { return }
+                self.menuRefreshTask = nil
+                self.requestRefresh(cancelInFlight: false)
+            }
+        }
     }
 
     func requestRefresh(cancelInFlight: Bool = false) {

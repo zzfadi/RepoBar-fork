@@ -48,7 +48,7 @@ Goal: reduce menu open/close latency; verify via CLI-only profiling (xctrace). W
 
 - [x] Move token load (`TokenStore.load`) to app init; keep in-memory cache.
 - [x] Move token refresh check to background timer (not menu open).
-- [ ] Use cached activity snapshot for menu open; refresh async after menu visible.
+- [x] Use cached activity snapshot for menu open; refresh async after menu visible.
 - [ ] Debounce refresh triggers (open/close bursts).
 
 ## 5) Model transform + formatting

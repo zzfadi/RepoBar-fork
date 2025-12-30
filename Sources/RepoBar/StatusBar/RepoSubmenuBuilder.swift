@@ -65,16 +65,6 @@ struct RepoSubmenuBuilder {
             menu.addItem(.separator())
         }
 
-        let commitCount = self.target.cachedRecentCommitCount(fullName: repo.title)
-        menu.addItem(self.recentListSubmenuItem(RecentListConfig(
-            title: "Commits",
-            systemImage: "arrow.turn.down.right",
-            fullName: repo.title,
-            kind: .commits,
-            openTitle: "Open Commits",
-            openAction: #selector(self.target.openCommits),
-            badgeText: commitCount.flatMap { $0 > 0 ? StatValueFormatter.compact($0) : nil }
-        )))
         menu.addItem(self.recentListSubmenuItem(RecentListConfig(
             title: "Issues",
             systemImage: "exclamationmark.circle",
@@ -177,6 +167,28 @@ struct RepoSubmenuBuilder {
             .padding(.vertical, MenuStyle.cardVerticalPadding)
             menu.addItem(.separator())
             menu.addItem(self.menuBuilder.viewItem(for: heatmap, enabled: false))
+        }
+
+        let cachedCommits = self.target.recentMenuService.cachedCommits(fullName: repo.title)
+        let commitCount = self.target.cachedRecentCommitCount(fullName: repo.title)
+        let commits = Array((cachedCommits ?? []).prefix(AppLimits.RepoCommits.totalLimit))
+        let commitPreview = Array(commits.prefix(AppLimits.RepoCommits.previewLimit))
+        menu.addItem(.separator())
+        menu.addItem(self.menuBuilder.infoItem("Commits"))
+        menu.addItem(self.menuBuilder.actionItem(
+            title: "Open Commits",
+            action: #selector(self.target.openCommits),
+            represented: repo.title,
+            systemImage: "arrow.turn.down.right"
+        ))
+        if commitPreview.isEmpty {
+            let message = commitCount == 0 ? "No commits" : "Loading…"
+            menu.addItem(self.menuBuilder.infoItem(message))
+        } else {
+            commitPreview.forEach { menu.addItem(self.menuBuilder.commitMenuItem(for: $0)) }
+            if commits.count > commitPreview.count {
+                menu.addItem(self.repoCommitsMoreMenuItem(commits: commits))
+            }
         }
 
         let events = Array(repo.activityEvents.prefix(AppLimits.RepoActivity.limit))
@@ -358,8 +370,22 @@ struct RepoSubmenuBuilder {
     private func repoActivityMoreMenuItem(events: [ActivityEvent]) -> NSMenuItem {
         let submenu = NSMenu()
         submenu.autoenablesItems = false
+        submenu.delegate = self.target
         events.forEach { submenu.addItem(self.menuBuilder.activityMenuItem(for: $0)) }
         let item = NSMenuItem(title: "More Activity…", action: nil, keyEquivalent: "")
+        item.submenu = submenu
+        if let image = self.menuBuilder.cachedSystemImage(named: "ellipsis") {
+            item.image = image
+        }
+        return item
+    }
+
+    private func repoCommitsMoreMenuItem(commits: [RepoCommitSummary]) -> NSMenuItem {
+        let submenu = NSMenu()
+        submenu.autoenablesItems = false
+        submenu.delegate = self.target
+        commits.forEach { submenu.addItem(self.menuBuilder.commitMenuItem(for: $0)) }
+        let item = NSMenuItem(title: "More Commits…", action: nil, keyEquivalent: "")
         item.submenu = submenu
         if let image = self.menuBuilder.cachedSystemImage(named: "ellipsis") {
             item.image = image

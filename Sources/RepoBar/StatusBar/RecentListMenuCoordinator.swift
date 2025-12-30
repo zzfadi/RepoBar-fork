@@ -91,7 +91,7 @@ final class RecentListMenuCoordinator {
         guard case .loggedIn = self.appState.session.account else { return }
         guard fullNames.isEmpty == false else { return }
 
-        let kinds = self.menuService.descriptors().keys.filter { $0 != .commits }
+        let kinds = self.menuService.descriptors().keys
         for fullName in fullNames {
             for kind in kinds {
                 self.prefetchRecentList(fullName: fullName, kind: kind)

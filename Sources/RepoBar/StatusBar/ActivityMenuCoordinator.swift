@@ -105,6 +105,7 @@ final class ActivityMenuCoordinator {
     private func moreCommitsMenuItem(commits: [RepoCommitSummary]) -> NSMenuItem {
         let submenu = NSMenu()
         submenu.autoenablesItems = false
+        submenu.delegate = self.actionHandler
         commits.forEach { submenu.addItem(self.commitMenuItem(for: $0)) }
         let item = NSMenuItem(title: "More Commits…", action: nil, keyEquivalent: "")
         item.submenu = submenu
@@ -117,6 +118,7 @@ final class ActivityMenuCoordinator {
     private func moreActivityMenuItem(events: [ActivityEvent]) -> NSMenuItem {
         let submenu = NSMenu()
         submenu.autoenablesItems = false
+        submenu.delegate = self.actionHandler
         events.forEach { submenu.addItem(self.activityMenuItem(for: $0)) }
         let item = NSMenuItem(title: "More Activity…", action: nil, keyEquivalent: "")
         item.submenu = submenu

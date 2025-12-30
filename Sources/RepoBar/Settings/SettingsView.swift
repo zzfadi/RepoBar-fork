@@ -5,10 +5,9 @@ import SwiftUI
 struct SettingsView: View {
     @Bindable var session: Session
     let appState: AppState
-    @State private var selectedTab: SettingsTab = .general
 
     var body: some View {
-        TabView(selection: self.$selectedTab) {
+        TabView(selection: self.$session.settingsSelectedTab) {
             GeneralSettingsView(session: self.session, appState: self.appState)
                 .tabItem { Label("General", systemImage: "gear") }
                 .tag(SettingsTab.general)
@@ -36,8 +35,8 @@ struct SettingsView: View {
         .frame(width: 540, height: 605)
         .onChange(of: self.session.settings.debugPaneEnabled) { _, enabled in
             #if DEBUG
-                if !enabled, self.selectedTab == .debug {
-                    self.selectedTab = .general
+                if !enabled, self.session.settingsSelectedTab == .debug {
+                    self.session.settingsSelectedTab = .general
                 }
             #endif
         }

@@ -727,7 +727,7 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
         }
     }
 
-    func makeLocalWorktreeMenuItem(_ data: LocalWorktreeMenuItemData) -> NSMenuItem {
+    private func makeLocalWorktreeMenuItem(_ data: LocalWorktreeMenuItemData) -> NSMenuItem {
         let row = LocalWorktreeMenuRowView(
             path: data.displayPath,
             branch: data.branch,
@@ -746,7 +746,7 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
         return item
     }
 
-    func makeLocalBranchMenuItem(_ data: LocalBranchMenuItemData) -> NSMenuItem {
+    private func makeLocalBranchMenuItem(_ data: LocalBranchMenuItemData) -> NSMenuItem {
         let row = LocalBranchMenuRowView(
             name: data.name,
             isCurrent: data.isCurrent,

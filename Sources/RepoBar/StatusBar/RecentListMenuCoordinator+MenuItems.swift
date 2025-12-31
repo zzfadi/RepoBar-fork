@@ -313,7 +313,7 @@ extension RecentListMenuCoordinator {
     func moreCommitsMenuItem(items: [RepoCommitSummary]) -> NSMenuItem {
         let submenu = NSMenu()
         submenu.autoenablesItems = false
-        for commit in items {
+        for commit in items.prefix(AppLimits.MoreMenus.limit) {
             self.addCommitMenuItem(commit, to: submenu)
         }
         let item = NSMenuItem(title: "More Commits…", action: nil, keyEquivalent: "")

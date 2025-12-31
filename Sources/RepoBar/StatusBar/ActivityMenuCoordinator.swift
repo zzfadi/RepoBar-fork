@@ -108,7 +108,7 @@ final class ActivityMenuCoordinator {
         let submenu = NSMenu()
         submenu.autoenablesItems = false
         submenu.delegate = self.actionHandler
-        commits.forEach { submenu.addItem(self.commitMenuItem(for: $0)) }
+        commits.prefix(AppLimits.MoreMenus.limit).forEach { submenu.addItem(self.commitMenuItem(for: $0)) }
         let item = NSMenuItem(title: "More Commits…", action: nil, keyEquivalent: "")
         item.submenu = submenu
         if let image = self.menuBuilder.cachedSystemImage(named: "ellipsis") {
@@ -121,7 +121,7 @@ final class ActivityMenuCoordinator {
         let submenu = NSMenu()
         submenu.autoenablesItems = false
         submenu.delegate = self.actionHandler
-        events.forEach { submenu.addItem(self.activityMenuItem(for: $0)) }
+        events.prefix(AppLimits.MoreMenus.limit).forEach { submenu.addItem(self.activityMenuItem(for: $0)) }
         let item = NSMenuItem(title: "More Activity…", action: nil, keyEquivalent: "")
         item.submenu = submenu
         if let image = self.menuBuilder.cachedSystemImage(named: "ellipsis") {

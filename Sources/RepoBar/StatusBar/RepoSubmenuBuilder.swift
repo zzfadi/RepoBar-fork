@@ -358,7 +358,7 @@ struct RepoSubmenuBuilder {
         let submenu = NSMenu()
         submenu.autoenablesItems = false
         submenu.delegate = self.target
-        events.forEach { submenu.addItem(self.menuBuilder.activityMenuItem(for: $0)) }
+        events.prefix(AppLimits.MoreMenus.limit).forEach { submenu.addItem(self.menuBuilder.activityMenuItem(for: $0)) }
         let item = NSMenuItem(title: "More Activity…", action: nil, keyEquivalent: "")
         item.submenu = submenu
         if let image = self.menuBuilder.cachedSystemImage(named: "ellipsis") {
@@ -371,7 +371,7 @@ struct RepoSubmenuBuilder {
         let submenu = NSMenu()
         submenu.autoenablesItems = false
         submenu.delegate = self.target
-        commits.forEach { submenu.addItem(self.menuBuilder.commitMenuItem(for: $0)) }
+        commits.prefix(AppLimits.MoreMenus.limit).forEach { submenu.addItem(self.menuBuilder.commitMenuItem(for: $0)) }
         let item = NSMenuItem(title: "More Commits…", action: nil, keyEquivalent: "")
         item.submenu = submenu
         if let image = self.menuBuilder.cachedSystemImage(named: "ellipsis") {

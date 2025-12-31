@@ -1,6 +1,10 @@
 import Foundation
 
 enum AppLimits {
+    enum MoreMenus {
+        static let limit: Int = 20
+    }
+
     enum GlobalActivity {
         static let limit: Int = 25
         static let previewLimit: Int = 20

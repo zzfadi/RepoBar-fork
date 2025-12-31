@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		0DC367D0B45B1E71D3FF0103 /* AppSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8DAAD776BCFAD8C0BB42258 /* AppSession.swift */; };
 		15A96DF4CF7EA83F7745A031 /* RepositoryCardModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22C23DF7BC5FCE3DB16F3D11 /* RepositoryCardModel.swift */; };
+		9E791CA1ACB0452AA7032304 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A5CA344FB7D44770989117A2 /* Assets.xcassets */; };
 		23A160313A67F857ADFC6D4A /* RepoFilesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E1E7701B5D0E364FF641342 /* RepoFilesView.swift */; };
 		3A706924DDE8F2D1E868302A /* ActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA5158A8B61F0C91606A901C /* ActivityView.swift */; };
 		3A7E17D2737B1E31C7DED394 /* RepoWebURLBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1E7D39231041D1F1E081140 /* RepoWebURLBuilder.swift */; };
@@ -37,6 +38,7 @@
 		0A69DFC5AF5C8E89F06A692D /* RepoBar */ = {isa = PBXFileReference; lastKnownFileType = folder; name = RepoBar; path = ..; sourceTree = SOURCE_ROOT; };
 		0D89DAEE5516C46C8BAC2A1C /* RepoDetailModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepoDetailModel.swift; sourceTree = "<group>"; };
 		107319F688D7A775FF4B780A /* RefreshInterval+Label.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RefreshInterval+Label.swift"; sourceTree = "<group>"; };
+		A5CA344FB7D44770989117A2 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		19773282646A9A2DB727AF12 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		1E1E7701B5D0E364FF641342 /* RepoFilesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepoFilesView.swift; sourceTree = "<group>"; };
 		22C23DF7BC5FCE3DB16F3D11 /* RepositoryCardModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepositoryCardModel.swift; sourceTree = "<group>"; };
@@ -71,6 +73,17 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXResourcesBuildPhase section */
+		6216B82607114824A593E1B8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9E791CA1ACB0452AA7032304 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXGroup section */
 		03D49F92C75B9231471D1B3A /* Models */ = {
@@ -115,8 +128,17 @@
 			children = (
 				5EB943939EB8313D7C3729DB /* Packages */,
 				D22127F4F0B91F0926E7CD67 /* Sources */,
+				FBFF25EED3BA428598FCD601 /* Resources */,
 				E608A1C270FEF0431C7E3F30 /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		FBFF25EED3BA428598FCD601 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				A5CA344FB7D44770989117A2 /* Assets.xcassets */,
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 		5EB943939EB8313D7C3729DB /* Packages */ = {
@@ -176,6 +198,7 @@
 			buildConfigurationList = 5899D7BF3FCBE152A6DACB1E /* Build configuration list for PBXNativeTarget "RepoBariOS" */;
 			buildPhases = (
 				2AC93594BF386BC460BBF755 /* Sources */,
+				6216B82607114824A593E1B8 /* Resources */,
 				037F72F1686ECC2EE10B0B1C /* Frameworks */,
 			);
 			buildRules = (

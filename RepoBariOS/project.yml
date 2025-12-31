@@ -15,6 +15,7 @@ targets:
     platform: iOS
     sources:
       - Sources
+      - Resources
     dependencies:
       - package: RepoBar
         product: RepoBarCore

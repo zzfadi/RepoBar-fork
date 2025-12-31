@@ -47,8 +47,15 @@ if [ -d "${APP_BUNDLE}" ]; then
   fi
 fi
 
+ICON_SOURCE="${ROOT_DIR}/Icon.icon"
+ICON_TARGET="${ROOT_DIR}/Icon.icns"
+if [[ -d "${ICON_SOURCE}" && ! -f "${ICON_TARGET}" ]]; then
+  log "==> Generating Icon.icns"
+  (cd "${ROOT_DIR}" && "${ROOT_DIR}/Scripts/build_icon.sh" "${ICON_SOURCE}")
+fi
+
 log "==> Creating app bundle: ${APP_BUNDLE}"
-mkdir -p "${APP_BUNDLE}/Contents/MacOS" "${APP_BUNDLE}/Contents/Frameworks"
+mkdir -p "${APP_BUNDLE}/Contents/MacOS" "${APP_BUNDLE}/Contents/Frameworks" "${APP_BUNDLE}/Contents/Resources"
 cp "${APP_EXECUTABLE}" "${APP_BUNDLE}/Contents/MacOS/${APP_NAME}"
 chmod +x "${APP_BUNDLE}/Contents/MacOS/${APP_NAME}" || true
 
@@ -67,6 +74,11 @@ if [ -d "${RESOURCE_BUNDLE}" ] && [ -n "$(find "${RESOURCE_BUNDLE}" -type f -pri
   else
     cp -R "${RESOURCE_BUNDLE}" "${APP_BUNDLE}/"
   fi
+fi
+
+if [ -f "${ICON_TARGET}" ]; then
+  log "==> Installing app icon"
+  cp "${ICON_TARGET}" "${APP_BUNDLE}/Contents/Resources/Icon.icns"
 fi
 
 SPARKLE_FRAMEWORK="${BUILD_DIR}/Sparkle.framework"
@@ -104,6 +116,7 @@ cat > "${INFO_PLIST}" <<PLIST
     <key>LSUIElement</key><true/>
     <key>LSMultipleInstancesProhibited</key><true/>
     <key>NSHighResolutionCapable</key><true/>
+    <key>CFBundleIconFile</key><string>Icon</string>
     <key>CFBundleURLTypes</key>
     <array>
         <dict>

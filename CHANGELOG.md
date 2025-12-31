@@ -2,11 +2,7 @@
 
 ## 0.1.1 - 2025-12-31
 
-- Fix release pipeline: resolve SwiftPM app bundle path during notarization.
-- Fix release pipeline: sign nested binaries before sealing app bundle.
-- Fix Sparkle tooling: make `verify_appcast.sh` and shared helpers compatible with macOS bash 3.2.
-- Fix CLI: allow invoking bundled `repobarcli` (argv0 normalization) + regression coverage.
-- Stabilize loopback callback test (reduce flakes).
+- Fix CLI: allow invoking bundled `repobarcli` directly (argv0 normalization).
 
 ## 0.1.0 - 2025-12-31
 

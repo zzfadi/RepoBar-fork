@@ -2,6 +2,7 @@
 
 ## 0.1.1 - 2025-12-31
 
+- Add app icon packaging for bundled builds.
 - Fix CLI: allow invoking bundled `repobarcli` directly (argv0 normalization).
 
 ## 0.1.0 - 2025-12-31

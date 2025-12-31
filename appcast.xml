@@ -3,6 +3,17 @@
     <channel>
         <title>RepoBar</title>
         <item>
+            <title>0.1.2</title>
+            <pubDate>Wed, 31 Dec 2025 22:40:17 +0100</pubDate>
+            <link>https://raw.githubusercontent.com/steipete/RepoBar/main/appcast.xml</link>
+            <sparkle:version>3</sparkle:version>
+            <sparkle:shortVersionString>0.1.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>10.13</sparkle:minimumSystemVersion>
+            <description><![CDATA[<ul><li>iOS app preview (not finished, not in the App Store yet): repo list/cards, activity feed, detail drill‑downs, login/settings, icons/branding, and continued auth/UI polish.</li><li>CLI parity expansion: new repo list subcommands (releases, CI runs, discussions, tags, branches, contributors, commits, activity) plus `--owner/--mine` filters.</li><li>CLI local actions + settings: sync/rebase/reset/checkout, branch/worktree listings, Finder/Terminal open; pin/hide and settings show/set; installer for `repobar`.</li><li>Changelog UX: submenu preview improvements plus Markdown rendering upgrades (block layout, scrollable preview, header alignment).</li><li>Changelog UX: show the first released section headline in the submenu badge (skips Unreleased).</li><li>Changelog UX: prefetch on repo submenu open and refresh the badge after load.</li><li>Changelog UX: switch to Swift Markdown AST parsing for cross-platform block rendering.</li><li>Releases submenu: show latest release name next to the count badge.</li><li>Menu customization: Display settings to reorder/hide main menu and repo submenu items (reset to defaults), with spacing tweaks.</li><li>Logging/diagnostics: swift-log integration with OSLog + optional file logging; debug logging settings for macOS/iOS.</li><li>Reliability: menu rehydrate on attach, invalidate empty menu cache, stabilize contribution header heatmap size, limit “More” submenus to 20 entries.</li><li>Repo access + errors: include org/collaborator repos, improve repo detail error messaging, cache discussions capability and hide disabled entries.</li></ul>
+]]></description>
+            <enclosure url="https://github.com/steipete/RepoBar/releases/download/v0.1.2/RepoBar-0.1.2.zip" length="14747306" type="application/octet-stream" sparkle:edSignature="87cgD/YmHR1SMRuzXlly+SSPzGaaYUHWH4L9Wqxp0liM3p46/4c34Cn4AckMB2odMvJ9gSZDXcIt3qigZ8KnCA=="/>
+        </item>
+        <item>
             <title>0.1.1</title>
             <pubDate>Wed, 31 Dec 2025 03:08:30 +0100</pubDate>
             <link>https://raw.githubusercontent.com/steipete/RepoBar/main/appcast.xml</link>

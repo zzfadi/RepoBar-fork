@@ -6,6 +6,7 @@
 - iOS: use the modern `UILaunchScreen` plist entry to avoid letterboxed launch.
 - iOS: add a close button to the Settings sheet.
 - iOS: switch GitHub auth callback to `https://repobar.app/oauth-callback`.
+- Site: add Apple App Site Association for `repobar.app` universal links.
 - Fix CLI: allow invoking bundled `repobarcli` directly (argv0 normalization).
 - Fix CLI auth refresh: show actionable error when refresh response is missing tokens.
 - Add Settings installer to link `repobar` CLI into common Homebrew paths.

@@ -34,20 +34,20 @@ public enum RepoBarLogging {
     private static let state = LogState()
 
     public static func bootstrapIfNeeded() {
-        state.bootstrapIfNeeded()
+        self.state.bootstrapIfNeeded()
     }
 
     public static func configure(verbosity: LogVerbosity, fileLoggingEnabled: Bool) {
-        state.configure(verbosity: verbosity, fileLoggingEnabled: fileLoggingEnabled)
+        self.state.configure(verbosity: verbosity, fileLoggingEnabled: fileLoggingEnabled)
     }
 
     public static func logger(_ label: String) -> Logging.Logger {
-        state.bootstrapIfNeeded()
+        self.state.bootstrapIfNeeded()
         return Logging.Logger(label: label)
     }
 
     public static func logFileURL() -> URL? {
-        state.logFileURL
+        self.state.logFileURL
     }
 }
 
@@ -161,6 +161,7 @@ private struct RepoBarLogHandler: LogHandler {
         get { self.state.currentLogLevel() }
         set { self.state.updateLogLevel(newValue) }
     }
+
     var metadataProvider: Logging.Logger.MetadataProvider?
 
     private let state: LogState
@@ -182,10 +183,10 @@ private struct RepoBarLogHandler: LogHandler {
         level: Logging.Logger.Level,
         message: Logging.Logger.Message,
         metadata: Logging.Logger.Metadata?,
-        source: String,
-        file: String,
-        function: String,
-        line: UInt
+        source _: String,
+        file _: String,
+        function _: String,
+        line _: UInt
     ) {
         let combined = self.mergedMetadata(extra: metadata)
         let renderedMessage = self.renderMessage(message, metadata: combined)
@@ -221,13 +222,13 @@ private struct RepoBarLogHandler: LogHandler {
 
     private func stringify(_ value: Logging.Logger.Metadata.Value) -> String {
         switch value {
-        case .string(let string):
+        case let .string(string):
             return string
-        case .stringConvertible(let convertible):
+        case let .stringConvertible(convertible):
             return convertible.description
-        case .array(let array):
+        case let .array(array):
             return "[" + array.map(self.stringify).joined(separator: ", ") + "]"
-        case .dictionary(let dictionary):
+        case let .dictionary(dictionary):
             let entries = dictionary
                 .sorted(by: { $0.key < $1.key })
                 .map { "\($0.key)=\(self.stringify($0.value))" }

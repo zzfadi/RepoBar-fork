@@ -20,6 +20,7 @@
 - iOS: add a repo detail hierarchy with category drill-down lists.
 - iOS: declare iPad orientations to silence Xcode build warnings.
 - iOS: show avatars in activity and repo detail lists.
+- iOS: soften the glass background to match native palettes.
 - Fix CLI: allow invoking bundled `repobarcli` directly (argv0 normalization).
 - Fix CLI auth refresh: show actionable error when refresh response is missing tokens.
 - CLI: add markdown rendering command backed by Swiftdansi.

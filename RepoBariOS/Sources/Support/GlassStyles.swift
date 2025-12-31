@@ -33,22 +33,22 @@ struct GlassBackground: View {
     private var backgroundStops: [Color] {
         if colorScheme == .dark {
             return [
-                Color(red: 0.12, green: 0.15, blue: 0.22),
-                Color(red: 0.08, green: 0.1, blue: 0.15)
+                Color(uiColor: .secondarySystemBackground),
+                Color(uiColor: .systemBackground)
             ]
         }
         return [
-            Color(red: 0.95, green: 0.97, blue: 1.0),
-            Color(red: 0.84, green: 0.88, blue: 0.95)
+            Color(uiColor: .systemGroupedBackground),
+            Color(uiColor: .secondarySystemGroupedBackground)
         ]
     }
 
     private var highlightColor: Color {
-        colorScheme == .dark ? Color.white.opacity(0.12) : Color.white.opacity(0.6)
+        colorScheme == .dark ? Color.white.opacity(0.08) : Color.white.opacity(0.4)
     }
 
     private var accentGlow: Color {
-        colorScheme == .dark ? Color.cyan.opacity(0.08) : Color.blue.opacity(0.08)
+        colorScheme == .dark ? Color.white.opacity(0.04) : Color(uiColor: .systemGray4).opacity(0.18)
     }
 }
 

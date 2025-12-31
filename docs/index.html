@@ -225,6 +225,49 @@
         overflow-x: auto;
       }
 
+      .install-command-row {
+        position: relative;
+      }
+
+      .copy-button {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 30px;
+        height: 30px;
+        border: 1px solid #2a2a2a;
+        background: #1b1b1b;
+        color: #fff6e9;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+      }
+
+      .copy-button:hover {
+        transform: translateY(-50%) scale(1.04);
+        background: #222;
+        border-color: #343434;
+      }
+
+      .copy-button:focus-visible {
+        outline: 2px solid #ffd3a1;
+        outline-offset: 2px;
+      }
+
+      .copy-button svg {
+        width: 14px;
+        height: 14px;
+      }
+
+      .copy-button.copied {
+        background: #2d6a4f;
+        border-color: #3b7f60;
+      }
+
       .install-note {
         margin-top: 10px;
         font-size: 12px;
@@ -349,7 +392,14 @@
           <img src="assets/repobar.png" alt="RepoBar app screenshot" />
           <div class="install-card">
             <div class="install-label">Install via Homebrew</div>
-            <pre class="install-command"><code>brew install --cask steipete/tap/repobar</code></pre>
+            <div class="install-command-row">
+              <pre class="install-command"><code id="brew-command">brew install --cask steipete/tap/repobar</code></pre>
+              <button class="copy-button" type="button" data-copy-target="brew-command" aria-label="Copy Homebrew install command">
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M16 1H6a2 2 0 00-2 2v12h2V3h10V1zm3 4H10a2 2 0 00-2 2v14a2 2 0 002 2h9a2 2 0 002-2V7a2 2 0 00-2-2zm0 16H10V7h9v14z"/>
+                </svg>
+              </button>
+            </div>
             <div class="install-note">Update anytime with <code>brew upgrade</code>.</div>
           </div>
           <div class="feature-line">CI status • Releases • Activity &amp; traffic • Local Git state</div>
@@ -361,5 +411,32 @@
         <div>Built by @steipete</div>
       </footer>
     </div>
+    <script>
+      const copyButtons = document.querySelectorAll(".copy-button");
+      copyButtons.forEach((button) => {
+        button.addEventListener("click", async () => {
+          const targetId = button.getAttribute("data-copy-target");
+          const target = document.getElementById(targetId);
+          if (!target) return;
+          const text = target.textContent?.trim() ?? "";
+          try {
+            await navigator.clipboard.writeText(text);
+            button.classList.add("copied");
+            const originalLabel = button.getAttribute("aria-label");
+            button.setAttribute("aria-label", "Copied");
+            setTimeout(() => {
+              button.classList.remove("copied");
+              if (originalLabel) button.setAttribute("aria-label", originalLabel);
+            }, 1200);
+          } catch {
+            const range = document.createRange();
+            const selection = window.getSelection();
+            range.selectNodeContents(target);
+            selection?.removeAllRanges();
+            selection?.addRange(range);
+          }
+        });
+      });
+    </script>
   </body>
 </html>

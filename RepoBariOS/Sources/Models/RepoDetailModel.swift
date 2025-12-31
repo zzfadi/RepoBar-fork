@@ -135,15 +135,14 @@ final class RepoDetailModel {
     private func message(for error: Error, section: DetailSection) -> String? {
         let nsError = error as NSError
         if nsError.domain == NSURLErrorDomain {
-            if let code = URLError.Code(rawValue: nsError.code) {
-                switch code {
-                case .fileDoesNotExist, .resourceUnavailable:
-                    return "Repository data unavailable. It may have been renamed, deleted, or you no longer have access. Try refreshing or signing in again."
-                case .cannotFindHost, .cannotConnectToHost, .dnsLookupFailed:
-                    return "Cannot reach GitHub host. Check your network or Enterprise URL."
-                default:
-                    break
-                }
+            let code = URLError.Code(rawValue: nsError.code)
+            switch code {
+            case .fileDoesNotExist, .resourceUnavailable:
+                return "Repository data unavailable. It may have been renamed, deleted, or you no longer have access. Try refreshing or signing in again."
+            case .cannotFindHost, .cannotConnectToHost, .dnsLookupFailed:
+                return "Cannot reach GitHub host. Check your network or Enterprise URL."
+            default:
+                break
             }
         }
         if nsError.domain == NSCocoaErrorDomain, nsError.code == NSFileReadNoSuchFileError {
@@ -153,6 +152,10 @@ final class RepoDetailModel {
         if let ghError = error as? GitHubAPIError {
             switch ghError {
             case let .badStatus(code, _):
+                // Discussions endpoints return 404/410 when the feature is disabled; treat as empty instead of error.
+                if section == .discussions, code == 404 || code == 410 {
+                    return nil
+                }
                 return self.badStatusMessage(code: code, section: section)
             case let .rateLimited(until, message):
                 if let until {

@@ -108,7 +108,7 @@ private final class LogState: @unchecked Sendable {
         defer { self.lock.unlock() }
         guard self.fileLoggingEnabled, let handle = self.fileHandle else { return }
         if let data = line.data(using: .utf8) {
-            try? handle.write(data)
+            handle.write(data)
         }
     }
 
@@ -134,7 +134,7 @@ private final class LogState: @unchecked Sendable {
             FileManager.default.createFile(atPath: url.path, contents: nil)
         }
         if let handle = try? FileHandle(forWritingTo: url) {
-            try? handle.seekToEnd()
+            _ = try? handle.seekToEnd()
             self.fileHandle = handle
         }
     }

@@ -11,6 +11,7 @@
 - Add debug logging settings (verbosity + file logging) for macOS and iOS.
 - Fix contribution header heatmap sizing on first launch/loading.
 - Fix auto-opening settings when tokens already exist.
+- iOS: clarify repo detail errors with access/refresh guidance and log error domains/codes.
 
 ## 0.1.1 - 2025-12-31
 

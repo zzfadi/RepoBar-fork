@@ -41,6 +41,7 @@ final class RepoDetailModel {
         guard !isLoading else { return }
         isLoading = true
         error = nil
+        logger.info("Repo detail refresh started for \(repo.fullName)")
         defer { isLoading = false }
 
         async let pullsResult: Result<[RepoPullRequestSummary], Error> = capture { [self] in
@@ -107,6 +108,12 @@ final class RepoDetailModel {
         case let .success(value): contributors = value
         case let .failure(error): self.record(error, section: .contributors)
         }
+
+        if let error {
+            logger.info("Repo detail refresh completed with error for \(repo.fullName): \(error)")
+        } else {
+            logger.info("Repo detail refresh completed for \(repo.fullName)")
+        }
     }
 
     private func capture<T>(_ work: @escaping () async throws -> T) async -> Result<T, Error> {
@@ -114,7 +121,11 @@ final class RepoDetailModel {
     }
 
     private func record(_ error: Error, section: DetailSection) {
-        logger.warning("Repo detail \(section.rawValue) failed for \(repo.fullName): \(String(describing: error))")
+        let typeName = String(reflecting: type(of: error))
+        let nsError = error as NSError
+        logger.warning(
+            "Repo detail \(section.rawValue) failed for \(repo.fullName) domain=\(nsError.domain) code=\(nsError.code) type=\(typeName) message=\(error.userFacingMessage)"
+        )
         guard let message = self.message(for: error, section: section) else { return }
         if self.error == nil {
             self.error = message
@@ -122,6 +133,23 @@ final class RepoDetailModel {
     }
 
     private func message(for error: Error, section: DetailSection) -> String? {
+        let nsError = error as NSError
+        if nsError.domain == NSURLErrorDomain {
+            if let code = URLError.Code(rawValue: nsError.code) {
+                switch code {
+                case .fileDoesNotExist, .resourceUnavailable:
+                    return "Repository data unavailable. It may have been renamed, deleted, or you no longer have access. Try refreshing or signing in again."
+                case .cannotFindHost, .cannotConnectToHost, .dnsLookupFailed:
+                    return "Cannot reach GitHub host. Check your network or Enterprise URL."
+                default:
+                    break
+                }
+            }
+        }
+        if nsError.domain == NSCocoaErrorDomain, nsError.code == NSFileReadNoSuchFileError {
+            return "Repository data unavailable. It may have been renamed, deleted, or you no longer have access. Try refreshing or signing in again."
+        }
+
         if let ghError = error as? GitHubAPIError {
             switch ghError {
             case let .badStatus(code, _):
@@ -147,13 +175,21 @@ final class RepoDetailModel {
             return self.badStatusMessage(code: 404, section: section)
         }
 
+        let lowercased = error.userFacingMessage.lowercased()
+        if lowercased.contains("no longer exists") || lowercased.contains("no longer available") {
+            return "Repository data unavailable. It may have been renamed, deleted, or you no longer have access. Try refreshing or signing in again."
+        }
+        if lowercased.contains("not found") {
+            return self.badStatusMessage(code: 404, section: section)
+        }
+
         return "\(section.rawValue) failed. \(error.userFacingMessage)"
     }
 
     private func badStatusMessage(code: Int, section: DetailSection) -> String {
         switch code {
         case 401, 403:
-            return "\(section.rawValue) unavailable. Check GitHub access and token scopes."
+            return "\(section.rawValue) unavailable. Check GitHub access, token scopes, and sign-in status."
         case 404:
             switch section {
             case .releases:
@@ -163,7 +199,7 @@ final class RepoDetailModel {
             case .workflows:
                 return "GitHub Actions data is unavailable for this repository."
             default:
-                return "Repository data unavailable. It may be renamed, deleted, or you no longer have access."
+                return "Repository data unavailable. It may be renamed, deleted, or you no longer have access. Try refreshing or signing in again."
             }
         default:
             return "\(section.rawValue) failed (HTTP \(code)). \(HTTPURLResponse.localizedString(forStatusCode: code))."

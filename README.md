@@ -1,10 +1,33 @@
-# RepoBar 🚦 — CI, PRs, releases—at a glance (WIP)
+# RepoBar — GitHub at a glance from your menu bar
 
-macOS menubar app (Swift 6.2, Xcode 26) that surfaces GitHub repo health at a glance: CI state, open issues/PRs, latest release, recent comments, traffic uniques, and a custom commit heatmap. MenuBarExtraAccess distinguishes left/right clicks; Sparkle handles updates; PKCE browser-based login supports GitHub.com and GitHub Enterprise.
+RepoBar keeps your GitHub work in view without opening a browser. Pin the repos you care about and get a clear, glanceable dashboard for CI, releases, traffic, and activity right from the macOS menu bar.
 
-<img src="docs/assets/repobar.png" alt="RepoBar menubar screenshot" width="900" />
+![RepoBar screenshot](docs/assets/repobar.png)
 
-## Install
+## Features
+
+- Live repo cards with CI status, activity preview, releases, and rate-limit awareness.
+- Rich submenus for pull requests, issues, releases, workflow runs, discussions, tags, branches, and commits.
+- Global activity feed plus a contribution heatmap header (optional per-repo heatmaps).
+- Local Git state in the menu: branch, ahead/behind, dirty files, and worktrees with quick actions.
+- Pinned/hidden repos, menu filters, and configurable sorting.
+- Fast native UI with caching, layout reuse, and debounced refresh.
+- Sparkle auto-updates for signed builds.
+- `repobar` CLI for quick listings and JSON/plain output.
+
+## Local projects & sync
+
+Point RepoBar at a local projects folder (e.g. `~/Projects`). It scans the folder, matches repos to GitHub, and shows local branch + sync state right in the menu. Optional auto-sync pulls clean repos using fast-forward only, with a configurable fetch cadence and a notification on successful sync.
+
+## Authentication
+
+RepoBar signs in via browser OAuth and stores tokens securely in the macOS Keychain. It supports both GitHub.com and GitHub Enterprise (HTTPS). No tokens are logged.
+
+## Heads up
+
+This is the first public release (v0.1.0). There is still plenty to polish and expand, so expect rough edges and rapid iteration.
+
+## Download
 
 Homebrew (recommended):
 
@@ -14,46 +37,3 @@ brew install --cask steipete/tap/repobar
 ```
 
 Direct download: `https://github.com/steipete/RepoBar/releases/latest`
-
-## Quick start
-
-```bash
-pnpm install          # only needed once for scripts
-pnpm check            # swiftformat + swiftlint (autofix)
-pnpm test             # swift test
-pnpm start            # build, test, launch menubar app
-pnpm stop             # quit running debug app
-pnpm codegen          # (optional) run Apollo codegen once schema access is set
-```
-
-Requirements: Swift 6.2 toolchain, Xcode 26+, `swiftformat`, `swiftlint`, `pnpm` (v10+), and `apollo-ios` CLI if you run codegen.
-
-## CLI (repobar)
-
-RepoBar ships a bundled CLI for quick repo overviews.
-
-```bash
-pnpm repobar login
-pnpm repobar repos --release
-pnpm repobar repos --release --plain   # no colors, no links, no URLs
-pnpm repobar repos --release --json    # machine output
-```
-
-## Auth setup
-
-1. In GitHub App settings, set callback `http://127.0.0.1:53682/callback`; ensure repo permissions include Actions/Checks/Contents/Issues/PRs/Admin (traffic).  
-2. In RepoBar Preferences → Accounts, paste Client ID/Secret, private key path, optional Enterprise base URL (https only).  
-3. Sign in; browser opens; loopback captures the code; tokens stored in Keychain.
-
-## Notes
-
-- Menubar icon is a tinted, macOS-native template glyph with a tiny status badge for aggregate CI/login state.
-- Left click opens rich repo grid; right click opens classic menu (Refresh, Preferences, Updates, Logout, Quit).
-- Pins reorder via drag or card menu; display count and refresh interval configurable in Settings.
-- Advanced tab shows diagnostics (API host, last error, rate-limit reset).
-
-## Repo hygiene
-
-- Keep files <500 LOC; prefer extraction to helpers.
-- Run `pnpm check && pnpm test` before committing.
-- Codegen artifacts are not generated yet; run `pnpm codegen` only when you have GitHub schema access.

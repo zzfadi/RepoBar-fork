@@ -67,7 +67,7 @@ xcrun notarytool submit /tmp/RepoBarNotarize.zip \
 echo "Stapling ticket"
 xcrun stapler staple "$APP_BUNDLE"
 
-"$DITTO_BIN" -c -k --keepParent "$APP_BUNDLE" "$ZIP_NAME"
+"$DITTO_BIN" -c -k --keepParent --sequesterRsrc "$APP_BUNDLE" "$ZIP_NAME"
 
 spctl -a -t exec -vv "$APP_BUNDLE"
 stapler validate "$APP_BUNDLE"

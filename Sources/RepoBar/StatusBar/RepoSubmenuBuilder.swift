@@ -284,29 +284,9 @@ struct RepoSubmenuBuilder {
                 systemImage: "eye.slash"
             )]
         case .moveUp:
-            guard isPinned else { return [] }
-            let pins = self.appState.session.settings.repoList.pinnedRepositories
-            guard let index = pins.firstIndex(of: repo.title) else { return [] }
-            let moveUp = self.menuBuilder.actionItem(
-                title: "Move Up",
-                action: #selector(self.target.moveRepoUp),
-                represented: repo.title,
-                systemImage: "arrow.up"
-            )
-            moveUp.isEnabled = index > 0
-            return [moveUp]
+            return []
         case .moveDown:
-            guard isPinned else { return [] }
-            let pins = self.appState.session.settings.repoList.pinnedRepositories
-            guard let index = pins.firstIndex(of: repo.title) else { return [] }
-            let moveDown = self.menuBuilder.actionItem(
-                title: "Move Down",
-                action: #selector(self.target.moveRepoDown),
-                represented: repo.title,
-                systemImage: "arrow.down"
-            )
-            moveDown.isEnabled = index < pins.count - 1
-            return [moveDown]
+            return []
         }
     }
 

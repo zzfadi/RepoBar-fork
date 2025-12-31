@@ -80,23 +80,28 @@ struct DisplaySettingsView: View {
         isRequired: Bool,
         isVisible: Binding<Bool>
     ) -> some View {
-        HStack(spacing: 10) {
+        let effectiveSubtitle: String? = {
+            if isRequired {
+                if let subtitle, subtitle.isEmpty == false {
+                    return "Required · \(subtitle)"
+                }
+                return "Required"
+            }
+            return subtitle
+        }()
+
+        return HStack(spacing: 10) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
                     .foregroundStyle(isVisible.wrappedValue ? .primary : .secondary)
-                Text(subtitle ?? " ")
+                Text(effectiveSubtitle ?? " ")
                     .font(.caption)
-                    .foregroundStyle(subtitle == nil ? .clear : .secondary)
+                    .foregroundStyle(effectiveSubtitle == nil ? .clear : .secondary)
             }
             Spacer()
             Toggle("Visible", isOn: isVisible)
                 .labelsHidden()
                 .disabled(isRequired)
-            if isRequired {
-                Text("Required")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
         }
         .padding(.vertical, 3)
     }

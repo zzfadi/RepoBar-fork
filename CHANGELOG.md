@@ -16,6 +16,7 @@
 - Invalidate menu cache and rebuild if the menu appears too small when opening.
 - Add padding between About links and bump settings window height for more breathing room.
 - Increase padding between Display list entries.
+- Remove pinned repo move up/down commands from repo submenu.
 - Limit "More Activity/Commits" submenus to 20 entries.
 - Include organization and collaborator repositories in repo lists.
 - CLI: add `--owner`/`--mine` filters for repos list.

@@ -183,7 +183,7 @@ public struct MenuCustomization: Equatable, Codable, Hashable, Sendable {
     public static let requiredMainMenuItems: Set<MainMenuItemID> = [
         .preferences,
         .about,
-        .quit,
+        .quit
     ]
 
     public static let defaultMainMenuOrder: [MainMenuItemID] = [
@@ -196,7 +196,7 @@ public struct MenuCustomization: Equatable, Codable, Hashable, Sendable {
         .preferences,
         .about,
         .restartToUpdate,
-        .quit,
+        .quit
     ]
 
     public static let defaultRepoSubmenuOrder: [RepoSubmenuItemID] = [
@@ -218,15 +218,14 @@ public struct MenuCustomization: Equatable, Codable, Hashable, Sendable {
         .commits,
         .activity,
         .pinToggle,
-        .hideRepo,
-        .moveUp,
-        .moveDown,
+        .hideRepo
     ]
 
     private static func normalizedOrder<T: Hashable>(_ order: [T], defaults: [T]) -> [T] {
         var seen = Set<T>()
         var result: [T] = []
-        for item in order where seen.insert(item).inserted {
+        let allowed = Set(defaults)
+        for item in order where allowed.contains(item) && seen.insert(item).inserted {
             result.append(item)
         }
         for item in defaults where seen.insert(item).inserted {

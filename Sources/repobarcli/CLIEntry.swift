@@ -6,7 +6,7 @@ import RepoBarCore
 @MainActor
 enum RepoBarCLI {
     static func main() async {
-        let argv = self.normalizeArguments(CommandLine.arguments)
+        let argv = CLIArgumentNormalizer.normalize(CommandLine.arguments)
         if let helpTarget = HelpTarget.from(argv: argv) {
             printHelp(helpTarget)
             return
@@ -20,20 +20,6 @@ enum RepoBarCLI {
         } catch {
             self.handleError(error)
         }
-    }
-
-    private static func normalizeArguments(_ args: [String]) -> [String] {
-        guard !args.isEmpty else { return [RepoBarRoot.commandName] }
-        var normalized = args
-        let commandName = URL(fileURLWithPath: args[0]).lastPathComponent
-        normalized[0] = commandName
-        if normalized.count > 1, normalized[1] == "list" {
-            normalized[1] = "repos"
-        }
-        if normalized.count > 1, ["pr", "prs"].contains(normalized[1]) {
-            normalized[1] = "pulls"
-        }
-        return normalized
     }
 
     private static func makeCommand(from invocation: CommandInvocation) throws -> any CommanderRunnableCommand {

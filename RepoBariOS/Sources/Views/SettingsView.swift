@@ -3,6 +3,8 @@ import SwiftUI
 
 struct SettingsView: View {
     @Bindable var appModel: AppModel
+    let showsCloseButton: Bool = false
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         Form {
@@ -78,6 +80,18 @@ struct SettingsView: View {
         .scrollContentBackground(.hidden)
         .background(GlassBackground())
         .navigationTitle("Settings")
+        .toolbar {
+            if showsCloseButton {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark")
+                    }
+                    .accessibilityLabel("Close")
+                }
+            }
+        }
         .onChange(of: appModel.session.settings) { _, _ in
             appModel.persistSettings()
             appModel.refreshScheduler.configure(interval: appModel.session.settings.refreshInterval.seconds) {

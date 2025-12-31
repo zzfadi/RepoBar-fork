@@ -57,7 +57,7 @@ struct LoginView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .sheet(isPresented: $showSettings) {
             NavigationStack {
-                SettingsView(appModel: appModel)
+                SettingsView(appModel: appModel, showsCloseButton: true)
             }
         }
     }

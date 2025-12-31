@@ -2,19 +2,14 @@
 
 ## 0.1.2 - 2025-12-31
 
-- Fix menubar menu not reopening after Settings close by rehydrating the main menu on attach.
-- Fix changelog preview header icon alignment.
-- CLI: add repo submenu list commands (releases, CI runs, discussions, tags, branches, contributors, commits, activity).
-- CLI: add local actions (sync/rebase/reset), local branch/worktree listings, Finder/Terminal open, and checkout.
-- CLI: add pin/hide and settings show/set commands; update CLI docs for parity.
-- CLI: normalize `local ...`, `open ...`, and `settings ...` subcommands for friendlier usage.
-- Add swift-log integration with OSLog + optional file logging sink.
-- Add debug logging settings (verbosity + file logging) for macOS and iOS.
-- Fix contribution header heatmap sizing on first launch/loading.
-- Fix auto-opening settings when tokens already exist.
-- iOS: clarify repo detail errors with access/refresh guidance and log error domains/codes.
-- iOS: suppress discussions error when the feature is disabled.
-- Repo discussions: cache capability (REST + fetch errors) and hide disabled entries across platforms; add debug cache reset.
+- iOS app preview (not finished, not in the App Store yet): repo list/cards, activity feed, detail drill‑downs, login/settings, icons/branding, and continued auth/UI polish.
+- CLI parity expansion: new repo list subcommands (releases, CI runs, discussions, tags, branches, contributors, commits, activity) plus `--owner/--mine` filters.
+- CLI local actions + settings: sync/rebase/reset/checkout, branch/worktree listings, Finder/Terminal open; pin/hide and settings show/set; installer for `repobar`.
+- Changelog UX: submenu preview improvements plus Markdown rendering upgrades (block layout, scrollable preview, header alignment).
+- Menu customization: Display settings to reorder/hide main menu and repo submenu items (reset to defaults), with spacing tweaks.
+- Logging/diagnostics: swift-log integration with OSLog + optional file logging; debug logging settings for macOS/iOS.
+- Reliability: menu rehydrate on attach, invalidate empty menu cache, stabilize contribution header heatmap size, limit “More” submenus to 20 entries.
+- Repo access + errors: include org/collaborator repos, improve repo detail error messaging, cache discussions capability and hide disabled entries.
 
 ## 0.1.1 - 2025-12-31
 

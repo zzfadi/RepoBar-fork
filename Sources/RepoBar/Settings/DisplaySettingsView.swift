@@ -98,6 +98,7 @@ struct DisplaySettingsView: View {
                     .foregroundStyle(.secondary)
             }
         }
+        .padding(.vertical, 3)
     }
 
     private func moveMainMenuItems(from offsets: IndexSet, to destination: Int) {

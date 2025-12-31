@@ -2,6 +2,19 @@
 
 macOS menubar app (Swift 6.2, Xcode 26) that surfaces GitHub repo health at a glance: CI state, open issues/PRs, latest release, recent comments, traffic uniques, and a custom commit heatmap. MenuBarExtraAccess distinguishes left/right clicks; Sparkle handles updates; PKCE browser-based login supports GitHub.com and GitHub Enterprise.
 
+<img src="docs/assets/repobar.png" alt="RepoBar menubar screenshot" width="900" />
+
+## Install
+
+Homebrew (recommended):
+
+```bash
+brew tap steipete/tap
+brew install --cask steipete/tap/repobar
+```
+
+Direct download: `https://github.com/steipete/RepoBar/releases/latest`
+
 ## Quick start
 
 ```bash

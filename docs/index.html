@@ -197,6 +197,40 @@
         height: 16px;
       }
 
+      .install-card {
+        margin-top: 24px;
+        padding: 16px;
+        border-radius: 16px;
+        border: 1px dashed var(--line);
+        background: #fff4ea;
+      }
+
+      .install-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.18em;
+        color: var(--ink-muted);
+        margin-bottom: 10px;
+      }
+
+      .install-command {
+        margin: 0;
+        padding: 12px 14px;
+        border-radius: 12px;
+        background: #141414;
+        color: #fff6e9;
+        font-size: 12px;
+        line-height: 1.6;
+        border: 1px solid #1f1f1f;
+        overflow-x: auto;
+      }
+
+      .install-note {
+        margin-top: 10px;
+        font-size: 12px;
+        color: var(--ink-muted);
+      }
+
       .panel {
         background: var(--panel);
         border: 1px solid var(--line);
@@ -301,11 +335,16 @@
               GitHub
             </a>
           </div>
+          <div class="install-card">
+            <div class="install-label">Install via Homebrew</div>
+            <pre class="install-command"><code>brew tap steipete/tap
+brew install --cask steipete/tap/repobar</code></pre>
+            <div class="install-note">Update anytime with <code>brew upgrade</code>.</div>
+          </div>
         </section>
 
         <aside class="panel screenshot">
-          <img src="assets/screenshot-placeholder.svg" alt="RepoBar app screenshot" />
-          <div class="screenshot-note">Screenshot placeholder. Replace with real UI soon.</div>
+          <img src="assets/repobar.png" alt="RepoBar app screenshot" />
         </aside>
       </main>
 

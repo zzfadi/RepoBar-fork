@@ -3,6 +3,7 @@
 ## 0.1.2 - 2025-12-31
 
 - Fix menubar menu not reopening after Settings close by rehydrating the main menu on attach.
+- Fix changelog preview header icon alignment.
 - CLI: add repo submenu list commands (releases, CI runs, discussions, tags, branches, contributors, commits, activity).
 - CLI: add local actions (sync/rebase/reset), local branch/worktree listings, Finder/Terminal open, and checkout.
 - CLI: add pin/hide and settings show/set commands; update CLI docs for parity.

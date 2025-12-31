@@ -4,21 +4,17 @@ import SwiftUI
 struct RepoFilesView: View {
     @Bindable var appModel: AppModel
     let repository: Repository
-    @State private var path = NavigationPath()
 
     var body: some View {
-        NavigationStack(path: $path) {
-            RepoFileListView(appModel: appModel, repository: repository, path: nil)
-                .navigationDestination(for: RepoFileDestination.self) { destination in
-                    switch destination {
-                    case .directory(let path):
-                        RepoFileListView(appModel: appModel, repository: repository, path: path)
-                    case .file(let item):
-                        RepoFilePreviewView(appModel: appModel, repository: repository, item: item)
-                    }
+        RepoFileListView(appModel: appModel, repository: repository, path: nil)
+            .navigationDestination(for: RepoFileDestination.self) { destination in
+                switch destination {
+                case .directory(let path):
+                    RepoFileListView(appModel: appModel, repository: repository, path: path)
+                case .file(let item):
+                    RepoFilePreviewView(appModel: appModel, repository: repository, item: item)
                 }
-                .navigationTitle("Files")
-        }
+            }
     }
 }
 
@@ -58,8 +54,13 @@ private struct RepoFileListView: View {
         }
         .scrollContentBackground(.hidden)
         .background(GlassBackground())
-        .navigationTitle(path ?? repository.fullName)
+        .navigationTitle(title)
         .task { await load() }
+    }
+
+    private var title: String {
+        guard let path, path.isEmpty == false else { return "Files" }
+        return path.split(separator: "/").last.map(String.init) ?? "Files"
     }
 
     private func load() async {

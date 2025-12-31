@@ -30,10 +30,12 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
         actionHandler: self
     )
     private let signposter = OSSignposter(subsystem: "com.steipete.repobar", category: "menu")
+    private let logger = Logger(subsystem: "com.steipete.repobar", category: "menu-state")
     private weak var menuResizeWindow: NSWindow?
     private var lastMainMenuWidth: CGFloat?
     private var lastMainMenuSignature: MenuBuildSignature?
     private var lastMainMenuWidthSignature: MenuBuildSignature?
+    private var lastMenuClickToken: UUID?
     var webURLBuilder: RepoWebURLBuilder { RepoWebURLBuilder(host: self.appState.session.settings.githubHost) }
     private weak var checkoutProgressWindow: NSWindow?
 
@@ -60,19 +62,35 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
         self.statusItem = statusItem
         statusItem.menu = menu
         self.configureStatusItemButton(statusItem)
+        self.logMenuEvent("attachMainMenu statusItem=\(self.objectID(statusItem)) menuItems=\(menu.items.count)")
     }
 
     private func configureStatusItemButton(_ statusItem: NSStatusItem) {
+        if statusItem.button == nil {
+            self.logMenuEvent("configureStatusItemButton missing button statusItem=\(self.objectID(statusItem))")
+        }
         statusItem.button?.target = self
         statusItem.button?.action = #selector(self.statusItemButtonClicked(_:))
     }
 
     @objc private func statusItemButtonClicked(_ sender: NSStatusBarButton) {
         guard let statusItem = self.statusItem else { return }
+        self.logMenuEvent(
+            "statusItemButtonClicked statusItem=\(self.objectID(statusItem)) menuNil=\(statusItem.menu == nil) buttonState=\(sender.state.rawValue)"
+        )
         if statusItem.menu == nil {
             self.attachMainMenu(to: statusItem)
         }
         sender.performClick(nil)
+        let token = UUID()
+        self.lastMenuClickToken = token
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
+            guard let self, self.lastMenuClickToken == token else { return }
+            let menuVisible = self.mainMenu?.items.compactMap(\.view).first?.window?.isVisible == true
+            if menuVisible == false {
+                self.logMenuEvent("menuDidNotOpen statusItem=\(self.objectID(statusItem)) menuNil=\(statusItem.menu == nil)")
+            }
+        }
     }
 
     // MARK: - Menu actions
@@ -121,6 +139,11 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
     func menuWillOpen(_ menu: NSMenu) {
         let signpost = self.signposter.beginInterval("menuWillOpen")
         defer { self.signposter.endInterval("menuWillOpen", signpost) }
+        if menu === self.mainMenu {
+            self.logMenuEvent("menuWillOpen mainMenu items=\(menu.items.count)")
+        } else {
+            self.logMenuEvent("menuWillOpen submenu items=\(menu.items.count)")
+        }
         if let app = NSApp {
             menu.appearance = app.effectiveAppearance
         }
@@ -180,6 +203,7 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
         if menu === self.mainMenu {
             self.menuBuilder.clearHighlights(in: menu)
             self.stopObservingMenuResize()
+            self.logMenuEvent("menuDidClose mainMenu")
         }
     }
 
@@ -272,6 +296,16 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
         self.lastMainMenuWidth = width
         self.menuBuilder.refreshMenuViewHeights(in: menu, width: width)
         menu.update()
+    }
+
+    private func logMenuEvent(_ message: String) {
+        self.logger.info("\(message, privacy: .public)")
+        Task { await DiagnosticsLogger.shared.message(message) }
+    }
+
+    private func objectID(_ object: AnyObject?) -> String {
+        guard let object else { return "nil" }
+        return String(ObjectIdentifier(object).hashValue)
     }
 
     func registerRecentListMenu(_ menu: NSMenu, context: RepoRecentMenuContext) {

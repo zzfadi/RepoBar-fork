@@ -1,6 +1,8 @@
 import AppKit
 import Kingfisher
 import MenuBarExtraAccess
+import OSLog
+import RepoBarCore
 import SwiftUI
 
 @main
@@ -10,6 +12,7 @@ struct RepoBarApp: App {
     @State private var appState = AppState()
     @State private var isMenuPresented = false
     @State private var menuManager: StatusBarMenuManager?
+    private let logger = Logger(subsystem: "com.steipete.repobar", category: "menu-state")
 
     @SceneBuilder
     var body: some Scene {
@@ -20,10 +23,14 @@ struct RepoBarApp: App {
         }
         .menuBarExtraStyle(.menu)
         .menuBarExtraAccess(isPresented: self.$isMenuPresented) { item in
+            self.logMenuEvent("menuBarExtraAccess statusItem=\(self.objectID(item)) menuManager=\(self.menuManager != nil)")
             if self.menuManager == nil {
                 self.menuManager = StatusBarMenuManager(appState: self.appState)
             }
             self.menuManager?.attachMainMenu(to: item)
+        }
+        .onChange(of: self.isMenuPresented) { _, newValue in
+            self.logMenuEvent("isMenuPresented=\(newValue)")
         }
 
         Settings {
@@ -31,6 +38,16 @@ struct RepoBarApp: App {
         }
         .defaultSize(width: 540, height: 420)
         .windowResizability(.contentSize)
+    }
+
+    private func logMenuEvent(_ message: String) {
+        self.logger.info("\(message, privacy: .public)")
+        Task { await DiagnosticsLogger.shared.message(message) }
+    }
+
+    private func objectID(_ object: AnyObject?) -> String {
+        guard let object else { return "nil" }
+        return String(ObjectIdentifier(object).hashValue)
     }
 }
 

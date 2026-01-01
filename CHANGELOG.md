@@ -9,6 +9,7 @@
 - macOS: show OAuth errors in Accounts sign-in UI (#6).
 - macOS: add token status checks + forced refresh buttons in Settings for debugging auth issues.
 - macOS: detect auth failures (401/refresh errors) and log out cleanly with a clearer message.
+- macOS: stabilize repo settings autocomplete (no spinner layout wiggle) and widen the dropdown.
 - iOS: update app icon + logo assets.
 
 ## 0.1.2 - 2025-12-31

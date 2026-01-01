@@ -154,55 +154,55 @@ private struct RepoInputRow<Accessory: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
-                ZStack(alignment: .trailing) {
-                    TextField(self.placeholder, text: self.$text)
-                        .textFieldStyle(.roundedBorder)
-                        .focused(self.$isFocused)
-                        .onChange(of: self.text) { _, _ in
-                            self.keyboardNavigating = false
-                            self.scheduleSearch()
-                        }
-                        .onSubmit { self.commit() }
-                        .onTapGesture {
-                            self.showSuggestions = true
-                            self.scheduleSearch(immediate: true)
-                        }
-                        .onMoveCommand(perform: self.handleMove)
-                        .background(
-                            GeometryReader { geometry in
-                                Color.clear
-                                    .onAppear { self.textFieldSize = geometry.size }
-                                    .onChange(of: geometry.size) { _, newSize in
-                                        self.textFieldSize = newSize
-                                    }
-                            })
-                        .background(
-                            RepoAutocompleteWindowView(
-                                suggestions: self.suggestions,
-                                selectedIndex: self.$selectedIndex,
-                                keyboardNavigating: self.keyboardNavigating,
-                                onSelect: { suggestion in
-                                    self.commit(suggestion)
-                                    DispatchQueue.main.async {
-                                        self.isFocused = true
-                                    }
-                                },
-                                width: self.textFieldSize.width,
-                                isShowing: Binding(
-                                    get: {
-                                        self.showSuggestions && self.isFocused && !self.suggestions.isEmpty
-                                    },
-                                    set: { self.showSuggestions = $0 }
-                                )
-                            )
-                        )
-
-                    if self.isLoading {
+                TextField(self.placeholder, text: self.$text)
+                    .textFieldStyle(.roundedBorder)
+                    .focused(self.$isFocused)
+                    .onChange(of: self.text) { _, _ in
+                        self.keyboardNavigating = false
+                        self.scheduleSearch()
+                    }
+                    .onSubmit { self.commit() }
+                    .onTapGesture {
+                        self.showSuggestions = true
+                        self.scheduleSearch(immediate: true)
+                    }
+                    .onMoveCommand(perform: self.handleMove)
+                    .overlay(alignment: .trailing) {
                         ProgressView()
                             .controlSize(.small)
                             .padding(.trailing, 8)
+                            .opacity(self.isLoading ? 1 : 0)
+                            .accessibilityHidden(!self.isLoading)
+                            .allowsHitTesting(false)
                     }
-                }
+                    .background(
+                        GeometryReader { geometry in
+                            Color.clear
+                                .onAppear { self.textFieldSize = geometry.size }
+                                .onChange(of: geometry.size) { _, newSize in
+                                    self.textFieldSize = newSize
+                                }
+                        })
+                    .background(
+                        RepoAutocompleteWindowView(
+                            suggestions: self.suggestions,
+                            selectedIndex: self.$selectedIndex,
+                            keyboardNavigating: self.keyboardNavigating,
+                            onSelect: { suggestion in
+                                self.commit(suggestion)
+                                DispatchQueue.main.async {
+                                    self.isFocused = true
+                                }
+                            },
+                            width: self.textFieldSize.width,
+                            isShowing: Binding(
+                                get: {
+                                    self.showSuggestions && self.isFocused && !self.suggestions.isEmpty
+                                },
+                                set: { self.showSuggestions = $0 }
+                            )
+                        )
+                    )
 
                 self.accessory()
 

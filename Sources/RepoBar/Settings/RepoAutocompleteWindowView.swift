@@ -99,7 +99,7 @@ struct RepoAutocompleteWindowView: NSViewRepresentable {
             guard let window = dropdownWindow,
                   let hostingView else { return }
 
-            let resolvedWidth = max(240, width)
+            let resolvedWidth = max(420, width + 160)
             let content = RepoAutocompleteListView(
                 suggestions: suggestions,
                 selectedIndex: selectedIndex,

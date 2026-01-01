@@ -5,6 +5,11 @@ import Testing
 
 struct OwnerFilteringTests {
     @Test
+    func ownerFilterNormalizeTrimsLowercasesDedupesAndSorts() {
+        #expect(OwnerFilter.normalize([" Alice ", "bob", "ALICE", "", "  "]) == ["alice", "bob"])
+    }
+
+    @Test
     func repositoryFilterIncludesAllWhenOwnerFilterIsEmpty() {
         let repos = [
             Self.repo(owner: "alice", name: "A"),
@@ -18,6 +23,21 @@ struct OwnerFilteringTests {
             ownerFilter: []
         )
         #expect(filtered.count == 3)
+    }
+
+    @Test
+    func repositoryFilterTreatsWhitespaceOnlyOwnerFilterAsEmpty() {
+        let repos = [
+            Self.repo(owner: "alice", name: "A"),
+            Self.repo(owner: "bob", name: "B")
+        ]
+        let filtered = RepositoryFilter.apply(
+            repos,
+            includeForks: true,
+            includeArchived: true,
+            ownerFilter: [" ", "\n\t"]
+        )
+        #expect(filtered.count == 2)
     }
 
     @Test
@@ -69,6 +89,22 @@ struct OwnerFilteringTests {
             ownerFilter: ["alice", "bob"]
         )
         #expect(filtered.count == 2)
+    }
+
+    @Test
+    func repositoryFilterTrimsOwnerFilterEntries() {
+        let repos = [
+            Self.repo(owner: "alice", name: "A"),
+            Self.repo(owner: "bob", name: "B")
+        ]
+        let filtered = RepositoryFilter.apply(
+            repos,
+            includeForks: true,
+            includeArchived: true,
+            ownerFilter: [" alice "]
+        )
+        #expect(filtered.count == 1)
+        #expect(filtered.first?.owner == "alice")
     }
 
     @Test
@@ -134,6 +170,14 @@ struct OwnerFilteringTests {
         let filtered = RepositoryPipeline.apply(repos, query: query)
         #expect(filtered.count == 2)
         #expect(filtered.map(\.owner).sorted() == ["alice", "bob"])
+    }
+
+    @Test
+    func repositoryQueryNormalizesOwnerFilterForEquality() {
+        let left = RepositoryQuery(ownerFilter: ["Alice", " bob ", "ALICE"])
+        let right = RepositoryQuery(ownerFilter: ["bob", "alice"])
+        #expect(left == right)
+        #expect(left.ownerFilter == ["alice", "bob"])
     }
 }
 

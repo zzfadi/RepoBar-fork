@@ -9,10 +9,11 @@ public enum RepositoryFilter {
         onlyWith: RepositoryOnlyWith = .none,
         ownerFilter: [String] = []
     ) -> [Repository] {
-        let needsFilter = includeForks == false || includeArchived == false || onlyWith.isActive || !ownerFilter.isEmpty
+        let normalizedOwnerFilter = OwnerFilter.normalize(ownerFilter)
+        let needsFilter = includeForks == false || includeArchived == false || onlyWith.isActive || !normalizedOwnerFilter.isEmpty
         guard needsFilter else { return repos }
 
-        let ownerSet = Set(ownerFilter.map { $0.lowercased() })
+        let ownerSet = Set(normalizedOwnerFilter)
 
         return repos.filter { repo in
             if pinned.contains(repo.fullName) { return true }

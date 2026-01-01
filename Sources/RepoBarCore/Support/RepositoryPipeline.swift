@@ -42,7 +42,7 @@ public struct RepositoryQuery: Equatable, Sendable {
         self.pinned = pinned
         self.hidden = hidden
         self.pinPriority = pinPriority
-        self.ownerFilter = ownerFilter
+        self.ownerFilter = OwnerFilter.normalize(ownerFilter)
     }
 }
 

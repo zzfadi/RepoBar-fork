@@ -36,6 +36,11 @@ struct RepoAutocompleteWindowView: NSViewRepresentable {
 
     @MainActor
     class Coordinator: NSObject {
+        private final class DropdownWindow: NSPanel {
+            override var canBecomeKey: Bool { false }
+            override var canBecomeMain: Bool { false }
+        }
+
         private var dropdownWindow: NSWindow?
         private var hostingView: NSHostingView<AnyView>?
         private let onSelect: (String) -> Void
@@ -77,9 +82,9 @@ struct RepoAutocompleteWindowView: NSViewRepresentable {
             guard let parentWindow = view.window else { return }
 
             if self.dropdownWindow == nil {
-                let window = NSWindow(
+                let window = DropdownWindow(
                     contentRect: NSRect(x: 0, y: 0, width: width, height: 200),
-                    styleMask: [.borderless],
+                    styleMask: [.borderless, .nonactivatingPanel],
                     backing: .buffered,
                     defer: false
                 )
@@ -88,6 +93,9 @@ struct RepoAutocompleteWindowView: NSViewRepresentable {
                 window.hasShadow = true
                 window.level = .floating
                 window.isReleasedWhenClosed = false
+                window.acceptsMouseMovedEvents = true
+                window.isFloatingPanel = true
+                window.collectionBehavior = [.transient, .ignoresCycle]
 
                 let hostingView = NSHostingView(rootView: AnyView(EmptyView()))
                 window.contentView = hostingView
@@ -132,7 +140,7 @@ struct RepoAutocompleteWindowView: NSViewRepresentable {
             if window.parent == nil {
                 parentWindow.addChildWindow(window, ordered: .above)
             }
-            window.makeKeyAndOrderFront(nil)
+            window.orderFront(nil)
 
             if self.clickMonitor == nil {
                 self.clickMonitor = NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] event in
@@ -191,6 +199,7 @@ private struct RepoAutocompleteListView: View {
                     }
                 }
             }
+            .scrollIndicators(.visible)
             .frame(maxHeight: 220)
             .onChange(of: self.selectedIndex) { _, newIndex in
                 let shouldScroll = newIndex >= 0
@@ -272,6 +281,7 @@ private struct RepoAutocompleteRow: View {
                 }
                 Spacer()
             }
+            .allowsHitTesting(false)
         )
     }
 

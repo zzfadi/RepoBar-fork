@@ -50,34 +50,8 @@ extension AppState {
             let now = Date()
             self.updateHeatmapRange(now: now)
             if self.auth.loadTokens() == nil {
-                self.session.hasStoredTokens = false
-                let matchNames = self.localMatchRepoNamesForLocalProjects(repos: [], includePinned: true)
-                let localSnapshot = await self.localRepoManager.snapshot(
-                    rootPath: localSettings.rootPath,
-                    rootBookmarkData: localSettings.rootBookmarkData,
-                    options: LocalRepoManager.SnapshotOptions(
-                        autoSyncEnabled: localSettings.autoSyncEnabled,
-                        fetchInterval: localSettings.fetchInterval.seconds,
-                        preferredPathsByFullName: localSettings.preferredLocalPathsByFullName,
-                        matchRepoNames: matchNames,
-                        forceRescan: false
-                    )
-                )
-                await MainActor.run {
-                    self.session.repositories = []
-                    self.session.menuSnapshot = nil
-                    self.session.menuDisplayIndex = [:]
-                    self.session.hasLoadedRepositories = false
-                    self.session.lastError = nil
-                    self.session.localRepoIndex = localSnapshot.repoIndex
-                    self.session.localDiscoveredRepoCount = localSnapshot.discoveredCount
-                    self.session.localProjectsAccessDenied = localSnapshot.accessDenied
-                    self.session.localProjectsScanInProgress = false
-                    self.session.globalActivityEvents = []
-                    self.session.globalActivityError = nil
-                    self.session.globalCommitEvents = []
-                    self.session.globalCommitError = nil
-                }
+                let localSnapshot = await self.snapshotForLoggedOutState(localSettings: localSettings)
+                await self.applyLoggedOutState(localSnapshot: localSnapshot, lastError: nil)
                 return
             }
             // If we have tokens but no user in session, fetch identity once per launch.
@@ -146,6 +120,10 @@ extension AppState {
                 self.session.lastError = message
             }
         } catch {
+            if error.isAuthenticationFailure {
+                await self.handleAuthenticationFailure(error)
+                return
+            }
             await MainActor.run {
                 self.session.localProjectsScanInProgress = false
                 self.session.lastError = error.userFacingMessage
@@ -206,6 +184,12 @@ extension AppState {
         )
     }
 
+    func handleAuthenticationFailure(_ error: Error) async {
+        await self.auth.logout()
+        let localSnapshot = await self.snapshotForLoggedOutState(localSettings: self.session.settings.localProjects)
+        await self.applyLoggedOutState(localSnapshot: localSnapshot, lastError: error.userFacingMessage)
+    }
+
     private func hydrateMenuTargets(_ repos: [Repository]) async -> [Repository] {
         guard !repos.isEmpty else { return [] }
         let limit = max(1, min(self.hydrateConcurrencyLimit, repos.count))
@@ -227,6 +211,46 @@ extension AppState {
             detailed.append(contentsOf: batchResult)
         }
         return detailed
+    }
+
+    private func snapshotForLoggedOutState(
+        localSettings: LocalProjectsSettings
+    ) async -> LocalRepoManager.SnapshotResult {
+        let matchNames = self.localMatchRepoNamesForLocalProjects(repos: [], includePinned: true)
+        return await self.localRepoManager.snapshot(
+            rootPath: localSettings.rootPath,
+            rootBookmarkData: localSettings.rootBookmarkData,
+            options: LocalRepoManager.SnapshotOptions(
+                autoSyncEnabled: localSettings.autoSyncEnabled,
+                fetchInterval: localSettings.fetchInterval.seconds,
+                preferredPathsByFullName: localSettings.preferredLocalPathsByFullName,
+                matchRepoNames: matchNames,
+                forceRescan: false
+            )
+        )
+    }
+
+    private func applyLoggedOutState(
+        localSnapshot: LocalRepoManager.SnapshotResult,
+        lastError: String?
+    ) async {
+        await MainActor.run {
+            self.session.account = .loggedOut
+            self.session.hasStoredTokens = false
+            self.session.repositories = []
+            self.session.menuSnapshot = nil
+            self.session.menuDisplayIndex = [:]
+            self.session.hasLoadedRepositories = false
+            self.session.lastError = lastError
+            self.session.localRepoIndex = localSnapshot.repoIndex
+            self.session.localDiscoveredRepoCount = localSnapshot.discoveredCount
+            self.session.localProjectsAccessDenied = localSnapshot.accessDenied
+            self.session.localProjectsScanInProgress = false
+            self.session.globalActivityEvents = []
+            self.session.globalActivityError = nil
+            self.session.globalCommitEvents = []
+            self.session.globalCommitError = nil
+        }
     }
 
     private func mergeHydrated(_ detailed: [Repository], into repos: [Repository]) -> [Repository] {

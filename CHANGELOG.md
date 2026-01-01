@@ -6,6 +6,9 @@
 - macOS: fix the toggle to reset to “show all” when disabled; disable it when signed out.
 - macOS: fix commit links to respect GitHub Enterprise host (#9).
 - macOS: add GitHub.com vs Enterprise login picker with OAuth help text (#4).
+- macOS: add token status checks + forced refresh buttons in Settings for debugging auth issues.
+- macOS: detect auth failures (401/refresh errors) and log out cleanly with a clearer message.
+- iOS: update app icon + logo assets.
 
 ## 0.1.2 - 2025-12-31
 

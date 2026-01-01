@@ -17,6 +17,19 @@ public enum GitHubAPIError: Error {
         }
     }
 
+    public var isAuthenticationFailure: Bool {
+        switch self {
+        case let .badStatus(code, message):
+            if code == 401 { return true }
+            if let message, message.localizedCaseInsensitiveContains("authentication refresh failed") {
+                return true
+            }
+            return false
+        default:
+            return false
+        }
+    }
+
     public var rateLimitedUntil: Date? {
         if case let .rateLimited(until, _) = self { return until }
         return nil

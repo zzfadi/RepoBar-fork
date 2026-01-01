@@ -64,6 +64,9 @@ actor GraphQLClient {
         }
         guard http.statusCode == 200 else {
             await self.diag.message("GraphQL status \(http.statusCode) for \(owner)/\(name)")
+            if http.statusCode == 401 {
+                throw URLError(.userAuthenticationRequired)
+            }
             throw URLError(.badServerResponse)
         }
 
@@ -123,6 +126,9 @@ actor GraphQLClient {
         }
         guard http.statusCode == 200 else {
             await self.diag.message("GraphQL status \(http.statusCode) for contributions \(login)")
+            if http.statusCode == 401 {
+                throw URLError(.userAuthenticationRequired)
+            }
             throw URLError(.badServerResponse)
         }
 

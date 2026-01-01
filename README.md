@@ -47,5 +47,3 @@ repobar repos --release
 repobar repos --release --plain   # no colors, no links, no URLs
 repobar repos --release --json    # machine output
 ```
-
-License: MIT

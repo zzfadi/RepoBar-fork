@@ -9,6 +9,7 @@ struct AccountSettingsView: View {
     @State private var enterpriseHost = ""
     @State private var hostMode: HostMode = .githubCom
     @State private var validationError: String?
+    @State private var tokenValidation: TokenValidationState = .unknown
 
     var body: some View {
         Form {
@@ -45,6 +46,27 @@ struct AccountSettingsView: View {
                             }
                             .buttonStyle(.bordered)
                         }
+                        if let status = self.tokenStatusText {
+                            HStack(spacing: 8) {
+                                if self.tokenValidation == .checking {
+                                    ProgressView()
+                                }
+                                Text(status)
+                                    .font(.caption)
+                                    .foregroundStyle(self.tokenStatusColor)
+                            }
+                        }
+                        HStack(spacing: 8) {
+                            Button("Check token") {
+                                Task { await self.validateToken() }
+                            }
+                            .disabled(self.tokenValidation == .checking)
+                            Button("Refresh token") {
+                                Task { await self.refreshToken() }
+                            }
+                            .disabled(self.tokenValidation == .checking)
+                        }
+                        .buttonStyle(.bordered)
                     }
                     .padding(.vertical, 4)
                 default:
@@ -73,8 +95,8 @@ struct AccountSettingsView: View {
                         Button(self.session.account == .loggingIn ? "Signing in…" : self.hostMode == .enterprise ? "Sign in to Enterprise" : "Sign in to GitHub.com") {
                             self.login()
                         }
-                            .disabled(self.session.account == .loggingIn)
-                            .buttonStyle(.borderedProminent)
+                        .disabled(self.session.account == .loggingIn)
+                        .buttonStyle(.borderedProminent)
                     }
                     Text("Uses browser-based OAuth. Tokens are stored in the system Keychain.")
                         .font(.caption)
@@ -105,6 +127,13 @@ struct AccountSettingsView: View {
                     self.clientSecret = RepoBarAuthDefaults.clientSecret
                 }
             }
+        }
+        .task(id: self.session.account) {
+            guard case .loggedIn = self.session.account else {
+                self.tokenValidation = .unknown
+                return
+            }
+            await self.validateToken()
         }
     }
 
@@ -173,6 +202,74 @@ struct AccountSettingsView: View {
         components.fragment = nil
         return components.url
     }
+
+    private func validateToken() async {
+        guard case .loggedIn = self.session.account else { return }
+        if self.tokenValidation == .checking { return }
+        self.tokenValidation = .checking
+        do {
+            let user = try await self.appState.github.currentUser()
+            self.session.account = .loggedIn(user)
+            self.session.lastError = nil
+            self.tokenValidation = .valid
+        } catch {
+            if error.isAuthenticationFailure {
+                await self.appState.handleAuthenticationFailure(error)
+                return
+            }
+            self.tokenValidation = .invalid(error.userFacingMessage)
+        }
+    }
+
+    private func refreshToken() async {
+        guard case .loggedIn = self.session.account else { return }
+        if self.tokenValidation == .checking { return }
+        self.tokenValidation = .checking
+        do {
+            let refreshed = try await self.appState.auth.refreshIfNeeded(force: true)
+            guard refreshed != nil else {
+                throw URLError(.userAuthenticationRequired)
+            }
+            await self.validateToken()
+        } catch {
+            if error.isAuthenticationFailure {
+                await self.appState.handleAuthenticationFailure(error)
+                return
+            }
+            self.tokenValidation = .invalid(error.userFacingMessage)
+        }
+    }
+
+    private var tokenStatusText: String? {
+        switch self.tokenValidation {
+        case .unknown:
+            "Token status not checked yet."
+        case .checking:
+            "Checking token…"
+        case .valid:
+            "Token is valid."
+        case let .invalid(message):
+            "Token invalid: \(message)"
+        }
+    }
+
+    private var tokenStatusColor: Color {
+        switch self.tokenValidation {
+        case .valid:
+            .green
+        case .invalid:
+            .red
+        default:
+            .secondary
+        }
+    }
+}
+
+private enum TokenValidationState: Equatable {
+    case unknown
+    case checking
+    case valid
+    case invalid(String)
 }
 
 private enum HostMode: String, CaseIterable {
@@ -182,9 +279,9 @@ private enum HostMode: String, CaseIterable {
     var label: String {
         switch self {
         case .githubCom:
-            return "GitHub.com"
+            "GitHub.com"
         case .enterprise:
-            return "Enterprise"
+            "Enterprise"
         }
     }
 }

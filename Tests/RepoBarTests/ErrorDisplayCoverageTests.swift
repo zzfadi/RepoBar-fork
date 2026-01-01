@@ -9,6 +9,7 @@ struct ErrorDisplayCoverageTests {
         #expect(URLError(.timedOut).userFacingMessage == "Request timed out.")
         #expect(URLError(.cannotLoadFromNetwork).userFacingMessage == "Rate limited; retry soon.")
         #expect(URLError(.cannotParseResponse).userFacingMessage == "GitHub returned an unexpected response.")
+        #expect(URLError(.userAuthenticationRequired).userFacingMessage == "Authentication required. Please sign in again.")
         #expect(URLError(.serverCertificateUntrusted).userFacingMessage == "Enterprise host certificate is not trusted.")
     }
 

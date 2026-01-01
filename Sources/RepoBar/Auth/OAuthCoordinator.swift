@@ -44,13 +44,16 @@ final class OAuthCoordinator {
         return tokens
     }
 
-    func refreshIfNeeded() async throws -> OAuthTokens? {
+    func refreshIfNeeded(force: Bool = false) async throws -> OAuthTokens? {
         let signpost = self.signposter.beginInterval("refreshIfNeeded")
         defer { self.signposter.endInterval("refreshIfNeeded", signpost) }
-        if let tokens = self.cachedTokens, tokens.expiresAt.map({ $0 > Date().addingTimeInterval(60) }) != false {
-            return tokens
-        }
-        let refreshed = try await self.tokenRefresher.refreshIfNeeded(host: self.lastHost)
+
+        let cachedTokens = self.cachedTokens
+        let shouldReuseCachedTokens = force == false
+            && cachedTokens?.expiresAt.map { $0 > Date().addingTimeInterval(60) } != false
+        if shouldReuseCachedTokens, let cachedTokens { return cachedTokens }
+
+        let refreshed = try await self.tokenRefresher.refreshIfNeeded(host: self.lastHost, force: force)
         if refreshed != nil {
             self.cachedTokens = refreshed
             self.hasLoadedTokens = true

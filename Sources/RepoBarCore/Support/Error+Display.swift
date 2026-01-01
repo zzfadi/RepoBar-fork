@@ -14,6 +14,7 @@ public extension Error {
             case .timedOut: return "Request timed out."
             case .cannotLoadFromNetwork: return "Rate limited; retry soon."
             case .cannotParseResponse: return "GitHub returned an unexpected response."
+            case .userAuthenticationRequired: return "Authentication required. Please sign in again."
             case .serverCertificateUntrusted, .serverCertificateHasBadDate, .serverCertificateHasUnknownRoot,
                  .serverCertificateNotYetValid:
                 return "Enterprise host certificate is not trusted."

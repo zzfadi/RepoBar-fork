@@ -39,7 +39,7 @@ public actor SkillSuggestionService {
             return cached
         }
 
-        return try await scanProject(at: path)
+        return try await scanProject(at: projectPath)
     }
 
     // MARK: - Suggestions

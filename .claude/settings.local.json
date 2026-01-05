@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pgrep:*)",
+      "Bash(swift build:*)",
+      "Bash(while pgrep -q swift-package)",
+      "Bash(do sleep 5)",
+      "Bash(done)",
+      "Bash(cat:*)",
+      "Bash(ls:*)"
+    ]
+  }
+}

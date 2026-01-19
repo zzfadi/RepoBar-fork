@@ -83,4 +83,49 @@ struct RepositoryDisplayModel: Identifiable, Equatable {
             Stat(id: "forks", label: "Forks", value: repo.stats.forks, systemImage: "tuningfork")
         ]
     }
+
+    init(localStatus: LocalRepoStatus, now: Date = Date()) {
+        let placeholderRepo = Repository(
+            id: "local:\(localStatus.path.path)",
+            name: localStatus.name,
+            owner: "",
+            sortOrder: nil,
+            error: nil,
+            rateLimitedUntil: nil,
+            ciStatus: .unknown,
+            openIssues: 0,
+            openPulls: 0,
+            latestRelease: nil,
+            latestActivity: nil,
+            traffic: nil,
+            heatmap: []
+        )
+        self.source = placeholderRepo
+        self.id = placeholderRepo.id
+        self.title = localStatus.displayName
+        self.ciStatus = .unknown
+        self.ciRunCount = nil
+        self.issues = 0
+        self.pulls = 0
+        self.trafficVisitors = nil
+        self.trafficCloners = nil
+        self.stars = 0
+        self.forks = 0
+        self.heatmap = []
+        self.sortOrder = nil
+        self.error = nil
+        self.rateLimitedUntil = nil
+        self.localStatus = localStatus
+        self.releaseLine = nil
+        self.lastPushAge = nil
+        self.activityLine = nil
+        self.activityURL = nil
+        self.activityEvents = []
+        self.latestActivityAge = nil
+        self.stats = []
+    }
+
+    var isLocalOnly: Bool {
+        self.source.owner.isEmpty && self.id.hasPrefix("local:")
+    }
 }

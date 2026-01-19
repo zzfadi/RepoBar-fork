@@ -38,16 +38,28 @@ actor LocalRepoManager {
 
         let fallbackURL = URL(fileURLWithPath: PathFormatter.expandTilde(rootPath), isDirectory: true)
         let resolvedBookmark = rootBookmarkData.flatMap(SecurityScopedBookmark.resolve)
-        let scopedURL = resolvedBookmark ?? fallbackURL
 
-        let didStart = scopedURL.startAccessingSecurityScopedResource()
+        // Try security-scoped bookmark first, fall back to direct path access
+        let (scopedURL, didStart): (URL, Bool) = {
+            if let resolved = resolvedBookmark {
+                let started = resolved.startAccessingSecurityScopedResource()
+                if started {
+                    return (resolved, true)
+                }
+            }
+            // Bookmark failed or didn't start - try fallback URL directly
+            return (fallbackURL, false)
+        }()
+
         defer {
             if didStart {
                 scopedURL.stopAccessingSecurityScopedResource()
             }
         }
 
-        if rootBookmarkData != nil, resolvedBookmark == nil || didStart == false {
+        // Only return accessDenied if we truly cannot access the folder
+        let canAccess = didStart || FileManager.default.isReadableFile(atPath: scopedURL.path)
+        if !canAccess {
             return SnapshotResult(discoveredCount: 0, repoIndex: .empty, accessDenied: true)
         }
 
@@ -149,11 +161,15 @@ actor LocalRepoManager {
         guard repoRoots.isEmpty == false else { return ([], []) }
 
         let matchKeys = Set(options.matchRepoNames.map { $0.lowercased() })
-        let interesting: [URL] = if matchKeys.isEmpty {
-            []
-        } else {
-            repoRoots.filter { matchKeys.contains($0.lastPathComponent.lowercased()) }
-        }
+        // Scan ALL discovered repos, not just GitHub-matching ones.
+        // This enables the Local filter to show all local repos including local-only ones.
+        // Prioritize GitHub-matching repos first, then include non-matching ones.
+        let interesting: [URL] = {
+            guard !matchKeys.isEmpty else { return repoRoots }
+            let matching = repoRoots.filter { matchKeys.contains($0.lastPathComponent.lowercased()) }
+            let nonMatching = repoRoots.filter { !matchKeys.contains($0.lastPathComponent.lowercased()) }
+            return matching + nonMatching
+        }()
 
         var cached: [LocalRepoStatus] = []
         var refresh: [URL] = []

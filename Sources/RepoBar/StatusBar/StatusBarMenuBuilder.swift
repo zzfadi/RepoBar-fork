@@ -263,6 +263,11 @@ final class StatusBarMenuBuilder {
         let session = self.appState.session
         let selection = session.menuRepoSelection
         let settings = session.settings
+
+        if selection.isLocalScope {
+            return self.localScopeViewModels(session: session, settings: settings, now: now)
+        }
+
         let scope: RepositoryScope = selection.isPinnedScope ? .pinned : .all
         let query = RepositoryQuery(
             scope: scope,
@@ -280,7 +285,7 @@ final class StatusBarMenuBuilder {
             : session.repositories
         let sorted = RepositoryPipeline.apply(baseRepos, query: query)
         let displayIndex = session.menuDisplayIndex
-        return sorted.map { repo in
+        let models = sorted.map { repo in
             displayIndex[repo.fullName]
                 ?? RepositoryDisplayModel(
                     repo: repo,
@@ -288,12 +293,43 @@ final class StatusBarMenuBuilder {
                     now: now
                 )
         }
+        return models
+    }
+
+    private func localScopeViewModels(
+        session: Session,
+        settings: UserSettings,
+        now: Date
+    ) -> [RepositoryDisplayModel] {
+        let localRepos = session.localRepoIndex.all
+        let displayIndex = session.menuDisplayIndex
+
+        var models: [RepositoryDisplayModel] = []
+        for localStatus in localRepos {
+            if let fullName = localStatus.fullName,
+               let existingModel = displayIndex[fullName] {
+                models.append(existingModel)
+            } else {
+                let model = RepositoryDisplayModel(localStatus: localStatus, now: now)
+                models.append(model)
+            }
+        }
+
+        let limit = settings.repoList.displayLimit
+        if limit > 0, models.count > limit {
+            return Array(models.prefix(limit))
+        }
+        return models
     }
 
     private func emptyStateMessage(for session: Session) -> (String, String) {
         let hasPinned = !session.settings.repoList.pinnedRepositories.isEmpty
         let isPinnedScope = session.menuRepoSelection.isPinnedScope
+        let isLocalScope = session.menuRepoSelection.isLocalScope
         let hasFilter = session.menuRepoSelection.onlyWith.isActive
+        if isLocalScope {
+            return ("No local repositories", "Clone a repository or set your projects folder in Settings.")
+        }
         if isPinnedScope, !hasPinned {
             return ("No pinned repositories", "Pin a repository to see activity here.")
         }

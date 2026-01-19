@@ -23,7 +23,9 @@ extension StatusBarMenuBuilder {
             }
         )
         let submenu = self.repoSubmenu(for: repo, isPinned: isPinned)
-        if let cached = self.repoMenuItemCache[repo.title] {
+        if let cached = self.repoMenuItemCache[repo.id] {
+            // Remove from current menu if attached (prevents crash when reusing cached items)
+            cached.menu?.removeItem(cached)
             self.menuItemFactory.updateItem(cached, with: card, highlightable: true, showsSubmenuIndicator: true)
             cached.isEnabled = true
             cached.submenu = submenu
@@ -32,7 +34,7 @@ extension StatusBarMenuBuilder {
             return cached
         }
         let item = self.viewItem(for: card, enabled: true, highlightable: true, submenu: submenu)
-        self.repoMenuItemCache[repo.title] = item
+        self.repoMenuItemCache[repo.id] = item
         return item
     }
 
@@ -59,11 +61,11 @@ extension StatusBarMenuBuilder {
             changelogHeadline: changelogHeadline,
             isPinned: isPinned
         )
-        if let cached = self.repoSubmenuCache[repo.title], cached.signature == signature {
+        if let cached = self.repoSubmenuCache[repo.id], cached.signature == signature {
             return cached.menu
         }
         let menu = self.makeRepoSubmenu(for: repo, isPinned: isPinned)
-        self.repoSubmenuCache[repo.title] = RepoSubmenuCacheEntry(menu: menu, signature: signature)
+        self.repoSubmenuCache[repo.id] = RepoSubmenuCacheEntry(menu: menu, signature: signature)
         return menu
     }
 

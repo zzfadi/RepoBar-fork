@@ -185,7 +185,7 @@ final class StatusBarMenuBuilder {
                 if index < repos.count - 1 {
                     items.append(self.repoCardSeparator())
                 }
-                usedRepoKeys.insert(repo.title)
+                usedRepoKeys.insert(repo.id)
             }
             self.repoMenuItemCache = self.repoMenuItemCache.filter { usedRepoKeys.contains($0.key) }
             self.repoSubmenuCache = self.repoSubmenuCache.filter { usedRepoKeys.contains($0.key) }
@@ -301,7 +301,8 @@ final class StatusBarMenuBuilder {
         settings: UserSettings,
         now: Date
     ) -> [RepositoryDisplayModel] {
-        let localRepos = session.localRepoIndex.all
+        // Filter out worktrees - they appear in parent repo's "Switch Worktree" submenu
+        let localRepos = session.localRepoIndex.all.filter { $0.worktreeName == nil }
         let displayIndex = session.menuDisplayIndex
 
         var models: [RepositoryDisplayModel] = []

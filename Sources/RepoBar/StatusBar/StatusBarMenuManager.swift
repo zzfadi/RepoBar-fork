@@ -92,13 +92,17 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
 
     @objc func menuFiltersChanged() {
         guard let menu = self.mainMenu else { return }
-        self.recentListCoordinator.clearMenus()
-        self.appState.persistSettings()
-        let plan = self.menuBuilder.mainMenuPlan()
-        self.menuBuilder.populateMainMenu(menu, repos: plan.repos)
-        self.lastMainMenuSignature = plan.signature
-        self.menuBuilder.refreshMenuViewHeights(in: menu)
-        menu.update()
+        // Defer menu rebuild to next run loop to avoid modifying menu during layout
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            self.recentListCoordinator.clearMenus()
+            self.appState.persistSettings()
+            let plan = self.menuBuilder.mainMenuPlan()
+            self.menuBuilder.populateMainMenu(menu, repos: plan.repos)
+            self.lastMainMenuSignature = plan.signature
+            self.menuBuilder.refreshMenuViewHeights(in: menu)
+            menu.update()
+        }
     }
 
     @objc private func recentListFiltersChanged() {

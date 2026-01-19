@@ -175,10 +175,16 @@ public struct LocalRepoIndex: Equatable, Sendable {
     public init(statuses: [LocalRepoStatus], preferredPathsByFullName: [String: String] = [:]) {
         self.all = statuses
         self.preferredPathsByFullName = preferredPathsByFullName
-        self.byFullName = Dictionary(uniqueKeysWithValues: statuses.compactMap { status in
-            status.fullName.map { ($0, status) }
-        })
-        self.byPath = Dictionary(uniqueKeysWithValues: statuses.map { ($0.path.path, $0) })
+        // Use uniquingKeysWith to handle duplicate fullNames (e.g., worktrees sharing same remote)
+        self.byFullName = Dictionary(
+            statuses.compactMap { status in status.fullName.map { ($0, status) } },
+            uniquingKeysWith: { first, _ in first }
+        )
+        // Use uniquingKeysWith to handle any duplicate paths
+        self.byPath = Dictionary(
+            statuses.map { ($0.path.path, $0) },
+            uniquingKeysWith: { first, _ in first }
+        )
         var nameIndex: [String: [LocalRepoStatus]] = [:]
         var nameIndexLowercased: [String: [LocalRepoStatus]] = [:]
         var fullNameIndexLowercased: [String: [LocalRepoStatus]] = [:]

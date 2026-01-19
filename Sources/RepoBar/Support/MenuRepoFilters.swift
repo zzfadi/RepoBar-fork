@@ -10,7 +10,7 @@ enum MenuRepoSelection: String, CaseIterable, Hashable {
         switch self {
         case .all: "All"
         case .pinned: "Pinned"
-        case .local: "Loc"
+        case .local: "Local"
         case .work: "Work"
         }
     }

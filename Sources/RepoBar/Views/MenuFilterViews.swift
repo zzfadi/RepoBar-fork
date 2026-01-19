@@ -4,10 +4,19 @@ import SwiftUI
 struct MenuRepoFiltersView: View {
     @Bindable var session: Session
 
+    private var availableFilters: [MenuRepoSelection] {
+        if session.account.isLoggedIn {
+            return MenuRepoSelection.allCases
+        } else {
+            // Only local filter when logged out (All/Pinned/Work require GitHub)
+            return [.local]
+        }
+    }
+
     var body: some View {
         HStack(spacing: 1) {
             Picker("Filter", selection: self.$session.menuRepoSelection) {
-                ForEach(MenuRepoSelection.allCases, id: \.self) { selection in
+                ForEach(self.availableFilters, id: \.self) { selection in
                     Text(selection.label).tag(selection)
                 }
             }

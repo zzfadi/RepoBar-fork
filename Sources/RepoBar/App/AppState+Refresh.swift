@@ -250,6 +250,10 @@ extension AppState {
             self.session.globalActivityError = nil
             self.session.globalCommitEvents = []
             self.session.globalCommitError = nil
+            // Auto-select local filter when logged out (other filters require GitHub)
+            if self.session.menuRepoSelection != .local {
+                self.session.menuRepoSelection = .local
+            }
         }
     }
 

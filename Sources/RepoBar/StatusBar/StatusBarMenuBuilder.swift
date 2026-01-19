@@ -154,15 +154,20 @@ final class StatusBarMenuBuilder {
             }
             return []
         case .filters:
-            guard case .loggedIn = session.account else { return [] }
-            guard session.hasLoadedRepositories else { return [] }
+            let isLoggedIn = session.account.isLoggedIn
+            let hasLocalFolder = session.settings.localProjects.rootPath?.isEmpty == false
+            // Show filters if logged in with repos, OR if local folder is configured
+            guard isLoggedIn ? session.hasLoadedRepositories : hasLocalFolder else { return [] }
             let filters = MenuRepoFiltersView(session: session)
                 .padding(.horizontal, 0)
                 .padding(.vertical, 0)
             return [self.viewItem(for: filters, enabled: true)]
         case .repoList:
-            guard case .loggedIn = session.account else { return [] }
-            if !session.hasLoadedRepositories {
+            let isLoggedIn = session.account.isLoggedIn
+            let isLocalScope = session.menuRepoSelection.isLocalScope
+            // Allow repo list for logged in users, or for local scope when logged out
+            guard isLoggedIn || isLocalScope else { return [] }
+            if isLoggedIn && !session.hasLoadedRepositories {
                 let loading = MenuLoadingRowView()
                     .padding(.horizontal, MenuStyle.sectionHorizontalPadding)
                     .padding(.vertical, MenuStyle.sectionVerticalPadding)

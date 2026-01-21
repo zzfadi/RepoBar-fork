@@ -36,6 +36,7 @@ kill_existing
 mkdir -p "${CACHE_PATH}"
 
 log "==> swift build"
+./Scripts/swiftpm_sanitize.sh
 swift build -q --cache-path "${CACHE_PATH}"
 swift build -q --product repobarcli --cache-path "${CACHE_PATH}"
 

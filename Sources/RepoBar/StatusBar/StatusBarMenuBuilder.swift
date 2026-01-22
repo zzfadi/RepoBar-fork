@@ -167,7 +167,7 @@ final class StatusBarMenuBuilder {
             let isLocalScope = session.menuRepoSelection.isLocalScope
             // Allow repo list for logged in users, or for local scope when logged out
             guard isLoggedIn || isLocalScope else { return [] }
-            if isLoggedIn && !session.hasLoadedRepositories {
+            if isLoggedIn, !session.hasLoadedRepositories {
                 let loading = MenuLoadingRowView()
                     .padding(.horizontal, MenuStyle.sectionHorizontalPadding)
                     .padding(.vertical, MenuStyle.sectionVerticalPadding)

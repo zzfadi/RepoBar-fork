@@ -74,6 +74,21 @@ struct RepositoryPipelineTests {
         #expect(result.map(\.fullName) == ["c/three", "a/one"])
     }
 
+    @Test("Pinned scope matches case-insensitively")
+    func pinnedScopeMatchesCaseInsensitively() {
+        let repos = [
+            Self.makeRepo("Owner/Repo", issues: 0, pulls: 0),
+            Self.makeRepo("other/repo", issues: 0, pulls: 0)
+        ]
+        let query = RepositoryQuery(
+            scope: .pinned,
+            pinned: ["owner/repo"],
+            pinPriority: true
+        )
+        let result = RepositoryPipeline.apply(repos, query: query)
+        #expect(result.map(\.fullName) == ["Owner/Repo"])
+    }
+
     @Test("Default age cutoff applies only to all scope")
     func ageCutoffDefaults() {
         let now = Date()

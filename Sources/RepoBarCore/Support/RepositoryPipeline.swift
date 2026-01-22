@@ -62,14 +62,15 @@ public enum RepositoryQueryDefaults {
 public enum RepositoryPipeline {
     public static func apply(_ repos: [Repository], query: RepositoryQuery) -> [Repository] {
         var filtered = repos
-        let pinnedSet = Set(query.pinned)
+        let pinnedSet = Set(query.pinned.map { $0.lowercased() })
+        let hiddenSet = Set(query.hidden.map { $0.lowercased() })
 
         switch query.scope {
         case .hidden:
-            filtered = filtered.filter { query.hidden.contains($0.fullName) }
+            filtered = filtered.filter { hiddenSet.contains($0.fullName.lowercased()) }
         case .all, .pinned:
-            if !query.hidden.isEmpty {
-                filtered = filtered.filter { !query.hidden.contains($0.fullName) }
+            if !hiddenSet.isEmpty {
+                filtered = filtered.filter { !hiddenSet.contains($0.fullName.lowercased()) }
             }
         }
 
@@ -86,7 +87,7 @@ public enum RepositoryPipeline {
         }
 
         if query.scope == .pinned {
-            filtered = filtered.filter { pinnedSet.contains($0.fullName) }
+            filtered = filtered.filter { pinnedSet.contains($0.fullName.lowercased()) }
         }
 
         if query.onlyWith.isActive {
@@ -95,10 +96,13 @@ public enum RepositoryPipeline {
 
         var sorted: [Repository]
         if query.pinPriority, !query.pinned.isEmpty {
-            let pinnedIndex = Dictionary(uniqueKeysWithValues: query.pinned.enumerated().map { ($0.element, $0.offset) })
+            let pinnedIndex = query.pinned.enumerated().reduce(into: [String: Int]()) { dict, entry in
+                let key = entry.element.lowercased()
+                if dict[key] == nil { dict[key] = entry.offset }
+            }
             sorted = filtered.sorted { lhs, rhs in
-                let leftIndex = pinnedIndex[lhs.fullName]
-                let rightIndex = pinnedIndex[rhs.fullName]
+                let leftIndex = pinnedIndex[lhs.fullName.lowercased()]
+                let rightIndex = pinnedIndex[rhs.fullName.lowercased()]
                 switch (leftIndex, rightIndex) {
                 case let (left?, right?):
                     if left != right { return left < right }

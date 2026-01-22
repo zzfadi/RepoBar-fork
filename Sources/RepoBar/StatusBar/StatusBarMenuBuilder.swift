@@ -183,7 +183,10 @@ final class StatusBarMenuBuilder {
             var items: [NSMenuItem] = []
             var usedRepoKeys: Set<String> = []
             for (index, repo) in repos.enumerated() {
-                let isPinned = settings.repoList.pinnedRepositories.contains(repo.title)
+                let isPinned = settings.repoList.pinnedRepositories.contains {
+                    $0.trimmingCharacters(in: .whitespacesAndNewlines)
+                        .caseInsensitiveCompare(repo.title) == .orderedSame
+                }
                 let item = self.repoMenuItem(for: repo, isPinned: isPinned)
                 item.representedObject = repo.title
                 items.append(item)

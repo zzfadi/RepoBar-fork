@@ -244,7 +244,9 @@ extension StatusBarMenuManager {
     private func moveRepo(sender: NSMenuItem, direction: Int) {
         guard let fullName = self.repoFullName(from: sender) else { return }
         var pins = self.appState.session.settings.repoList.pinnedRepositories
-        guard let currentIndex = pins.firstIndex(of: fullName) else { return }
+        guard let currentIndex = pins.firstIndex(where: {
+            $0.caseInsensitiveCompare(fullName) == .orderedSame
+        }) else { return }
         let maxIndex = max(pins.count - 1, 0)
         let target = max(0, min(maxIndex, currentIndex + direction))
         guard target != currentIndex else { return }

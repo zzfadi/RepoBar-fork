@@ -20,6 +20,9 @@ struct RepoBarApp: App {
             EmptyView()
         } label: {
             StatusItemLabelView(session: self.appState.session)
+                .task {
+                    await self.ensureStatusItemAttached()
+                }
         }
         .menuBarExtraStyle(.menu)
         .menuBarExtraAccess(isPresented: self.$isMenuPresented) { item in
@@ -38,6 +41,23 @@ struct RepoBarApp: App {
         }
         .defaultSize(width: 540, height: 420)
         .windowResizability(.contentSize)
+    }
+
+    @MainActor
+    private func ensureStatusItemAttached() async {
+        if self.menuManager == nil {
+            self.menuManager = StatusBarMenuManager(appState: self.appState)
+        }
+        guard let menuManager = self.menuManager, menuManager.isAttached == false else { return }
+        for _ in 0..<10 {
+            if let statusItem = StatusItemLocator.locate() {
+                self.logMenuEvent("statusItem fallback attach")
+                menuManager.attachMainMenu(to: statusItem)
+                return
+            }
+            try? await Task.sleep(for: .milliseconds(200))
+        }
+        self.logMenuEvent("statusItem fallback attach failed")
     }
 
     private func logMenuEvent(_ message: String) {

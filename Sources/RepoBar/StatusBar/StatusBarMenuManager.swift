@@ -63,6 +63,10 @@ final class StatusBarMenuManager: NSObject, NSMenuDelegate {
         )
     }
 
+    var isAttached: Bool {
+        self.statusItem != nil
+    }
+
     func attachMainMenu(to statusItem: NSStatusItem) {
         let menu = self.mainMenu ?? self.menuBuilder.makeMainMenu()
         self.mainMenu = menu

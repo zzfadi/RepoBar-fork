@@ -64,6 +64,7 @@ extension AppState {
             try Task.checkCancellation()
             let visible = self.applyVisibilityFilters(to: repos)
             let ordered = self.applyPinnedOrder(to: visible)
+            await self.updateSession(with: ordered, now: now)
             let matchNames = self.localMatchRepoNamesForLocalProjects(repos: ordered, includePinned: true)
             let localSnapshotTask = Task {
                 await self.localRepoManager.snapshot(

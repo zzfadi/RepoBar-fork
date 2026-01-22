@@ -150,7 +150,7 @@ final class AppModel {
                 }
             }
 
-            let repos = try await self.github.activityRepositories(limit: nil)
+            let repos = try await self.github.repositoryList(limit: nil)
             let pinned = await self.fetchMissingPinned(from: repos)
             let merged = self.mergeUnique(repos + pinned)
             let visible = RepositoryPipeline.apply(merged, query: self.repoQuery(now: now))

@@ -66,6 +66,15 @@ public actor GitHubClient {
 
     // MARK: - High level fetchers
 
+    public func repositoryList(limit: Int?) async throws -> [Repository] {
+        let items = try await self.restAPI.userReposPaginated(limit: limit)
+        await self.repoDetailCoordinator.updateDiscussionsCapability(
+            from: items,
+            source: "repositoryList"
+        )
+        return items.map { Repository.from(item: $0) }
+    }
+
     public func defaultRepositories(limit: Int, for _: String) async throws -> [Repository] {
         let repos = try await self.restAPI.userReposSorted(limit: max(limit, 10))
         await self.repoDetailCoordinator.updateDiscussionsCapability(

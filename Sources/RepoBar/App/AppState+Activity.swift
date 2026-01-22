@@ -3,7 +3,7 @@ import RepoBarCore
 
 extension AppState {
     func fetchActivityRepos() async throws -> [Repository] {
-        let repos = try await self.github.activityRepositories(limit: nil)
+        let repos = try await self.github.repositoryList(limit: nil)
         let pinned = self.session.settings.repoList.pinnedRepositories
         return await self.mergePinnedRepositories(into: repos, pinned: pinned)
     }
